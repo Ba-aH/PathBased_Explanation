@@ -304,16 +304,16 @@ and open the template in the editor.
     <script>
 
         var color = "gray";
-        let liste_node_click = []
+        let liste_node_click = [] // liste nodes cliqués
         let top5ChartInstance = null;
-        let reponse_user_study = {}
-        let parent = {}
+        let reponse_user_study = {} // liste des réponses user study
+        let parent = {} // dictionnaire {node: parent de node}
         var len = undefined;
-        var choix = "false";
-        var path = { nodes: [], edges: [] };
-        var path2 = { nodes: [], edges: [] };
-        var data = { nodes: [], edges: [] };
-        var course = "";
+        var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
+        var path = { nodes: [], edges: [] }; // chemin principal
+        var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
+        var data = { nodes: [], edges: [] }; // graphe
+        var course = ""; // cours recommandé
         const container = document.getElementById("graph");
         const options = {
             interaction: {
@@ -359,7 +359,9 @@ and open the template in the editor.
         }
         var path2_en_cours = false;
         var mode = "modeAjoutGraph";
-        function resetChemin(network) {
+
+        // -----------------FONCTIONS SIMPLES---------------//
+        function resetChemin(network) { // utilisé dans : resetPath, ajouterGraph, echangerGraph
             data = {
                 nodes: [...path.nodes],
                 edges: [...path.edges]
@@ -375,20 +377,96 @@ and open the template in the editor.
             });
         }
 
+        function orderNodesByEdges(nodes, edges) { // Permet d'afficher les petits chemins toujours dans le même ordre
+            // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
+            const toNodes = new Set(edges.map(e => e.to));
+            const fromNodes = new Set(edges.map(e => e.from));
+
+            let startNode = nodes.find(n => !toNodes.has(n.id));
+            if (!startNode) startNode = nodes[0]; // fallback
+
+            const orderedNodes = [];
+            let currentId = startNode.id;
+
+            while (currentId !== undefined) {
+                const currentNode = nodes.find(n => n.id === currentId);
+                if (!currentNode) break;
+                orderedNodes.push(currentNode);
+
+                const nextEdge = edges.find(e => e.from === currentId);
+                currentId = nextEdge ? nextEdge.to : undefined;
+            }
+            return orderedNodes;
+        }
+
+
+
+        function dragstartHandler(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function dragoverHandler(ev) {
+            if (ev.target.id == "div1" || ev.target.id == "listPredicats") {
+                ev.preventDefault();
+            }
+        }
+
+        function dropHandler(ev) {
+            ev.preventDefault();
+            const data3 = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(data3));
+        }
+
+
+        function getOrderOfData(listId) {
+
+            //get the list
+            var list = document.getElementById(listId);
+
+
+            var orderArray = [];
+            var childs = list.children;
+            for (var i = 0; i < childs.length; i++) {
+                var child = childs[i];
+                orderArray.push(child.id);
+            }
+
+            return orderArray;
+        }
+
+
+        function chercherNode() { // button Chercher node
+            const node = document.getElementById("node").value;
+            console.log('node : ', node);
+            for (n of data.nodes) {
+                console.log('n :', n.label);
+                if (n.label == node) {
+                    network.focus(n.id, {
+                        scale: 1.5, // Zoom level
+                        animation: {
+                            duration: 1000, // Animation duration in milliseconds
+                            easingFunction: "easeInOutQuad", // Animation easing function
+                        },
+                    });
+                    return
+                }
+
+
+            }
+            alert("Node non trouvé");
+            return
+        }
+
+
 
 
 
 
         window.onload = function () {
             const container = document.getElementById("graph");
-            //const container2 = document.getElementById("graph2");
-
-
-
-
             network = new vis.Network(container, data, options);
-            //network2 = new vis.Network(container2, data, options);
 
+            // -----------------EVENT LISTENER------------------- //    
             document.getElementById("resetView").addEventListener("click", () => {
                 network.fit({
                     animation: {
@@ -401,19 +479,6 @@ and open the template in the editor.
             document.getElementById("resetPath").addEventListener("click", () => {
                 resetChemin(network);
                 path2_en_cours = false;
-                /*data = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };
-                network.setData(data);
-                for (k of Object.keys(parent)) {
-                    parent[k] = null;
-                }
-                liste_node_click = []
-                // Recentrer après reset
-                network.fit({
-                    animation: true
-                });*/
             });
 
             document.getElementById("ajouterGraph").addEventListener("click", () => {
@@ -435,44 +500,33 @@ and open the template in the editor.
                 network.canvas.body.container.style.cursor = 'default';
             });
             network.on("showPopup", function (node) { })
-            //network2.on("showPopup", function(node) { })
+
             network.on('click', function (properties) {
 
                 const user = document.getElementById("user").value;
-                //const course = document.getElementById("course").value; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 var nodeId = network.getNodeAt({ x: properties.event.srcEvent.offsetX, y: properties.event.srcEvent.offsetY });
+
                 if (!nodeId) return
-                if (!liste_node_click.includes(nodeId)) {
-                    liste_node_click.push(nodeId)
+                if (!liste_node_click.includes(nodeId)) { // Si node jamais cliqué :
+                    liste_node_click.push(nodeId) // ajouter dans liste
+
                     console.log("liste click :", liste_node_click);
                     console.log("afficher voisins !")
-
-
-
-                    //var node = data.nodes.get(nodeId);
                     console.log("clic sur : ", nodeId);
                     console.log("parent dico : ", parent);
 
+                    //var node = data.nodes.get(nodeId);
 
                     const checkboxes = document.querySelectorAll('.myCheckbox:checked');
                     const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
+
                     if (cb_predicates.length > 0) {
                         //alert(`Cases cochées : ${cb_predicates.join(', ')}`);
                     } else {
                         //alert("Aucune case n'est cochée.");
                     }
 
-                    /*fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${nodeId}&choix=${choix}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ predicates: cb_predicates })
-                    })
-                        .then(res => res.json())
-                        .then(data2 => {...})*/
-
-                    fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${nodeId}&choix=${choix}`, {
+                    fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${nodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
@@ -481,8 +535,6 @@ and open the template in the editor.
                     })
                         .then(res => res.json())
                         .then(data2 => {
-                            //network = new vis.Network(container, data, options);
-
                             // Exclure les doublons de nœuds
                             const existingNodeIds = new Set(data.nodes.map(n => n.id));
                             console.log("data nodes : ", data2.nodes);
@@ -492,13 +544,11 @@ and open the template in the editor.
                             const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
                             console.log("new nodes not in data actu :", newNodes);
 
-                            // Mise à jour dict parent et dict grandparent !!!!!!!!!!!!!!!!!!!!!//////////////////////////////////////////////
+                            // Mise à jour dict parent
                             for (n in newNodes) {
                                 console.log("new nodes : ", newNodes[n].id);
                                 parent[newNodes[n].id] = nodeId;
-                                /*if (parent[nodeId] != null) {
-                                    dic_node_grandparent[parent[nodeId]] = 1;
-                                }*/
+
                             }
                             console.log("dico parent apres ajout enfant", parent);
 
@@ -512,21 +562,27 @@ and open the template in the editor.
                                 nodes: [...data.nodes, ...newNodes],
                                 edges: [...data.edges, ...newEdges]
                             };
+
+
                             if (data2.nodes.length == 0) {
                                 alert("Pas de voisins ! ");
-                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1);
+                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
                             }
                             console.log("liste click :", liste_node_click);
 
+                            // Mettre à jour le graphe
                             network.setData(data);
 
                         });
-                } else {
+                } else { // Sinon, si node cliqué une seconde fois
                     console.log("liste click :", liste_node_click);
                     console.log("dico parents :", parent);
-                    var grandparent = 0;
                     console.log("enfant : ", Object.keys(parent));
                     console.log("parent: ", Object.values(parent));
+
+                    // Vérifier si ses noeuds voisins ont des noeuds sortants
+                    var grandparent = 0;
+
                     for (k of Object.keys(parent)) {
                         //console.log("key : " + k);
                         if (parent[k] == nodeId && Object.values(parent).includes(k)) {
@@ -537,12 +593,13 @@ and open the template in the editor.
                     if (grandparent == 0) {
 
 
-                        liste_node_click.splice(liste_node_click.indexOf(nodeId), 1);
+                        liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
 
-                        fetch(`http://localhost:5000/api/voisins?voisin=${nodeId}&choix=${choix}`)
+                        fetch(`http://localhost:5000/api/voisins?voisin=${nodeId}&choix=${choix}`) // Récuperer ses voisins pour les retirer
                             .then(res => res.json())
                             .then(data2 => {
                                 console.log("retirer voisins de ", nodeId, " !");
+
                                 // Récupérer les ids des voisins à retirer
                                 const idsToRemove = new Set(data2.nodes.map(n => n.id));
                                 const edgesToRemove = new Set(data2.edges.map(e => `${e.from}->${e.to}`));
@@ -551,15 +608,17 @@ and open the template in the editor.
                                 var pathNodeIds = new Set(path.nodes.map(n => n.id));
                                 var pathEdge = new Set(path.edges.map(e => `${e.from}->${e.to}`));
 
-                                if (path2_en_cours) {
+                                if (path2_en_cours) { // Si on a ajouté au chemin initial d'autres chemins (mode ajout ou échange), prendre en consideration le total des chemins
                                     pathNodeIds = new Set(path2.nodes.map(n => n.id));
                                     pathEdge = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
                                 }
+
                                 console.log("path 2 en cours : ", path2_en_cours);
                                 console.log("path nodes : ", pathNodeIds);
                                 console.log("path edges : ", pathEdge);
                                 console.log("voisins : ", data2);
                                 console.log("nodes à enlever : ", idsToRemove);
+
                                 // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
                                 data = {
                                     nodes: data.nodes.filter(n => {
@@ -572,7 +631,7 @@ and open the template in the editor.
                                             }
                                         }
                                         if (idsToRemove.has(n.id) && !pathNodeIds.has(n.id) && p == 0) {
-                                            parent[n.id] = null; //////////////////////////////////////////////////////////////////////////////////////
+                                            parent[n.id] = null; // mettre à jour dict parent
                                             if (n.id in liste_node_click) {
                                                 liste_node_click.splice(liste_node_click.indexOf(n.id), 1);
                                             }
@@ -590,9 +649,10 @@ and open the template in the editor.
                                         return true;
                                     })
                                 };
+
                                 console.log("data finale : ", data);
 
-                                //si un element est dans liste node clock mais n'est pas parent, le retirer : 
+                                //si un element est dans liste node click mais n'est pas parent, le retirer : 
                                 p = 0
                                 for (n of liste_node_click) {
                                     for (k of Object.keys(parent)) {
@@ -619,7 +679,7 @@ and open the template in the editor.
             )
 
 
-
+            // --------------RECUPERATION DES PREDICATS AU DEBUT------------------ //
             fetch(`http://localhost:5000/api/predicats`)
                 .then(res => res.json())
                 .then(data2 => {
@@ -629,11 +689,10 @@ and open the template in the editor.
 
                     console.log("all predicats : ", data2);
 
-
-
-
                     data2.forEach((p, i) => {
                         //console.log(p, i);
+
+                        // Creation div predicat (à gauche en jaune, drag&drop)
                         const div = document.createElement("div");
                         div.className = "predicat";
                         liste = p.split("/");
@@ -643,6 +702,7 @@ and open the template in the editor.
                         div.ondragstart = dragstartHandler;
                         container.appendChild(div);
 
+                        // Creation checkbox predicat en dessous du grand graph
                         const div2 = document.createElement("div");
 
                         const input = document.createElement("input");
@@ -665,21 +725,18 @@ and open the template in the editor.
                     });
 
                 })
-
-
-
-
-
         }
 
-        function resetPredicats() {
+
+        // ------------------FONCTIONS COMPLEXES------------------- //
+
+        function resetPredicats() { // Mettre à jour les prédicats (les enlever de la zone drop), mais aussi tout le reste (BUTTON REINITIALISER)
+
             // Vider le conteneur de prédicats dropés
             const dropZone = document.getElementById("div1");
-            //top5ChartInstance = null;
-            top5ChartInstance.destroy();
-
             dropZone.innerHTML = "";
             document.getElementById("titre2").innerHTML = '';
+
 
             // Réinitialiser les variables globales
             choix = "false";
@@ -693,6 +750,8 @@ and open the template in the editor.
             document.getElementById("g_petit-container").innerHTML = "";
             document.getElementById("affichage-cours").innerHTML = "";
             document.getElementById("top5chart").innerHTML = "";
+            top5ChartInstance.destroy();
+            document.getElementById("titre2").innerHTML = "";
 
             // Vider et recharger les prédicats disponibles
             const predContainer = document.getElementById("listPredicats");
@@ -718,14 +777,17 @@ and open the template in the editor.
         }
 
 
-        function loadPath() {
-            parent = {}
+        function loadPath() { // Charger les chemins (BUTTON AFFICHER CHEMIN)
+
             const user = document.getElementById("user").value;
+            parent = {}
             path = { nodes: [], edges: [] };
             data = { nodes: [], edges: [] };
+
+            //Nettoyer les graphes affichés
             network.setData(data);
             document.getElementById("g_petit-container").innerHTML = "";
-            //const course = document.getElementById("course").value;
+
             fetch(`http://localhost:5000/api/random_course?start=${user}`)
                 .then(res => res.json())
                 .then(data4 => {
@@ -741,7 +803,8 @@ and open the template in the editor.
                     fetch(`http://localhost:5000/api/path?start=${user}&end=${course}&w=true&choix=${choix}`)
                         .then(res => res.json())
                         .then(data2 => {
-                            //network = new vis.Network(container, data, options);
+
+                            // Mise à jour du graphe, du chemin principal et de l'explication textuelle
                             data = data2.path;
                             var texte = data2.texte;
                             document.getElementById('Explication').innerHTML = texte;
@@ -751,6 +814,7 @@ and open the template in the editor.
                                 edges: [...data.edges]
                             };
                             network.setData(data);
+
                             // Ne lancer all_path que quand path a fini et retourné une réponse
                             const container = document.getElementById("g_petit-container");
                             container.innerHTML = "";  // Nettoyer l'ancien contenu
@@ -765,6 +829,7 @@ and open the template in the editor.
 
 
                             data2.forEach((p, i) => {
+                                // Création div où se trouvera le chemin + infos
                                 const div = document.createElement("div");
                                 div.className = "g_petit";
                                 div.id = "g" + i;
@@ -814,7 +879,7 @@ and open the template in the editor.
                                             const input = document.createElement("input");
                                             input.type = "radio";
                                             input.id = 'answer' + i + (i_qt) + (i_answer++);
-                                            input.name = 'answer' + i_qt; // <-- important pour grouper par question
+                                            input.name = 'answer' + i_qt;
                                             input.className = "myCheckbox";
                                             input.value = reponse;
 
@@ -828,30 +893,24 @@ and open the template in the editor.
                                             wrapper.appendChild(label);
 
                                             form.appendChild(wrapper);
-
-
-
-
                                         }
                                         ++i_qt;
-
                                     }
-
                                 }
                                 div_questions.appendChild(form);
-                                button_answer.addEventListener("click", () => {
-                                    div_questions.style.display = "block";
-
-                                })
-
 
                                 const button_valider = document.createElement('button');
                                 button_valider.className = 'button';
-                                button_valider.id = 'buttonValiser' + i;
+                                button_valider.id = 'buttonValider' + i;
                                 button_valider.innerHTML = 'Valider';
                                 div_questions.appendChild(button_valider);
 
                                 container.appendChild(div_questions);
+
+                                // Event listener des boutons :
+                                button_answer.addEventListener("click", () => {
+                                    div_questions.style.display = "block"; // Afficher les questions
+                                })
 
                                 button_valider.addEventListener("click", () => {
                                     const questions = form.querySelectorAll("div > strong");
@@ -873,7 +932,7 @@ and open the template in the editor.
                                     });
 
                                     if (allAnswered) {
-                                        div_questions.style.display = "none";
+                                        div_questions.style.display = "none"; // Ne plus afficher les qts
                                         button_answer.style.backgroundColor = '#9EBC8A';
 
                                         // récupération des réponses
@@ -892,7 +951,11 @@ and open the template in the editor.
                                     }
                                 });
 
-                                // positionhorizontalement selon cet ordre
+
+
+
+
+                                // position des nodes horizontalement selon cet ordre
                                 const spacedNodes = orderedNodes.map((node, i) => ({
                                     ...node,
                                     x: i * 150,  // espacement horizontal
@@ -928,27 +991,49 @@ and open the template in the editor.
                                     edges: p.edges
                                 }, customOptions);
 
-                                //var n = new vis.Network(div, { 'nodes': p['nodes'], 'edges': p['edges'] }, options);
                                 n.on("showPopup", function (node) { });
 
-                                // Si click sur un path --> l'ajouter dans le grand graphe!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
                                 n.on('click', function (properties) {
                                     console.log("click path");
-                                    path2 = {
+                                    pathNew = {
                                         nodes: [...orderedNodes],
                                         edges: [...p.edges]
                                     };
-                                    //resetChemin(network);
-                                    // Exclure les doublons de nœuds
-                                    if (mode == "modeAjoutGraph") {
-                                        const existingNodeIds = new Set(data.nodes.map(n => n.id));
 
-                                        const newNodes = path2.nodes.filter(n => !existingNodeIds.has(n.id));
+
+                                    if (mode == "modeAjoutGraph") {
+                                        // Exclure les doublons de nœuds
+                                        const existingNodeIds = new Set(data.nodes.map(n => n.id));
+                                        const newNodes = pathNew.nodes.filter(n => !existingNodeIds.has(n.id));
+
+                                        var existingNodeIdsInPath = new Set(path.nodes.map(n => n.id));
+                                        var newNodesPath = pathNew.nodes.filter(n => !existingNodeIdsInPath.has(n.id));
+                                        if (path2_en_cours) {
+                                            existingNodeIdsInPath = new Set(path2.nodes.map(n => n.id));
+                                            newNodesPath = pathNew.nodes.filter(n => !existingNodeIdsInPath.has(n.id));
+                                        }
 
 
                                         // Exclure les doublons d'arêtes (selon from/to ou id si défini)
                                         const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
-                                        const newEdges = path2.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
+                                        const newEdges = pathNew.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
+
+                                        var existingEdgeKeysInPath = new Set(path.edges.map(e => `${e.from}->${e.to}`));
+                                        var newEdgesPath = pathNew.edges.filter(e => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`));
+                                        if (path2_en_cours) {
+                                            existingEdgeKeysInPath = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
+                                            newEdgesPath = pathNew.edges.filter(e => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`));
+                                        }
+
+                                        console.log("existing nodes  u:", existingNodeIds);
+                                        console.log("existin edges u:", existingEdgeKeys);
+                                        console.log("pathNew:", pathNew);
+                                        console.log("new nodes :", newNodesPath);
+                                        console.log("new edges :", newEdgesPath);
+                                        console.log("new nodes utilisé :", newNodes);
+                                        console.log("new edges utilisé:", newEdges);
+                                        console.log("data : ", data);
 
                                         // Fusionner les données
                                         data = {
@@ -956,31 +1041,32 @@ and open the template in the editor.
                                             edges: [...data.edges, ...newEdges]
                                         };
 
-                                        path2 = {
-                                            nodes: [...data.nodes],
-                                            edges: [...data.edges]
-                                        };
+                                        if (path2_en_cours) {
+                                            path2 = {
+                                                nodes: [...path2.nodes, ...newNodesPath],
+                                                edges: [...path2.edges, ...newEdgesPath]
+                                            };
+                                        } else {
+                                            path2 = {
+                                                nodes: [...path.nodes, ...newNodesPath],
+                                                edges: [...path.edges, ...newEdgesPath]
+                                            };
+                                        }
+                                        console.log('path total :', path2);
 
 
                                     } else {
+                                        // Remplacer
                                         data = {
-                                            nodes: [...path2.nodes],
-                                            edges: [...path2.edges]
+                                            nodes: [...pathNew.nodes],
+                                            edges: [...pathNew.edges]
                                         };
 
                                     }
                                     path2_en_cours = true;
 
                                     network.setData(data);
-
-
-
                                 })
-
-                                //container.innerHTML += "S_rw = " + p['S_rw'] + "<br>";
-
-
-
                             });
                         })
                         .catch(err => alert("Erreur dans le chargement des chemins : " + err));
@@ -1010,8 +1096,8 @@ and open the template in the editor.
                                     datasets: [{
                                         label: 'Pourcentage de similarité',
                                         data: values,
-                                        backgroundColor: '#FFFBDE',
-                                        borderColor: '#91C8E4',
+                                        backgroundColor: 'rgba(255, 251, 222, 0.7)',
+                                        borderColor: '#ada56a',
                                         borderWidth: 1
                                     }]
                                 },
@@ -1040,54 +1126,8 @@ and open the template in the editor.
         }
 
 
-        function orderNodesByEdges(nodes, edges) {
-            // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
-            const toNodes = new Set(edges.map(e => e.to));
-            const fromNodes = new Set(edges.map(e => e.from));
 
-            let startNode = nodes.find(n => !toNodes.has(n.id));
-            if (!startNode) startNode = nodes[0]; // fallback
-
-            const orderedNodes = [];
-            let currentId = startNode.id;
-
-            while (currentId !== undefined) {
-                const currentNode = nodes.find(n => n.id === currentId);
-                if (!currentNode) break;
-                orderedNodes.push(currentNode);
-
-                const nextEdge = edges.find(e => e.from === currentId);
-                currentId = nextEdge ? nextEdge.to : undefined;
-            }
-            return orderedNodes;
-        }
-
-
-
-        function dragstartHandler(ev) {
-            ev.dataTransfer.setData("text", ev.target.id);
-        }
-
-        function dragoverHandler(ev) {
-            if (ev.target.id == "div1" || ev.target.id == "listPredicats") {
-                ev.preventDefault();
-            }
-        }
-
-        function dropHandler(ev) {
-            ev.preventDefault();
-            const data3 = ev.dataTransfer.getData("text");
-            ev.target.appendChild(document.getElementById(data3));
-        }
-
-        function InitGraph() {
-
-        }
-        function AfficheList(listId) {
-            console.log(getOrderOfData(listId));
-        }
-
-        function sendPredicatesToServer() {
+        function sendPredicatesToServer() { // Send prédicats pour ponderer le nouveau graphe (G_choix)
 
             const orderedPredicates = getOrderOfData("div1");
             console.log(orderedPredicates);
@@ -1116,56 +1156,6 @@ and open the template in the editor.
                     alert("Erreur lors de l’envoi des prédicats.");
                 });
         }
-
-
-
-
-
-        function getOrderOfData(listId) {
-
-            //get the list
-            var list = document.getElementById(listId);
-
-
-            var orderArray = [];
-            var childs = list.children;
-            for (var i = 0; i < childs.length; i++) {
-                var child = childs[i];
-                orderArray.push(child.id);
-            }
-
-            return orderArray;
-        }
-
-
-        function chercherNode() {
-            const node = document.getElementById("node").value;
-            console.log('node : ', node);
-            for (n of data.nodes) {
-                console.log('n :', n.label);
-                if (n.label == node) {
-                    network.focus(n.id, {
-                        scale: 1.5, // Zoom level
-                        animation: {
-                            duration: 1000, // Animation duration in milliseconds
-                            easingFunction: "easeInOutQuad", // Animation easing function
-                        },
-                    });
-                    return
-                }
-
-
-            }
-            alert("Node non trouvé");
-            return
-        }
-
-
-
-
-
-
-
     </script>
 </head>
 
@@ -1192,7 +1182,7 @@ and open the template in the editor.
         <!-- Zone de contenu principale -->
         <div id="content-area" style="display: flex; flex: 1; overflow: hidden;">
 
-            <!-- 🔹 Colonne de gauche : panneau de contrôle -->
+            <!-- Colonne de gauche : panneau de contrôle -->
             <div id="left-panel"
                 style="flex: 0 0 300px; padding: 20px; overflow-y: auto; border-right: 1px solid #ccc;">
                 <h3>Panneau de contrôle</h3>
@@ -1210,7 +1200,7 @@ and open the template in the editor.
                 <div id="listPredicats" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>
             </div>
 
-            <!-- 🔹 Colonne centrale : graphe et contrôles -->
+            <!-- Colonne centrale : graphe et contrôles -->
             <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto;">
                 <div id="affichage-cours"></div>
                 <h3>Chemin à partir d'un graphe pondéré</h3>
@@ -1242,7 +1232,7 @@ and open the template in the editor.
                 <div id="g_petit-container"></div>
             </div>
 
-            <!-- 🔹 Colonne de droite : explication + légende -->
+            <!--  Colonne de droite : explication + légende -->
             <div id="right-panel"
                 style="flex: 0 0 500px; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc;">
                 <h3>Explication</h3>
