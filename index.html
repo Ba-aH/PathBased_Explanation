@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+
+<head>
+    <title>Accueil</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #div1 {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            border: 1px solid #aaaaaa;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+
+        .predicat {
+            width: 20%;
+            background-color: #f1cae9;
+            color: rgb(59, 59, 59);
+            font-weight: bold;
+            border-radius: 10px;
+            border: 3px solid #9b4098;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #listPredicats {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        body {
+            color: #535151;
+            font: 12pt;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            background-color: #f2e4f8;
+            justify-content: center;
+        }
+
+        .g {
+            width: 90%;
+            height: 800px;
+            border: 3px solid #9b4098;
+            background-color: #ffffff;
+            border-radius: 25px;
+
+        }
+
+        .g_petit {
+            width: 45%;
+            height: 200px;
+            border: 3px solid #452272;
+            background-color: #dad5da;
+            border-radius: 25px;
+
+        }
+
+        .h3 {
+            text-align: center;
+        }
+
+        #g_petit-container {
+            display: flex;
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+            align-items: flex-start;
+            gap: 20px;
+
+        }
+
+        #graphs-container {
+            display: flex;
+            justify-content: space-around;
+
+            align-items: flex-start;
+            gap: 20px;
+            padding-top: 25px;
+            padding-bottom: 25px;
+
+        }
+
+        input[type="text"] {
+            width: 30%;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .button {
+            width: 20%;
+            background-color: #ffe693;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background-color: #e7bd34;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+
+        var color = "gray";
+        let liste_node_click = []
+        let top5ChartInstance = null;
+
+        let parent = {}
+        var len = undefined;
+        var choix = "false";
+        var path = { nodes: [], edges: [] };
+        var data = { nodes: [], edges: [] };
+        var course = "";
+        const container = document.getElementById("graph");
+        const options = {
+            interaction: {
+                hover: true,
+            },
+            physics: {
+                enabled: true,
+                solver: "repulsion",
+                "barnesHut": {
+                    "springConstant": 0,
+                    "avoidOverlap": 2
+                },
+                repulsion: {
+                    springLength: 500,
+                    springConstant: 0.05,  // la constante de ressort
+                    nodeDistance: 1000,
+                    damping: 0.09,
+                },
+            },
+            nodes: {
+                shape: "dot",
+                size: 30,
+                font: { size: 40, color: "#420f31" },
+                borderWidth: 2,
+            },
+            edges: {
+                arrows: {
+                    to: { enabled: true, scaleFactor: 1 }  // flèche vers le nœud 'to'
+                },
+                width: 1,
+                font: { size: 35, align: "top", color: "#420f31" },
+
+            },
+        };
+
+
+
+
+
+
+
+        window.onload = function () {
+            const container = document.getElementById("graph");
+            //const container2 = document.getElementById("graph2");
+
+
+
+
+            network = new vis.Network(container, data, options);
+            //network2 = new vis.Network(container2, data, options);
+
+            document.getElementById("resetView").addEventListener("click", () => {
+                network.fit({
+                    animation: {
+                        duration: 500,
+                        easingFunction: "easeInOutQuad"
+                    }
+                });
+
+            });
+            document.getElementById("resetPath").addEventListener("click", () => {
+
+                data = {
+                    nodes: [...path.nodes],
+                    edges: [...path.edges]
+                };
+                network.setData(data);
+                for (k of Object.keys(parent)) {
+                    parent[k] = null;
+                }
+                liste_node_click = []
+                // Recentrer après reset
+                network.fit({
+                    animation: true
+                });
+            });
+            network.on("hoverNode", function (params) {
+                network.canvas.body.container.style.cursor = 'pointer'
+            });
+            network.on("blurNode", function (params) {
+                network.canvas.body.container.style.cursor = 'default';
+            });
+            network.on("showPopup", function (node) { })
+            //network2.on("showPopup", function(node) { })
+            network.on('click', function (properties) {
+
+                const user = document.getElementById("user").value;
+                //const course = document.getElementById("course").value; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                var nodeId = network.getNodeAt({ x: properties.event.srcEvent.offsetX, y: properties.event.srcEvent.offsetY });
+                if (!nodeId) return
+                if (!liste_node_click.includes(nodeId)) {
+                    liste_node_click.push(nodeId)
+                    console.log("liste click :", liste_node_click);
+                    console.log("afficher voisins !")
+
+
+
+                    //var node = data.nodes.get(nodeId);
+                    console.log("clic sur : ", nodeId);
+                    console.log("parent dico : ", parent);
+
+
+                    const checkboxes = document.querySelectorAll('.myCheckbox:checked');
+                    const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
+                    if (cb_predicates.length > 0) {
+                        alert(`Cases cochées : ${cb_predicates.join(', ')}`);
+                    } else {
+                        alert("Aucune case n'est cochée.");
+                    }
+
+                    /*fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${nodeId}&choix=${choix}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ predicates: cb_predicates })
+                    })
+                        .then(res => res.json())
+                        .then(data2 => {...})*/
+
+                    fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${nodeId}&choix=${choix}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ predicates: cb_predicates })
+                    })
+                        .then(res => res.json())
+                        .then(data2 => {
+                            //network = new vis.Network(container, data, options);
+
+                            // Exclure les doublons de nœuds
+                            const existingNodeIds = new Set(data.nodes.map(n => n.id));
+                            console.log("data nodes : ", data2.nodes);
+                            console.log("data edges : ", data2.edges);
+                            console.log("already existing nodes : ", existingNodeIds);
+                            console.log("path et voisins de ", nodeId, " : ", data2);
+                            const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
+                            console.log("new nodes not in data actu :", newNodes);
+
+                            // Mise à jour dict parent et dict grandparent !!!!!!!!!!!!!!!!!!!!!//////////////////////////////////////////////
+                            for (n in newNodes) {
+                                console.log("new nodes : ", newNodes[n].id);
+                                parent[newNodes[n].id] = nodeId;
+                                /*if (parent[nodeId] != null) {
+                                    dic_node_grandparent[parent[nodeId]] = 1;
+                                }*/
+                            }
+                            console.log("dico parent apres ajout enfant", parent);
+
+                            // Exclure les doublons d'arêtes (selon from/to ou id si défini)
+                            const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
+                            const newEdges = data2.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
+                            console.log("new edges not in data actu :", newEdges);
+
+                            // Fusionner les données
+                            data = {
+                                nodes: [...data.nodes, ...newNodes],
+                                edges: [...data.edges, ...newEdges]
+                            };
+                            if (data2.nodes.length == 0) {
+                                alert("Pas de voisins ! ");
+                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1);
+                            }
+                            console.log("liste click :", liste_node_click);
+
+                            network.setData(data);
+
+                        });
+                } else {
+                    console.log("liste click :", liste_node_click);
+                    console.log("dico parents :", parent);
+                    var grandparent = 0;
+                    console.log("enfant : ", Object.keys(parent));
+                    console.log("parent: ", Object.values(parent));
+                    for (k of Object.keys(parent)) {
+                        //console.log("key : " + k);
+                        if (parent[k] == nodeId && Object.values(parent).includes(k)) {
+                            grandparent = 1;
+                        }
+                    }
+
+                    if (grandparent == 0) {
+
+
+                        liste_node_click.splice(liste_node_click.indexOf(nodeId), 1);
+
+                        fetch(`http://localhost:5000/api/voisins?voisin=${nodeId}&choix=${choix}`)
+                            .then(res => res.json())
+                            .then(data2 => {
+                                console.log("retirer voisins de ", nodeId, " !");
+                                // Récupérer les ids des voisins à retirer
+                                const idsToRemove = new Set(data2.nodes.map(n => n.id));
+                                const edgesToRemove = new Set(data2.edges.map(e => `${e.from}->${e.to}`));
+
+                                // Construire un set des ids du chemin initial (path)
+                                const pathNodeIds = new Set(path.nodes.map(n => n.id));
+                                const pathEdge = new Set(path.edges.map(e => `${e.from}->${e.to}`));
+                                console.log("path nodes : ", pathNodeIds);
+                                console.log("voisins : ", data2);
+                                console.log("nodes à enlever : ", idsToRemove);
+                                // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
+                                data = {
+                                    nodes: data.nodes.filter(n => {
+                                        // Retirer uniquement si le noeud est un voisin ET pas dans le chemin initial
+                                        p = 0;
+                                        for (k of Object.keys(parent)) {
+                                            //console.log("key : " + k);
+                                            if (parent[k] == n.id) {
+                                                p = 1;
+                                            }
+                                        }
+                                        if (idsToRemove.has(n.id) && !pathNodeIds.has(n.id) && p == 0) {
+                                            parent[n.id] = null; //////////////////////////////////////////////////////////////////////////////////////
+                                            if (n.id in liste_node_click){
+                                            liste_node_click.splice(liste_node_click.indexOf(n.id), 1);
+                                            }
+                                            return false; // retirer
+                                        }
+                                        return true; // garder
+                                    }),
+                                    edges: data.edges.filter(e => {
+                                        // Même logique pour les arêtes
+                                        if (edgesToRemove.has(`${e.from}->${e.to}`) && !pathEdge.has(`${e.from}->${e.to}`)) {
+
+                                            return false;
+                                        }
+                                        // arête pas dans edgesToRemove, on garde
+                                        return true;
+                                    })
+                                };
+                                console.log("data finale : ", data);
+
+                                //si un element est dans liste node clock mais n'est pas parent, le retirer : 
+                                p = 0
+                                for (n of liste_node_click) {
+                                    for (k of Object.keys(parent)){
+                                            
+                                            if (parent[k] == n) {
+                                                p = 1;
+                                            }
+                                        }
+                                        console.log("node check : " + n," p= "+p);
+                                    }
+                                if (p==0){
+                                    liste_node_click.splice(liste_node_click.indexOf(n), 1); ///////////////////////////////////////////////////retirer aussi les edges ???????????????????????????????????????????????????????????????!!!!!!!!!!!!!!! A FAIRE
+                                }
+
+                                network.setData(data);
+
+                            });
+                    } else {
+                        alert("Clique d'abord sur les nodes enfants de celui-là !");
+
+                    }
+                }
+            }
+            )
+
+
+
+            fetch(`http://localhost:5000/api/predicats`)
+                .then(res => res.json())
+                .then(data2 => {
+
+                    const container = document.getElementById("listPredicats");
+                    const container2 = document.getElementById("cochePredicats");
+
+                    console.log("all predicats : ", data2);
+
+
+
+
+                    data2.forEach((p, i) => {
+                        //console.log(p, i);
+                        const div = document.createElement("div");
+                        div.className = "predicat";
+                        liste = p.split("/");
+                        div.innerHTML = liste[liste.length - 1];
+                        div.id = liste[liste.length - 1];
+                        div.draggable = "true";
+                        div.ondragstart = dragstartHandler;
+                        container.appendChild(div);
+
+                        const div2 = document.createElement("div");
+
+                        const input = document.createElement("input");
+                        input.type = "checkbox";
+                        input.id = liste[liste.length - 1];
+                        input.name = liste[liste.length - 1];
+                        input.className = "myCheckbox";
+                        input.value = liste[liste.length - 1];
+
+                        const label = document.createElement("label");
+                        label.for = liste[liste.length - 1];
+                        label.appendChild(input);
+                        label.innerHTML += liste[liste.length - 1];
+
+
+                        div2.appendChild(label);
+                        container2.appendChild(div2);
+
+                        i += 1;
+                    });
+
+                })
+
+
+
+
+
+        }
+        function resetPredicats() {
+            // Vider le conteneur de prédicats dropés
+            const dropZone = document.getElementById("div1");
+            dropZone.innerHTML = "";
+
+            // Réinitialiser les variables globales
+            choix = "false";
+            path = { nodes: [], edges: [] };
+            data = { nodes: [], edges: [] };
+            parent = {};
+            liste_node_click = [];
+
+            // Nettoyer les graphes affichés
+            network.setData({ nodes: [], edges: [] });
+            document.getElementById("g_petit-container").innerHTML = "";
+            document.getElementById("affichage-cours").innerHTML = "";
+            document.getElementById("top5chart").innerHTML = "";
+
+            // Vider et recharger les prédicats disponibles
+            const predContainer = document.getElementById("listPredicats");
+            predContainer.innerHTML = "";
+
+            fetch(`http://localhost:5000/api/predicats`)
+                .then(res => res.json())
+                .then(preds => {
+                    preds.forEach(p => {
+                        const div = document.createElement("div");
+                        const id = p.split("/").pop();
+                        div.className = "predicat";
+                        div.id = id;
+                        div.draggable = true;
+                        div.ondragstart = dragstartHandler;
+                        div.innerHTML = id;
+                        predContainer.appendChild(div);
+                    });
+                });
+
+
+            alert("Réinitialisation effectuée.");
+        }
+
+
+        function loadPath() {
+            parent = {}
+            const user = document.getElementById("user").value;
+            path = { nodes: [], edges: [] };
+            data = { nodes: [], edges: [] };
+            network.setData(data);
+            document.getElementById("g_petit-container").innerHTML = "";
+            //const course = document.getElementById("course").value;
+            fetch(`http://localhost:5000/api/random_course?start=${user}`)
+                .then(res => res.json())
+                .then(data4 => {
+                    if (data4.error) {
+                        alert(data4.error);
+                        return;
+                    }
+                    course = data4.course;
+
+                    const affichageDiv = document.getElementById("affichage-cours");
+                    affichageDiv.innerHTML = `Cours recommandé : <strong>${course}</strong>`;
+
+                    fetch(`http://localhost:5000/api/path?start=${user}&end=${course}&w=true&choix=${choix}`)
+                        .then(res => res.json())
+                        .then(data2 => {
+                            //network = new vis.Network(container, data, options);
+                            data = data2;
+                            console.log("Path : ", data2);
+                            path = {
+                                nodes: [...data2.nodes],
+                                edges: [...data2.edges]
+                            };
+                            network.setData(data2);
+                            // Ne lancer all_path que quand path a fini et retourné une réponse
+                            const container = document.getElementById("g_petit-container");
+                            container.innerHTML = "";  // Nettoyer l'ancien contenu
+                            return fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`);
+                        })
+                        .then(res => res.json())
+                        .then(data2 => {
+                            const container = document.getElementById("g_petit-container");
+
+                            console.log("all paths from ", user, " to ", course, " : ", data2);
+                            document.getElementById("titre2").innerHTML = "Autres chemins possibles";
+
+
+                            data2.forEach((p, i) => {
+                                const div = document.createElement("div");
+                                div.className = "g_petit";
+                                div.id = "g" + i;
+                                container.appendChild(div);
+                                const orderedNodes = orderNodesByEdges(p.nodes, p.edges);
+
+                                // Maintenant positionne-les horizontalement selon cet ordre
+                                const spacedNodes = orderedNodes.map((node, i) => ({
+                                    ...node,
+                                    x: i * 150,  // espacement horizontal
+                                    y: 0,
+                                    fixed: { y: true }  // fixe seulement la coordonnée Y
+                                }));
+
+
+                                const customOptions = {
+                                    ...options,
+                                    nodes: {
+                                        ...options.nodes,
+                                        font: {
+                                            ...options.nodes.font,
+                                            size: 25  // nouvelle taille pour le texte des nœuds
+                                        }
+                                    },
+                                    edges: {
+                                        ...options.edges,
+                                        font: {
+                                            ...options.edges.font,
+                                            size: 25  // nouvelle taille pour le texte des arêtes
+                                        }
+                                    },
+                                    physics: {
+                                        enabled: true  // si tu veux aussi désactiver la physique ici
+                                    }
+                                };
+
+
+                                var n = new vis.Network(div, {
+                                    nodes: spacedNodes,
+                                    edges: p.edges
+                                }, customOptions);
+
+                                //var n = new vis.Network(div, { 'nodes': p['nodes'], 'edges': p['edges'] }, options);
+                                n.on("showPopup", function (node) { });
+
+                                //container.innerHTML += "S_rw = " + p['S_rw'] + "<br>";
+
+                                const line = document.createElement("div");
+                                line.textContent = "S_rw = " + p['S_rw'] + ", S_jac = " + p['S_jac'] + " --> " + p['S_final'];
+                                container.appendChild(line);
+                                const line2 = document.createElement("div");
+                                line.textContent = "Longueur = " + p['longueur'] + ", pattern : " + p['pattern'];
+                                container.appendChild(line2);
+                                
+
+                            });
+                        })
+                        .catch(err => alert("Erreur dans le chargement des chemins : " + err));
+
+                    fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const labels = Object.keys(data).map(uri => uri.split("/").pop()); // simplifier les noms
+                            const values = Object.values(data).map(Number);
+                            console.log("top5 : ", data);
+                            const ctx = document.getElementById('top5chart').getContext('2d');
+                            if (top5ChartInstance !== null) {
+                                top5ChartInstance.destroy();
+                            }
+                            top5ChartInstance = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Pourcentage de similarité',
+                                        data: values,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 1
+                                        }
+                                    }
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Erreur lors du chargement du top 5 :", error);
+                        });
+                })
+                .catch(err => alert("Erreur lors de la récupération du cours aléatoire."))
+
+
+
+        }
+
+
+        function orderNodesByEdges(nodes, edges) {
+            // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
+            const toNodes = new Set(edges.map(e => e.to));
+            const fromNodes = new Set(edges.map(e => e.from));
+
+            let startNode = nodes.find(n => !toNodes.has(n.id));
+            if (!startNode) startNode = nodes[0]; // fallback
+
+            const orderedNodes = [];
+            let currentId = startNode.id;
+
+            while (currentId !== undefined) {
+                const currentNode = nodes.find(n => n.id === currentId);
+                if (!currentNode) break;
+                orderedNodes.push(currentNode);
+
+                const nextEdge = edges.find(e => e.from === currentId);
+                currentId = nextEdge ? nextEdge.to : undefined;
+            }
+            return orderedNodes;
+        }
+
+
+
+        function dragstartHandler(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function dragoverHandler(ev) {
+            if (ev.target.id == "div1" || ev.target.id == "listPredicats") {
+                ev.preventDefault();
+            }
+        }
+
+        function dropHandler(ev) {
+            ev.preventDefault();
+            const data3 = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(data3));
+        }
+
+        function InitGraph() {
+
+        }
+        function AfficheList(listId) {
+            console.log(getOrderOfData(listId));
+        }
+
+        function sendPredicatesToServer() {
+
+            const orderedPredicates = getOrderOfData("div1");
+            console.log(orderedPredicates);
+
+            path = { nodes: [], edges: [] };
+            data = { nodes: [], edges: [] };
+
+            /*network = new vis.Network(container, data, options);*/
+            document.getElementById("g_petit-container").innerHTML = "";
+            fetch("http://localhost:5000/api/predicats_ordonnés", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ predicates: orderedPredicates })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Réponse du serveur :", data);
+                    alert("Prédicats envoyés avec succès !");
+                    choix = "true";
+                    console.log("choix : ", choix);
+                })
+                .catch(error => {
+                    console.error("Erreur lors de l’envoi :", error);
+                    alert("Erreur lors de l’envoi des prédicats.");
+                });
+        }
+
+
+
+
+
+        function getOrderOfData(listId) {
+
+            //get the list
+            var list = document.getElementById(listId);
+
+
+            var orderArray = [];
+            var childs = list.children;
+            for (var i = 0; i < childs.length; i++) {
+                var child = childs[i];
+                orderArray.push(child.id);
+            }
+
+            return orderArray;
+        }
+
+
+        function chercherNode() {
+            const node = document.getElementById("node").value;
+            console.log('node : ', node);
+            for (n of data.nodes) {
+                console.log('n :', n.label);
+                if (n.label == node) {
+                    network.focus(n.id, {
+                        scale: 1.5, // Zoom level
+                        animation: {
+                            duration: 1000, // Animation duration in milliseconds
+                            easingFunction: "easeInOutQuad", // Animation easing function
+                        },
+                    });
+                    return
+                }
+
+
+            }
+            alert("Node non trouvé");
+            return
+        }
+
+
+
+
+
+    </script>
+</head>
+
+<body>
+    <div class="top">
+        <label for="user">User</label>
+        <input type="text" id="user" placeholder="user_xx" />
+        <!--
+        <label for="course">Course</label>
+        <input type="text" id="course" placeholder="course_xxx" />
+    -->
+        <button class="button" onclick="loadPath()">Afficher le chemin</button>
+        <button class="button" onclick="sendPredicatesToServer()">Appliquer prédicats</button>
+        <button class="button" onclick="resetPredicats()">Réinitialiser</button>
+
+
+
+        <div>Drag & drop les prédicats les plus importants ci-dessous puis cliquez sur le bouton "Appliquer prédicats"
+        </div>
+        <div id="div1" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>
+
+        <br>
+        <div id="listPredicats" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)">
+
+        </div>
+    </div>
+    <div id="affichage-cours"></div>
+    <h3>Chemin à partir d'un graphe pondéré</h3>
+    <button class="button" id="resetView">Recentrer le graphe</button>
+    <button class="button" id="resetPath">Réinitialiser chemin</button>
+    <input type="text" id="node" placeholder="course_xx, user_xx,..." />
+    <button class="button" onclick="chercherNode()">Chercher node</button>
+    <div>Cliquez sur un noeud pour étendre le graphe </div>
+    <div id="graphs-container">
+
+
+        <div class="g" id="graph">
+        </div>
+
+        <fieldset id="cochePredicats">
+            <legend>Choisis les prédicats que tu souhaites afficher (sortant du node cliqué)</legend>
+
+        </fieldset>
+
+    </div>
+    <h3 id="titre2"></h3>
+    <div id="g_petit-container"></div>
+
+    <h2>Top 5 Attributs</h2>
+    <canvas id="top5chart" width="600" height="200"></canvas>
+
+
+
+
+
+</body>
+
+</html>
