@@ -5,8 +5,16 @@ from paths import find_path_shortest, find_path,find_all_path_shortest
 from random_walk import random_walk
 from Top5 import find_top5
 import rdflib
-import sys
+import sys,csv,os
 from urllib.parse import quote
+
+""" liste_question_possible = {'answer0':'This explanation lets me judge when I should trust the recommendation system.','answer1':
+                'This explanation of how the recommendation system works has sufficient detail.','answer2':
+                'This explanation of how the recommendation system works has irrelevant detail.','answer3':
+            'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : This is a good recommendation',
+                   'answer4': 'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : I will follow this course',
+                   'answer5': 'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : I can determine how well I will like this course'
+        } """
 
 def generer_texte(path):
     dico_txt={'SmallInterest':" has a small interest in ",
@@ -57,11 +65,6 @@ def generer_graphe_pondere():
 
 
 def generer_graphe_pondere_choix(listePredicats):
-
-  
-  # Charger le fichier .ttl
-  #g = rdflib.Graph()
-  #g.parse("./combined_graph.ttl", format="ttl")
 
   # Créer un graphe dirigé (ou non dirigé selon le besoin)
   G = nx.DiGraph()  # ou nx.Graph() si non orienté
@@ -260,12 +263,24 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
                     "title":"Title : "+t,
                 })
             
-
+        # transformer path en texte : node/edge/node/edge...
+        texte = ''
+        n_from = "user_"
+        for i in range(len(edges)):
+            for edge in edges:
+                if n_from in edge['from']:
+                    if 'user_' in edge['from']:
+                        texte += edge['from'].split('/')[-1]+"/"
+                    texte += edge['label']+ "/"
+                    texte+= edge['to'].split('/')[-1]+"/"
+                    n_from = edge['to']
+                    break
+        
         
         
         liste_patterns.append(pattern)
         nbr_pattern += 1
-        liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern}) ###################################################Ajout longueur chemin
+        liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern, 'path':texte}) ###################################################Ajout longueur chemin
         print("nodes :",nodes)
     
 
@@ -358,7 +373,7 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
     # Trier liste_res en fct de la longueur
     liste_res.sort(key=lambda path: path['longueur'])
 
-    return {'path' : liste_res.pop(0),'all_paths':liste_res}
+    return {'path' : liste_res[0],'all_paths':liste_res} #Soit [0] pour garder le chemin principal en bas, soit .pop(0)
 
 
 
@@ -420,11 +435,13 @@ def receive_predicates_pathETvoisins():
         return jsonify({"error": "Missing parameters"}), 400
 
     print("node_id avant :",node_id)
-    node_id = quote(node_id, safe=":/")
-    print("node_id après :",node_id)
+    
 
     if node_id not in G:
-        return jsonify({"error": f"No such node: {node_id}"}), 404
+        node_id = quote(node_id, safe=":/")
+        print("node_id après :",node_id)
+        if node_id not in G:
+            return jsonify({"error": f"No such node: {node_id}"}), 404
     if choix== "true":
         graph = G_choix
         print("choix = true")
@@ -463,7 +480,7 @@ def receive_predicates_pathETvoisins():
                     "id": n,
                     "label": nom_label,
                     "group": (
-                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n.split('/')[-1]   else 2 if "topics" in n else 4
+                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 1 if "course" in n.split('/')[-1]   else 2 if "topics" in n else 0 if "user" in n else 4
                     ),
                 })
             else:
@@ -471,7 +488,7 @@ def receive_predicates_pathETvoisins():
                     "id": n,
                     "label": nom_label,
                     "group": (
-                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n.split('/')[-1]   else 2 if "topics" in n else 4
+                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 1 if "course" in n.split('/')[-1]   else 2 if "topics" in n else 0 if "user" in n else 4
                     ),
                     "title":"Title : "+t,
                 })
@@ -498,10 +515,12 @@ def api_voisins():
         graph = G
 
     print("node_id avant :",node_id)
-    node_id = quote(node_id, safe=":/")
-    print("node_id après :",node_id)
-    if node_id not in graph:
-        return jsonify({"error": f"No such node: {node_id}"}), 404
+   
+    if node_id not in G:
+        node_id = quote(node_id, safe=":/")
+        print("node_id après :",node_id)
+        if node_id not in G:
+            return jsonify({"error": f"No such node: {node_id}"}), 404
 
     liste_voisins= list(graph.successors(node_id))
     json_chemin = {"nodes":[],"edges":[]}
@@ -651,11 +670,153 @@ def api_find_top5():
     course_uri = f"<https://coursera.graph.edu/{course}>"
     
     top5 = find_top5(G, user_uri, course_uri)
-    if top5 or len(top5)==0:
-        return jsonify(top5)
+    if top5 is None:
+        return jsonify({"error": "no top 5 found"}), 404
 
-    return jsonify({"error": "no top 5 found"}), 404
+    return jsonify(top5)
+
+
+
+# CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
+# @app.route('/api/user_study', methods=['POST'])
+# def receive_user_study():
+#     data = request.get_json()
+#     user_study = data.get('user_study', [])
+#     user_id = data.get('user_id', [])
+#     print("User study reçue :", user_study,", user id :", user_id)
+#     import csv
+
+   
+#     # Nom du fichier
+#     filename = "reponses_user_study.csv"
+
+#     # Création du fichier CSV
+#     with open(filename, mode='w', newline='', encoding='utf-8') as file:
+#         writer = csv.writer(file)
+
+#         # Écriture de l'entête
+#         headers = ['pattern']+ [liste_question_possible['answer'+str(i)] for i in range(6)]+['longueur']+['S_jac']+['S_rw']+['S_tot']+['path']
+#         writer.writerow(headers)
+
+#         # Écriture des lignes
+#         for question, answers in user_study.items():
+#             row = [question] + [answers.get(f'answer{i}', '') for i in range(6)]+ [answers.get('longueur','')]+ [answers.get('S_jac','')]+ [answers.get('S_rw','')]+ [answers.get('S_tot','')]+ [answers.get('path','')]
+#             writer.writerow(row)
+
+#     print(f"Fichier CSV '{filename}' créé avec succès.")
+
+
+#     return jsonify({"message": "User study bien reçue"})
+
+
+
+### Version CSV
+""" CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
+
+@app.route('/api/user_study', methods=['POST'])
+def receive_user_study():
+    data = request.get_json()
+    user_study = data.get('user_study', {})
+    user_id = data.get('user_id', '')
+
+    print("User study reçue :", user_study, ", user id :", user_id)
+
+    filename = "reponses_user_study.csv"
+
+    # En-têtes
+    headers = ['user_id', 'pattern'] + [f'answer{i}' for i in range(6)] + ['longueur', 'S_jac', 'S_rw', 'S_tot', 'path']
+
+    # Charger les anciennes données si le fichier existe
+    existing_rows = []
+    if os.path.exists(filename):
+        with open(filename, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                # Ne garder que les lignes des autres utilisateurs
+                if row['user_id'] != user_id:
+                    existing_rows.append(row)
+
+    # Ajouter les nouvelles réponses de l'utilisateur courant
+    for pattern, answers in user_study.items():
+        row = {
+            'user_id': user_id,
+            'pattern': pattern,
+            **{f'answer{i}': answers.get(f'answer{i}', '') for i in range(6)},
+            'longueur': answers.get('longueur', ''),
+            'S_jac': answers.get('S_jac', ''),
+            'S_rw': answers.get('S_rw', ''),
+            'S_tot': answers.get('S_tot', ''),
+            'path': answers.get('path', '')
+        }
+        existing_rows.append(row)
+
+    # Réécriture du fichier CSV
+    with open(filename, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(existing_rows)
+
+    print(f"Fichier CSV '{filename}' mis à jour avec les réponses de l'utilisateur {user_id}.")
+
+    return jsonify({"message": "User study bien reçue et enregistrée"}) """
+
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
+
+@app.route('/api/user_study', methods=['POST'])
+def receive_user_study():
+    import json
+    data = request.get_json()
+    user_study = data.get('user_study', {})
+    user_id = data.get('user_id', '')
+
+    print("User study reçue :", user_study, ", user id :", user_id)
+
+    formatted_feedback = {
+        "user": user_id,
+        "general_feedback": user_study.get("general_feedback", {}),
+        "path_feedback": []
+    }
+
+
+    path_feedback_dict = user_study.get("path_feedback", {})
+    questions_specifiques = user_study.get("questions_specifiques", [])
+
+    print("\npath_feedback_dict : ",path_feedback_dict)
+    print("\nquestions_specifiques : ",questions_specifiques)
+
+
+    for pattern, pdata in path_feedback_dict.items():
+        print("\nContenu de pdata :", json.dumps(pdata, indent=2))
+        entry = {
+            "pattern": pattern,
+            "path": pdata.pop("path", ""),
+            "length": pdata.pop("longueur", None),
+            "S_jac": pdata.pop("S_jac", None),
+            "S_rw": pdata.pop("S_rw", None),
+            "S_tot": pdata.pop("S_tot", None),
+            "answers": {k: v for k, v in pdata.items() if k.startswith("answer")},
+            #"answers": {
+            #    questions_specifiques[int(k.replace("answer", ""))]: v
+             #   for k, v in pdata.items()
+              #  if k.startswith("answer") and k.replace("answer", "").isdigit() and int(k.replace("answer", "")) < len(questions_specifiques)
+           # }
+        }
+        formatted_feedback["path_feedback"].append(entry)
+
+
+    # 💾 Sauvegarde en fichier JSON
+    with open(f"{user_id}_feedback.json", "w", encoding="utf-8") as f:
+        json.dump(formatted_feedback, f, indent=2, ensure_ascii=False)
+
+    print(f"Feedback saved to {user_id}_feedback.json")
+
+    return jsonify({"message": "User study bien reçue et enregistrée"})
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+

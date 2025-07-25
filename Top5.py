@@ -63,36 +63,40 @@ def find_top5(G, user, course):
   for row in res:
       tot = float(row.tot)  # ou float si besoin
       break
-  if tot == 0:
+  if tot is None or tot == 0:
     print("Utilisateur sans cours préférés — division impossible.")
   else:
     top5_query=f"""
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-      SELECT ?att (xsd:decimal(COALESCE(?nbCommun, 0)) / {tot} AS ?pourcentage) WHERE {{
-        #1. On récupère tous les attributs du cours
-        {course} ?p ?att .
-        Filter(?att != <https://schema.org/LearningResource>)
+    SELECT ?p (COUNT(DISTINCT ?coursMatch) AS ?nbCommun)
+    WHERE {{
 
-  
-        # 2. Pour chaque attribut ?att, on compte combien de cours préférés l'ont aussi
-        OPTIONAL {{
-            SELECT ?att (COUNT(?coursSimil) AS ?nbCommun) WHERE {{
-              {user} <https://coursera.graph.edu/HighInterest> ?coursSimil .
-              ?coursSimil ?p ?att .
-            }}
-            GROUP BY ?att
-          }}
-      }}
-      ORDER BY DESC(?pourcentage)
-      LIMIT 5"""
+      # Triplets (p,o) du cours recommandé
+      {course} ?p ?o .
+      FILTER(?p != rdf:type && ?o != <https://schema.org/LearningResource>)
+
+      # Cours préférés avec même (p,o)
+      {user} <https://coursera.graph.edu/HighInterest> ?coursMatch .
+      ?coursMatch ?p ?o .
+    }}
+    GROUP BY ?p
+    ORDER BY DESC(?nbCommun)
+    LIMIT 5
+    """
     tres = g.query(top5_query)
     top5 ={}
     for row in tres:
-        label = normalize_label(row.att)
-        top5[label] = float(row.pourcentage)
+        label = normalize_label(row.p)
+        if label == "has knowledge topic":
+           label="knowledge topic"
+        if label == "has difficulty level":
+          label = "difficulty level"
+        if label == "creator":
+           label ="university"
+        top5[label] = float(float(row.nbCommun)/tot)
     return top5
 
 #print(find_top5(G, '<https://coursera.graph.edu/user_619.0>', '<https://coursera.graph.edu/course_2758>' ))
