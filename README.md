@@ -2,7 +2,7 @@
 - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :
   * python -m http.server 8000
   * python server.py
-- Accéder ensuite à l'adresse : http://localhost:8000/page3.html
+- Accéder ensuite à l'adresse : http://localhost:8000/page3D3.html
 
 **Fonctionnement :**
 - Saisir l’identifiant du user dans le champ User, puis cliquer sur Afficher le chemin.
