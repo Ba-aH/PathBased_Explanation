@@ -365,7 +365,7 @@ and open the template in the editor.
     </style>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-
+        const API_URL = "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/"
         var color = "gray";
         var index_path_affiché = 0; // numero du petit chemin affiché
         let liste_node_click = [] // liste nodes cliqués
@@ -913,31 +913,7 @@ and open the template in the editor.
 
 
             });
-            /*.on("tick", () => {
-                linkElements
-                    .attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
-    
-                nodeElements
-                    .attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
-    
-                labelElements
-                    .attr("x", d => d.x)
-                    .attr("y", d => d.y);
-    
-                /* edgeLabels
-                    .attr("x", d => (d.source.x + d.target.x) / 2)
-                    .attr("y", d => (d.source.y + d.target.y) / 2); */
-
-            //});
-
-
-
-
-
+            
         }
 
         function drag(simulation) {
@@ -1139,7 +1115,7 @@ and open the template in the editor.
                         //alert("Aucune case n'est cochée.");
                     }
                     const encodedNodeId = encodeURIComponent(nodeId);
-                    fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId
+                    fetch(`${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
@@ -1224,7 +1200,7 @@ and open the template in the editor.
 
                         liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
                         const encodedNodeId = encodeURIComponent(nodeId);
-                        fetch(`http://localhost:5000/api/voisins?voisin=${encodedNodeId}&choix=${choix}`) // Récuperer ses voisins pour les retirer
+                        fetch(`${API_URL}/api/voisins?voisin=${encodedNodeId}&choix=${choix}`) // Récuperer ses voisins pour les retirer
                             .then(res => res.json())
                             .then(data2 => {
                                 console.log("retirer voisins de ", nodeId, " !");
@@ -1317,7 +1293,7 @@ and open the template in the editor.
 
 
             // --------------RECUPERATION DES PREDICATS AU DEBUT------------------ //
-            fetch(`http://localhost:5000/api/predicats`)
+            fetch(`${API_URL}/api/predicats`)
                 .then(res => res.json())
                 .then(data2 => {
 
@@ -1470,7 +1446,7 @@ and open the template in the editor.
             document.getElementById("g_petit-container").innerHTML = "";
             index_path_affiché = 0;
 
-            fetch(`http://localhost:5000/api/random_course?start=${user}`)
+            fetch(`${API_URL}/api/random_course?start=${user}`)
                 .then(res => res.json())
                 .then(data4 => {
                     if (data4.error) {
@@ -1491,7 +1467,7 @@ and open the template in the editor.
                     document.getElementById('graph-controls2').appendChild(pagination);
 
 
-                    fetch(`http://localhost:5000/api/path?start=${user}&end=${course}&w=true&choix=${choix}`)
+                    fetch(`${API_URL}/api/path?start=${user}&end=${course}&w=true&choix=${choix}`)
                         .then(res => res.json())
                         .then(data2 => {
 
@@ -1519,7 +1495,7 @@ and open the template in the editor.
                             // Ne lancer all_path que quand path a fini et retourné une réponse
                             const container = document.getElementById("g_petit-container");
                             container.innerHTML = "";  // Nettoyer l'ancien contenu
-                            return fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`);
+                            return fetch(`${API_URL}/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`);
                         })
                         .then(res => res.json())
                         .then(data2 => {
@@ -1947,7 +1923,7 @@ and open the template in the editor.
                                 if (allPathAnswered && allGeneralAnswered) {
                                     reponse_user_study.general_feedback = collectGeneralFeedback();
 
-                                    fetch("http://localhost:5000/api/user_study", {
+                                    fetch("${API_URL}/api/user_study", {
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json"
@@ -1976,7 +1952,7 @@ and open the template in the editor.
                         })
                     //.catch(err => alert("Erreur dans le chargement des chemins : " + err));
 
-                    fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
+                    fetch(`${API_URL}/api/top5?user=${user}&course=${course}`)
                         .then(response => response.json())
                         .then(data => {
                             document.getElementById("messageTop5").innerText = "";
@@ -2029,38 +2005,6 @@ and open the template in the editor.
 
 
         }
-
-
-
-        // function sendPredicatesToServer() { // Send prédicats pour ponderer le nouveau graphe (G_choix)
-
-        //     const orderedPredicates = getOrderOfData("div_drop_predicat");
-        //     console.log(orderedPredicates);
-
-        //     path = { nodes: [], edges: [] };
-        //     data = { nodes: [], edges: [] };
-
-        //     document.getElementById("g_petit-container").innerHTML = "";
-        //     fetch("http://localhost:5000/api/predicats_ordonnés", {
-        //         method: "POST",
-        //         headers: {
-        //             "Content-Type": "application/json"
-        //         },
-        //         body: JSON.stringify({ predicates: orderedPredicates })
-        //     })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             console.log("Réponse du serveur :", data);
-        //             alert("Prédicats envoyés avec succès !");
-        //             choix = "true";
-        //             console.log("choix : ", choix);
-        //         })
-        //         .catch(error => {
-        //             console.error("Erreur lors de l’envoi :", error);
-        //             alert("Erreur lors de l’envoi des prédicats.");
-        //         });
-        // }
-
 
     </script>
 </head>

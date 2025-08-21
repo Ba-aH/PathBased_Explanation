@@ -1,0 +1,37 @@
+{
+    "user": "user_5.0",
+    "general feedback": {
+        "Do you think explanations, either graph, diagram or text-based, are useful ?": "agree",
+        "Which explanation format do you prefer ?": "graph-based",
+        "Adding context to the explanations (neighborhood of the path’s nodes) is useful": "agree",
+        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.": "agree",
+        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.": "neutre",
+        "Choosing which predicates to display when exploring the path’s neighborhood is useful.": "neutre",
+        "This is a good recommandation.": "strongly disagree",
+        "I will follow this course.": "strongly disagree",
+        "I can determine how well I will like this course.": "strongly disagree"
+    },
+    "path feedback": [
+        {
+            "longueur": 3,
+            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_3468/",
+            "S_jac": 1,
+            "S_rw": 0,
+            "S_tot": 0.5
+        },
+        {
+            "longueur": 5,
+            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/recursive_least_squares/isKnowledgeTopicOf/course_452/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_3468/",
+            "S_jac": 0.7714285714285712,
+            "S_rw": 1,
+            "S_tot": 0.8857142857142857
+        },
+        {
+            "longueur": 5,
+            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/artificial_intelligence/cso#contributesTo/software_engineering/cso#superTopicOf/computer_systems_programming/isKnowledgeTopicOf/course_3468/",
+            "S_jac": 0,
+            "S_rw": 0.08310826064742512,
+            "S_tot": 0.04155413032371256
+        }
+    ]
+}
