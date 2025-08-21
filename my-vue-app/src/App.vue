@@ -1,10 +1,10 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import ExplainGraph from './components/ExplainGraph.vue'
 </script>
 
 <template>
 
-  <HelloWorld msg="Vite + Vue" />
+  <ExplainGraph msg="Vite + Vue" />
 </template>
 
 <style scoped>
