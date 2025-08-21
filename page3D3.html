@@ -7,7 +7,7 @@ and open the template in the editor.
 <html>
 
 <head>
-    <title>Accueil</title>
+    <title>ExplainGraph</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
@@ -515,11 +515,27 @@ and open the template in the editor.
         }
 
         function fitToGraph(svg, zoomfunction) {
-            svg.transition().duration(750).call(
-                //zoom.transform,
-                zoomfunction.transform,
-                d3.zoomIdentity // <-- transform de base : scale=1, translate=[0,0]
-            );
+            // container: le groupe 'g' contenant les noeuds et liens
+            console.log("svg.node() =", svg.select('g.zoom-group').node());
+
+            const bounds = svg.select('g.zoom-group').node().getBBox();
+            const fullWidth = +svg.attr("width");
+            const fullHeight = +svg.attr("height");
+
+            const width = bounds.width;
+            const height = bounds.height;
+            const midX = bounds.x + width / 2;
+            const midY = bounds.y + height / 2;
+
+            const scale = 0.85 / Math.max(width / fullWidth, height / fullHeight); // 0.85 pour un peu de marge
+            const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+            svg.transition()
+                .duration(750)
+                .call(
+                    zoomfunction.transform,
+                    d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+                );
         }
 
         function focusOnNode(graph, nodeId, width, height) {
@@ -1270,10 +1286,11 @@ and open the template in the editor.
                                         }
                                     }
                                     console.log("node check : " + n, " p= " + p);
-                                }
-                                if (p == 0) {
+                                    if (p == 0) {
                                     liste_node_click.splice(liste_node_click.indexOf(n), 1); ///////////////////////////////////////////////////retirer aussi les edges ???????????????????????????????????????????????????????????????!!!!!!!!!!!!!!! A FAIRE
                                 }
+                                }
+                                
 
                                 // Mettre à jour le graphe
                                 updateGraph(
