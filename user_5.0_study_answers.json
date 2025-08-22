@@ -1,37 +1,40 @@
 {
     "user": "user_5.0",
     "general feedback": {
-        "Do you think explanations, either graph, diagram or text-based, are useful ?": "agree",
+        "Do you think explanations, either graph, diagram or text-based, are useful ?": "strongly agree",
         "Which explanation format do you prefer ?": "graph-based",
-        "Adding context to the explanations (neighborhood of the path’s nodes) is useful": "agree",
-        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.": "agree",
-        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.": "neutre",
-        "Choosing which predicates to display when exploring the path’s neighborhood is useful.": "neutre",
-        "This is a good recommandation.": "strongly disagree",
-        "I will follow this course.": "strongly disagree",
-        "I can determine how well I will like this course.": "strongly disagree"
+        "Adding context to the explanations (neighborhood of the path’s nodes) is useful": "strongly agree",
+        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.": "strongly agree",
+        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.": "strongly agree",
+        "Choosing which predicates to display when exploring the path’s neighborhood is useful.": "strongly agree",
+        "This is a good recommandation.": "strongly agree",
+        "I will follow this course.": "strongly agree",
+        "I can determine how well I will like this course.": "strongly agree"
     },
     "path feedback": [
         {
-            "longueur": 3,
-            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_3468/",
+            "longueur": 5,
+            "path": "user_5.0/MediumInterest/course_1681/hasKnowledgeTopic/radio_communication/isKnowledgeTopicOf/course_2063/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_1026/",
+            "S_jac": 1,
+            "S_rw": 1,
+            "S_tot": 1,
+            "This explanation path lets me judge when I should trust the recommendation system.": "strongly agree",
+            "Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.": "strongly agree",
+            "This explanation path has irrelevant details, which make it overwhelming/difficult to understand.": "strongly agree",
+            "This explanation path seems generic.": "strongly agree",
+            "This explanation path seems seems aligned with my personal interests.": "strongly agree"
+        },
+        {
+            "longueur": 5,
+            "path": "user_5.0/SmallInterest/course_1429/hasKnowledgeTopic/data_analytics/isKnowledgeTopicOf/course_2241/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_1026/",
             "S_jac": 1,
             "S_rw": 0,
-            "S_tot": 0.5
-        },
-        {
-            "longueur": 5,
-            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/recursive_least_squares/isKnowledgeTopicOf/course_452/hasKnowledgeTopic/computer_science/isKnowledgeTopicOf/course_3468/",
-            "S_jac": 0.7714285714285712,
-            "S_rw": 1,
-            "S_tot": 0.8857142857142857
-        },
-        {
-            "longueur": 5,
-            "path": "user_5.0/MediumInterest/course_3364/hasKnowledgeTopic/artificial_intelligence/cso#contributesTo/software_engineering/cso#superTopicOf/computer_systems_programming/isKnowledgeTopicOf/course_3468/",
-            "S_jac": 0,
-            "S_rw": 0.08310826064742512,
-            "S_tot": 0.04155413032371256
+            "S_tot": 0.5,
+            "This explanation path lets me judge when I should trust the recommendation system.": "agree",
+            "Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.": "strongly agree",
+            "This explanation path has irrelevant details, which make it overwhelming/difficult to understand.": "strongly agree",
+            "This explanation path seems generic.": "strongly agree",
+            "This explanation path seems seems aligned with my personal interests.": "strongly agree"
         }
     ]
 }

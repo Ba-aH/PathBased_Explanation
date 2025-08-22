@@ -188,7 +188,7 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
     liste_S_rw = []
     min_S_rw = sys.maxsize
     max_S_rw = 0
-    poidsMax = 25*len(data)
+    poidsMax = 25*len(predicats(G))
     for p in liste_res:
         S_rw = 1
         l_nodes = p['nodes']

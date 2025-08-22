@@ -1,0 +1,30 @@
+{
+    "user": "user_10.0",
+    "general feedback": {
+        "Do you think explanations, either graph, diagram or text-based, are useful ?": "strongly agree",
+        "Which explanation format do you prefer ?": "graph-based",
+        "Adding context to the explanations (neighborhood of the path’s nodes) is useful": "strongly agree",
+        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.": "strongly agree",
+        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.": "strongly agree",
+        "Choosing which predicates to display when exploring the path’s neighborhood is useful.": "strongly agree",
+        "This is a good recommandation.": "strongly agree",
+        "I will follow this course.": "strongly agree",
+        "I can determine how well I will like this course.": "strongly agree"
+    },
+    "path feedback": [
+        {
+            "longueur": 3,
+            "path": "user_10.0/HighInterest/course_2288/hasKnowledgeTopic/web_development/isKnowledgeTopicOf/course_752/",
+            "S_jac": 1,
+            "S_rw": 1,
+            "S_tot": 1
+        },
+        {
+            "longueur": 5,
+            "path": "user_10.0/HighInterest/course_2288/hasKnowledgeTopic/javascript/isKnowledgeTopicOf/course_2338/hasKnowledgeTopic/web_development/isKnowledgeTopicOf/course_752/",
+            "S_jac": 1,
+            "S_rw": 0,
+            "S_tot": 0.5
+        }
+    ]
+}

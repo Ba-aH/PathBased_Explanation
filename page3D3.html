@@ -1923,7 +1923,7 @@ and open the template in the editor.
                                 if (allPathAnswered && allGeneralAnswered) {
                                     reponse_user_study.general_feedback = collectGeneralFeedback();
 
-                                    fetch("${API_URL}/api/user_study", {
+                                    fetch(`${API_URL}/api/user_study`, {
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json"

@@ -6,11 +6,11 @@ import Chart from "chart.js/auto";
 // Références réactives
 const user = ref("");
 const course = ref("");
+
 const searchNode = ref("");
 const explanation = ref("");
 const top5Message = ref("");
 const mode = ref("Mode Ajout Graphe Activé");
-const graphEl = ref(null);
 let top5ChartInstance = null;
 
 const legend = reactive({
@@ -21,19 +21,13 @@ const legend = reactive({
 });
 
 // Placeholders de données, à lier au graphe plus tard
-let network = ref(null); // créé dans onMounted()
 let graphCtx = ref(null);
+const graphEl = ref(null);
 const graphData = reactive({ nodes: [], edges: [] });
-
-let liste_node_click = reactive([]);
-const API_URL = "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/";
-
 let data = reactive({
   nodes: [],
   edges: [],
 });
-
-let parent = reactive({});
 let path2_en_cours = false;
 let path2 = reactive({
   nodes: [],
@@ -44,9 +38,15 @@ let path = reactive({
   edges: [],
 });
 
-const predicats = ref([]); // tableau réactif pour les prédicats
+const dataPaths = ref([]); // petits chemins
 
-const dataPaths = ref([]); // data2 de ton fetch
+let liste_node_click = reactive([]);
+const API_URL = "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/";
+
+let parent = reactive({});
+
+
+const predicats = ref([]); // tableau réactif pour les prédicats
 const indexPathAffiche = ref(0);
 
 const reponseUserStudy = reactive({
@@ -412,34 +412,6 @@ const getNodeColor = (group) => {
   return colorMap[group] || "#bce98f"; // couleur par défaut si le groupe n'existe pas
 };
 
-/*
-        function drag(simulation) {
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                if (d.fy !== 100)
-                    d.fy = d.y;
-            }
-
-            function dragged(event, d) {
-                d.fx = event.x;
-                if (d.fy !== 100)
-                    d.fy = event.y;
-            }
-
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                if (d.fy !== 100)
-                    d.fy = null;
-            }
-
-            return d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended);
-        }
-*/
 const drag = (simulation) => {
   return d3
     .drag()
@@ -481,29 +453,6 @@ const fetchPredicats = async () => {
 const uncheckAll = () => {
   predicats.value.forEach((p) => (p.checked = false));
 };
-
-function orderNodesByEdges(nodes, edges) {
-  // Permet d'afficher les petits chemins toujours dans le même ordre
-  // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
-  const toNodes = new Set(edges.map((e) => e.to));
-  const fromNodes = new Set(edges.map((e) => e.from));
-
-  let startNode = nodes.find((n) => !toNodes.has(n.id));
-  if (!startNode) startNode = nodes[0]; // fallback
-
-  const orderedNodes = [];
-  let currentId = startNode.id;
-
-  while (currentId !== undefined) {
-    const currentNode = nodes.find((n) => n.id === currentId);
-    if (!currentNode) break;
-    orderedNodes.push(currentNode);
-
-    const nextEdge = edges.find((e) => e.from === currentId);
-    currentId = nextEdge ? nextEdge.to : undefined;
-  }
-  return orderedNodes;
-}
 
 const loadPath = async () => {
   if (!user.value) {
@@ -702,7 +651,6 @@ const loadPath = async () => {
         }
         path2_en_cours = true;
 
-        //network.setData(data);
         updateGraph(data.nodes, data.edges, graphCtx.value);
       });
       // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
@@ -762,8 +710,29 @@ const loadPath = async () => {
   }
 };
 
-function sendPredicatesToServer() {
-  console.log("Envoi des prédicats");
+
+
+function orderNodesByEdges(nodes, edges) {
+  // Permet d'afficher les petits chemins toujours dans le même ordre
+  // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
+  const toNodes = new Set(edges.map((e) => e.to));
+  const fromNodes = new Set(edges.map((e) => e.from));
+
+  let startNode = nodes.find((n) => !toNodes.has(n.id));
+  if (!startNode) startNode = nodes[0]; // fallback
+
+  const orderedNodes = [];
+  let currentId = startNode.id;
+
+  while (currentId !== undefined) {
+    const currentNode = nodes.find((n) => n.id === currentId);
+    if (!currentNode) break;
+    orderedNodes.push(currentNode);
+
+    const nextEdge = edges.find((e) => e.from === currentId);
+    currentId = nextEdge ? nextEdge.to : undefined;
+  }
+  return orderedNodes;
 }
 
 function resetPredicats() {
@@ -791,15 +760,6 @@ function resetPredicats() {
 function resetView() {
   fitToGraph(graphCtx.value.svg, graphCtx.value.zoom);
 }
-
-/*
-function fitToGraph(svg, zoomfunction) {
-            svg.transition().duration(750).call(
-                //zoom.transform,
-                zoomfunction.transform,
-                d3.zoomIdentity // <-- transform de base : scale=1, translate=[0,0]
-            );
-        }*/
 
 function fitToGraph(svg, zoomfunction) {
   // container: le groupe 'g' contenant les noeuds et liens
@@ -909,7 +869,8 @@ function nextPath() {
 function validatePath(p) {
   console.log("validatePath");
   let unanswered = false;
-  for (const qtGroup of Object.values(liste_question_possible)) {
+	unanswered = liste_question_possible.length > p.answers;
+  /*for (const qtGroup of Object.values(liste_question_possible)) {
     for (const qt of qtGroup) {
       if (!p.answers.hasOwnProperty(qt) || !p.answers[qt]) {
         unanswered = true;
@@ -917,7 +878,7 @@ function validatePath(p) {
       }
     }
     if (unanswered) break;
-  }
+  }*/
   if (unanswered) {
     alert("Merci de répondre à toutes les questions.");
     return;
@@ -1035,11 +996,6 @@ onMounted(async () => {
         .filter((p) => p.checked)
         .map((p) => p.name);
 
-      /*  if (cb_predicates.length > 0) {
-                        alert(`Cases cochées : ${cb_predicates.join(', ')}`);
-                    } else {
-                        alert("Aucune case n'est cochée.");
-                    }*/
 
       const encodedNodeId = encodeURIComponent(nodeId);
       fetch(
@@ -1370,6 +1326,7 @@ onMounted(async () => {
             class="predicat"
             @click="prevPath"
             :disabled="indexPathAffiche === 0"
+						:style="{ visibility: indexPathAffiche === 0 ? 'hidden' : 'visible' }"
           >
             <
           </button>
@@ -1407,7 +1364,7 @@ onMounted(async () => {
                     <strong>{{ qt }}</strong
                     ><!--:style="{ color: !p.answers[qt] ? 'red' : '' }"-->
                     <div>
-                      <select v-model="p.answers[qt]">
+                      <select v-model="p.answers['answer'+qIndex]">
                         <option disabled value="">
                           -- Select an answer --
                         </option>
@@ -1431,7 +1388,8 @@ onMounted(async () => {
           <button
             class="predicat"
             @click="nextPath"
-            :disabled="indexPathAffiche === dataPaths.length - 1"
+            :disabled="indexPathAffiche === dataPaths.length -1"
+						:style="{ visibility: (indexPathAffiche === dataPaths.length-1 || dataPaths.length ===0) ? 'hidden' : 'visible' }" 
           >
             >
           </button>
