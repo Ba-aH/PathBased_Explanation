@@ -5,231 +5,232 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
 <html>
-
-<head>
+  <head>
     <title>ExplainGraph</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
+      rel="stylesheet"
+    />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ----------- RESET & BASE ----------- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      /* ----------- RESET & BASE ----------- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f7f9fc;
-            color: #333;
-            height: 100vh;
-            overflow: hidden;
-            font-size: 15px;
-        }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f7f9fc;
+        color: #333;
+        height: 100vh;
+        overflow: hidden;
+        font-size: 15px;
+      }
 
-        /* ----------- NAVIGATION ----------- */
-        #nav-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 28px;
-            background-color: #fff;
-            border-bottom: 1px solid #e5e5e5;
-            font-size: 18px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-        }
+      /* ----------- NAVIGATION ----------- */
+      #nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 28px;
+        background-color: #fff;
+        border-bottom: 1px solid #e5e5e5;
+        font-size: 18px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
 
-        #nav-bar a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
+      #nav-bar a {
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
 
-        #nav-bar a:hover {
-            color: #2f80ed;
-        }
+      #nav-bar a:hover {
+        color: #2f80ed;
+      }
 
-        /* ----------- LAYOUT PRINCIPAL ----------- */
-        #content-area {
-            display: flex;
-            height: 100%;
-        }
+      /* ----------- LAYOUT PRINCIPAL ----------- */
+      #content-area {
+        display: flex;
+        height: 100%;
+      }
 
-        /* ----------- PANNEAU DE CONTRÔLE (GAUCHE) ----------- */
-        #left-panel {
-            flex: 0 0 280px;
-            background-color: #ffffff;
-            border-right: 1px solid #eee;
-            padding: 24px;
-            overflow-y: auto;
-            box-shadow: inset -1px 0 0 #eee;
-        }
+      /* ----------- PANNEAU DE CONTRÔLE (GAUCHE) ----------- */
+      #left-panel {
+        flex: 0 0 280px;
+        background-color: #ffffff;
+        border-right: 1px solid #eee;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: inset -1px 0 0 #eee;
+      }
 
-        #left-panel h3 {
-            font-size: 18px;
-            margin-bottom: 16px;
-            color: #444;
-        }
+      #left-panel h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        color: #444;
+      }
 
-        #left-panel label {
-            display: block;
-            margin-top: 16px;
-            font-weight: 600;
-            color: #555;
-        }
+      #left-panel label {
+        display: block;
+        margin-top: 16px;
+        font-weight: 600;
+        color: #555;
+      }
 
-        #left-panel input[type="text"],
-        #left-panel select {
-            width: 100%;
-            padding: 10px 12px;
-            margin-top: 6px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fdfdfd;
-            transition: border 0.3s;
-        }
+      #left-panel input[type="text"],
+      #left-panel select {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #fdfdfd;
+        transition: border 0.3s;
+      }
 
-        #left-panel input:focus,
-        #left-panel select:focus {
-            border-color: #A0C878;
-            outline: none;
-        }
+      #left-panel input:focus,
+      #left-panel select:focus {
+        border-color: #a0c878;
+        outline: none;
+      }
 
-        /* ----------- BOUTONS ----------- */
-        .button {
-            background-color: #749BC2;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            width: 100%;
-            margin-top: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, box-shadow 0.2s;
-        }
+      /* ----------- BOUTONS ----------- */
+      .button {
+        background-color: #749bc2;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        width: 100%;
+        margin-top: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s, box-shadow 0.2s;
+      }
 
-        .button:hover {
-            background-color: #4682A9;
-            box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
-        }
+      .button:hover {
+        background-color: #4682a9;
+        box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
+      }
 
-        /* ----------- DROP ZONES POUR PRÉDICATS ----------- */
-        #div_drop_predicat {
-            border: 2px dashed #bbb;
-            border-radius: 8px;
-            min-height: 80px;
-            margin: 14px 0;
-            padding: 12px;
-            background-color: #fafbff;
-            transition: border 0.3s;
-        }
+      /* ----------- DROP ZONES POUR PRÉDICATS ----------- */
+      #div_drop_predicat {
+        border: 2px dashed #bbb;
+        border-radius: 8px;
+        min-height: 80px;
+        margin: 14px 0;
+        padding: 12px;
+        background-color: #fafbff;
+        transition: border 0.3s;
+      }
 
-        #div_drop_predicat:hover {
-            border-color: #2f80ed;
-        }
+      #div_drop_predicat:hover {
+        border-color: #2f80ed;
+      }
 
-        #listPredicats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
+      #listPredicats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
 
-        .predicat {
-            padding: 6px 10px;
-            background-color: #FFFBDE;
-            color: #333;
-            font-weight: bold;
-            border-radius: 6px;
-            border: 2px solid #ada56a;
-            cursor: grab;
-            font-size: 14px;
-            user-select: none;
-        }
+      .predicat {
+        padding: 6px 10px;
+        background-color: #fffbde;
+        color: #333;
+        font-weight: bold;
+        border-radius: 6px;
+        border: 2px solid #ada56a;
+        cursor: grab;
+        font-size: 14px;
+        user-select: none;
+      }
 
-        .predicat:hover {
-            background-color: #ada56a;
-        }
+      .predicat:hover {
+        background-color: #ada56a;
+      }
 
-        /* ----------- CENTRE : GRAPHE ----------- */
-        .divQuestions {
-            width: 100%;
-            margin-top: 20px;
-        }
+      /* ----------- CENTRE : GRAPHE ----------- */
+      .divQuestions {
+        width: 100%;
+        margin-top: 20px;
+      }
 
-        .divQuestions form>div {
-            margin-bottom: 20px;
-            /* espace entre les questions */
-        }
+      .divQuestions form > div {
+        margin-bottom: 20px;
+        /* espace entre les questions */
+      }
 
-        .mySelect {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background-color: #fff;
-            font-size: 14px;
-            color: #333;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 12px;
-            appearance: none;
-            /* enlève le style natif du navigateur */
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='70,100 100,40 40,40' fill='%23666'%3E%3C/polygon%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 12px;
-        }
+      .mySelect {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background-color: #fff;
+        font-size: 14px;
+        color: #333;
+        width: 100%;
+        max-width: 400px;
+        margin-bottom: 12px;
+        appearance: none;
+        /* enlève le style natif du navigateur */
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='70,100 100,40 40,40' fill='%23666'%3E%3C/polygon%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px;
+      }
 
-        .mySelect:focus {
-            border-color: #91C8E4;
-            outline: none;
-            box-shadow: 0 0 3px rgba(145, 200, 228, 0.8);
-        }
+      .mySelect:focus {
+        border-color: #91c8e4;
+        outline: none;
+        box-shadow: 0 0 3px rgba(145, 200, 228, 0.8);
+      }
 
+      .radioOption {
+        display: flex;
+        align-items: center;
+        margin: 4px 0;
+        gap: 8px;
+      }
 
-        .radioOption {
-            display: flex;
-            align-items: center;
-            margin: 4px 0;
-            gap: 8px;
-        }
+      .graph-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
 
-        .graph-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
+      .graph-controls .button {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 10px 16px;
+      }
 
-        .graph-controls .button {
-            flex: 0 0 auto;
-            width: auto;
-            padding: 10px 16px;
-        }
+      .graph-controls input[type="text"] {
+        flex: 1;
+        min-width: 180px;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
 
-        .graph-controls input[type="text"] {
-            flex: 1;
-            min-width: 180px;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
+      #center-panel {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        background-color: #f9f9fb;
+      }
 
-        #center-panel {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            background-color: #f9f9fb;
-        }
-
-        /* #g_petit-container {
+      /* #g_petit-container {
             display: flex;
             flex-wrap: wrap;
             padding : 24px;
@@ -237,466 +238,540 @@ and open the template in the editor.
             margin-top: 20px;
         } */
 
-        #g_petit-container {
-            display: flex;
-            align-items: center;
-            /* Aligne verticalement les éléments */
-            justify-content: center;
-            /* Centre horizontalement l’ensemble */
-            gap: 40px;
-            /* Espace entre les flèches et le div central */
-            padding: 24px;
-            margin-top: 20px;
+      #g_petit-container {
+        display: flex;
+        align-items: center;
+        /* Aligne verticalement les éléments */
+        justify-content: center;
+        /* Centre horizontalement l’ensemble */
+        gap: 40px;
+        /* Espace entre les flèches et le div central */
+        padding: 24px;
+        margin-top: 20px;
+      }
+
+      .div_chemin_info_button {
+        width: 100%;
+      }
+
+      #div_graphes_tous {
+        width: 75%;
+      }
+
+      .g {
+        width: 100%;
+        height: 600px;
+        border: 3px solid #91c8e4;
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px #faf6e9;
+      }
+
+      .g_petit {
+        width: 100%;
+        height: 200px;
+
+        border: 3px solid #91c8e4;
+        background-color: #f1f0e9;
+        border-radius: 16px;
+        box-shadow: 0 1px 6px #faf6e9;
+      }
+
+      /* ----------- DROITE - EXPLICATION ----------- */
+      #right-panel {
+        flex: 0 0 300px;
+        background-color: #ffffff;
+        border-left: 1px solid #eee;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: inset 1px 0 0 #eee;
+      }
+
+      #right-panel h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #444;
+      }
+
+      #right-panel p {
+        font-size: 14px;
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+
+      #right-panel h4 {
+        font-size: 16px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        color: #555;
+      }
+
+      #right-panel ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      #right-panel li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .legend-color {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-right: 8px;
+        border-radius: 50%;
+      }
+
+      .legend-color.blue {
+        background-color: #3b82f6;
+      }
+
+      .legend-color.gray {
+        background-color: #6c757d;
+      }
+
+      #legendLiteral {
+        background-color: #b6e69b;
+        border: 1px solid #88c977;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: sans-serif;
+        margin-right: 8px;
+        color: #333;
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* ----------- RESPONSIVE ----------- */
+      @media (max-width: 1024px) {
+        #content-area {
+          flex-direction: column;
         }
 
-        .div_chemin_info_button {
-            width: 100%;
-        }
-
-        #div_graphes_tous {
-            width: 75%;
+        #left-panel,
+        #right-panel {
+          flex: none;
+          width: 100%;
+          border: none;
         }
 
         .g {
-            width: 100%;
-            height: 600px;
-            border: 3px solid #91C8E4;
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 2px 10px #FAF6E9;
+          height: 400px;
         }
-
-        .g_petit {
-            width: 100%;
-            height: 200px;
-
-            border: 3px solid #91C8E4;
-            background-color: #f1f0e9;
-            border-radius: 16px;
-            box-shadow: 0 1px 6px #FAF6E9;
-        }
-
-        /* ----------- DROITE - EXPLICATION ----------- */
-        #right-panel {
-            flex: 0 0 300px;
-            background-color: #ffffff;
-            border-left: 1px solid #eee;
-            padding: 24px;
-            overflow-y: auto;
-            box-shadow: inset 1px 0 0 #eee;
-        }
-
-        #right-panel h3 {
-            font-size: 18px;
-            margin-bottom: 10px;
-            color: #444;
-        }
-
-        #right-panel p {
-            font-size: 14px;
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
-
-        #right-panel h4 {
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        #right-panel ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        #right-panel li {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .legend-color {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            margin-right: 8px;
-            border-radius: 50%;
-        }
-
-        .legend-color.blue {
-            background-color: #3b82f6;
-        }
-
-        .legend-color.gray {
-            background-color: #6c757d;
-        }
-
-        #legendLiteral {
-            background-color: #b6e69b;
-            border: 1px solid #88c977;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: sans-serif;
-            margin-right: 8px;
-            color: #333;
-            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        /* ----------- RESPONSIVE ----------- */
-        @media (max-width: 1024px) {
-            #content-area {
-                flex-direction: column;
-            }
-
-            #left-panel,
-            #right-panel {
-                flex: none;
-                width: 100%;
-                border: none;
-            }
-
-            .g {
-                height: 400px;
-            }
-        }
+      }
     </style>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-        const API_URL = "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/"
-        var color = "gray";
-        var index_path_affiché = 0; // numero du petit chemin affiché
-        let liste_node_click = [] // liste nodes cliqués
-        let top5ChartInstance = null;
-        let reponse_user_study = {
-            general_feedback: {},
-            path_feedback: {}
-        } // liste des réponses user study
-        let parent = {} // dictionnaire {node: parent de node}
-        var len = undefined;
-        var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
-        var path = { nodes: [], edges: [] }; // chemin principal
-        var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
-        var data = { nodes: [], edges: [] }; // graphe
-        var course = ""; // cours recommandé
-        const container = document.getElementById("graph");
-        let svg, nodeGroup, linkGroup, labelGroup; //------------------------------------------------------------------------------------
-        const liste_answer_possible = ['strongly agree', 'agree', 'neutre', 'disagree', 'strongly disagree'];
-        const questions_reponses_generales = {
-            "Do you think explanations, either graph, diagram or text-based, are useful ?": liste_answer_possible,
-            "Which explanation format do you prefer ?": ["graph-based", "text-based", "bar chart"],
-            "Adding context to the explanations (neighborhood of the path’s nodes) is useful": liste_answer_possible,
-            "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.": liste_answer_possible,
-            "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.": liste_answer_possible,
-            "Choosing which predicates to display when exploring the path’s neighborhood is useful.": liste_answer_possible,
-            'Based on the share of semantic attributes between the recommended course and your interest in these semantic attributes (in the top 5 chart):': [],
-            "This is a good recommandation.": liste_answer_possible,
-            "I will follow this course.": liste_answer_possible,
-            "I can determine how well I will like this course.": liste_answer_possible
+      const API_URL =
+        "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/";
+      let loadingPath = false;
+      var color = "gray";
+      var index_path_affiché = 0; // numero du petit chemin affiché
+      let liste_node_click = []; // liste nodes cliqués
+      let top5ChartInstance = null;
+      let reponse_user_study = {
+        general_feedback: {},
+        path_feedback: {},
+      }; // liste des réponses user study
+      let parent = {}; // dictionnaire {node: parent de node}
+      var len = undefined;
+      var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
+      var path = { nodes: [], edges: [] }; // chemin principal
+      var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
+      var data = { nodes: [], edges: [] }; // graphe
+      var course = ""; // cours recommandé
+      const container = document.getElementById("graph");
+      let svg, nodeGroup, linkGroup, labelGroup; //------------------------------------------------------------------------------------
+      const liste_answer_possible = [
+        "strongly agree",
+        "agree",
+        "neutre",
+        "disagree",
+        "strongly disagree",
+      ];
+      const questions_reponses_generales = {
+        "Do you think explanations, either graph, diagram or text-based, are useful ?":
+          liste_answer_possible,
+        "Which explanation format do you prefer ?": [
+          "graph-based",
+          "text-based",
+          "bar chart",
+        ],
+        "Adding context to the explanations (neighborhood of the path’s nodes) is useful":
+          liste_answer_possible,
+        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.":
+          liste_answer_possible,
+        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.":
+          liste_answer_possible,
+        "Choosing which predicates to display when exploring the path’s neighborhood is useful.":
+          liste_answer_possible,
+        "Based on the share of semantic attributes between the recommended course and your interest in these semantic attributes (in the top 5 chart):":
+          [],
+        "This is a good recommandation.": liste_answer_possible,
+        "I will follow this course.": liste_answer_possible,
+        "I can determine how well I will like this course.":
+          liste_answer_possible,
+      };
+      const liste_question_possible = {
+        "": [
+          "This explanation path lets me judge when I should trust the recommendation system.",
+          "Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.",
+          "This explanation path has irrelevant details, which make it overwhelming/difficult to understand.",
+          "This explanation path seems generic.",
+          "This explanation path seems seems aligned with my personal interests.",
+        ],
+      };
+      var path2_en_cours = false;
+      var mode = "modeAjoutGraph";
 
+      // -----------------FONCTIONS SIMPLES---------------//
+      function getNodeColor(group) {
+        return group === 0
+          ? "orange"
+          : group === 1
+          ? "rgb(245, 221, 6)"
+          : group === 2
+          ? "rgb(236, 112, 90)"
+          : group === 3
+          ? "rgb(67, 143, 206)"
+          : "#bce98f";
+      }
+
+      function resetChemin(network) {
+        // utilisé dans : resetPath, ajouterGraph, echangerGraph
+        data = {
+          nodes: [...path.nodes],
+          edges: [...path.edges],
         };
-        const liste_question_possible = {
-            '': ['This explanation path lets me judge when I should trust the recommendation system.',
-                'Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.',
-                'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
-                'This explanation path seems generic.',
-                'This explanation path seems seems aligned with my personal interests.']
+        network.setData(data);
+        for (k of Object.keys(parent)) {
+          parent[k] = null;
         }
-        var path2_en_cours = false;
-        var mode = "modeAjoutGraph";
+        liste_node_click = [];
+        // Recentrer après reset
+        network.fit({
+          animation: true,
+        });
+      }
 
-        // -----------------FONCTIONS SIMPLES---------------//
-        function getNodeColor(group) {
-            return group === 0 ? "orange" :
-                group === 1 ? "rgb(245, 221, 6)" :
-                    group === 2 ? "rgb(236, 112, 90)" :
-                        group === 3 ? "rgb(67, 143, 206)" : "#bce98f";
+      function orderNodesByEdges(nodes, edges) {
+        // Permet d'afficher les petits chemins toujours dans le même ordre
+        // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
+        const toNodes = new Set(edges.map((e) => e.to));
+        const fromNodes = new Set(edges.map((e) => e.from));
+
+        let startNode = nodes.find((n) => !toNodes.has(n.id));
+        if (!startNode) startNode = nodes[0]; // fallback
+
+        const orderedNodes = [];
+        let currentId = startNode.id;
+
+        while (currentId !== undefined) {
+          const currentNode = nodes.find((n) => n.id === currentId);
+          if (!currentNode) break;
+          orderedNodes.push(currentNode);
+
+          const nextEdge = edges.find((e) => e.from === currentId);
+          currentId = nextEdge ? nextEdge.to : undefined;
+        }
+        return orderedNodes;
+      }
+
+      function getOrderOfData(listId) {
+        //get the list
+        var list = document.getElementById(listId);
+
+        var orderArray = [];
+        var childs = list.children;
+        for (var i = 0; i < childs.length; i++) {
+          var child = childs[i];
+          orderArray.push(child.id);
         }
 
-        function resetChemin(network) { // utilisé dans : resetPath, ajouterGraph, echangerGraph
-            data = {
-                nodes: [...path.nodes],
-                edges: [...path.edges]
-            };
-            network.setData(data);
-            for (k of Object.keys(parent)) {
-                parent[k] = null;
+        return orderArray;
+      }
+
+      function dragstartHandler(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+      }
+
+      function dragoverHandler(ev) {
+        if (
+          ev.target.id == "div_drop_predicat" ||
+          ev.target.id == "listPredicats"
+        ) {
+          ev.preventDefault();
+        }
+      }
+
+      function dropHandler(ev) {
+        ev.preventDefault();
+        const data3 = ev.dataTransfer.getData("text");
+        ev.target.appendChild(document.getElementById(data3));
+      }
+
+      function chercherNode() {
+        // button Chercher node
+        const node = document.getElementById("node").value;
+        console.log("node : ", node);
+        for (n of data.nodes) {
+          console.log("n :", n.label);
+          if (n.label == node) {
+            const graph = window.graphPrincipal;
+            const width = +graph.svg.attr("width");
+            const height = +graph.svg.attr("height");
+            focusOnNode(graph, n.id, width, height);
+            return;
+          }
+        }
+        alert("Node non trouvé");
+        return;
+      }
+
+      function updateGraphSize(width, height, simulation, svg) {
+        // Si modif taille de l'onglet
+        svg.attr("width", width).attr("height", height);
+
+        // Si tu as un `simulation` (force layout), réactualise aussi
+        simulation.force(
+          "center",
+          d3.forceCenter(width / 2, height / 2).strength(0.01)
+        );
+        simulation.alpha(1).restart();
+      }
+
+      function fitToGraph(svg, zoomfunction) {
+        // container: le groupe 'g' contenant les noeuds et liens
+        console.log("svg.node() =", svg.select("g.zoom-group").node());
+
+        const bounds = svg.select("g.zoom-group").node().getBBox();
+        const fullWidth = +svg.attr("width");
+        const fullHeight = +svg.attr("height");
+
+        const width = bounds.width;
+        const height = bounds.height;
+        const midX = bounds.x + width / 2;
+        const midY = bounds.y + height / 2;
+
+        const scale = 0.85 / Math.max(width / fullWidth, height / fullHeight); // 0.85 pour un peu de marge
+        const translate = [
+          fullWidth / 2 - scale * midX,
+          fullHeight / 2 - scale * midY,
+        ];
+
+        svg
+          .transition()
+          .duration(750)
+          .call(
+            zoomfunction.transform,
+            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+          );
+      }
+
+      function focusOnNode(graph, nodeId, width, height) {
+        const node = graph.simulation.nodes().find((n) => n.id === nodeId);
+        if (!node) return;
+
+        // Mise en évidence (changer la couleur)
+
+        graph.nodeGroup
+          .selectAll("circle")
+          .attr("stroke", (d) => (d.id === nodeId ? "black" : null))
+          .attr("stroke-width", (d) => (d.id === nodeId ? 4 : null))
+          .attr("fill", (d) =>
+            d.id === nodeId ? "limegreen" : getNodeColor(d.group)
+          );
+
+        // Zoom centré sur le nœud (vers le centre de l'écran)
+        const newZoom = d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(1.5)
+          .translate(-node.x, -node.y);
+
+        graph.svg
+          .transition()
+          .duration(750)
+          .call(graph.zoom.transform, newZoom);
+      }
+
+      function collectGeneralFeedback() {
+        const feedback = {};
+        const selects = document.querySelectorAll("#questionsGenerales select");
+
+        selects.forEach((select) => {
+          const label =
+            select.previousElementSibling?.textContent?.trim() || select.name;
+          feedback[label] = select.value;
+        });
+
+        return feedback;
+      }
+
+      function drawGraph(container, nodesData, edgesData) {
+        if (!container) {
+          console.error("Élément #graph-container introuvable.");
+          return;
+        }
+        container.innerHTML = "";
+
+        var width = container.clientWidth;
+        var height = container.clientHeight;
+        console.log("container.style.display:", container.style.display);
+        if (container.parentElement.style.display == "none") {
+          const oldDisplay = container.parentElement.style.display;
+          container.parentElement.style.display = "block";
+
+          // Forcer le reflow en lisant une propriété
+          void container.parentElement.offsetWidth;
+
+          width = container.clientWidth || 600;
+          height = container.clientHeight || 400;
+          container.parentElement.style.display = oldDisplay;
+        }
+        console.log("container.clientWidth :", width);
+
+        const svg = d3
+          .select(container)
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height);
+
+        const zoomGroup = svg.append("g").attr("class", "zoom-group");
+
+        const linkGroup = zoomGroup.append("g").attr("class", "links");
+        const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
+        const labelGroup = zoomGroup.append("g").attr("class", "labels");
+        const edgeLabelGroup = zoomGroup
+          .append("g")
+          .attr("class", "edge-labels");
+
+        // pour fleche :
+        // Ajouter une définition de flèche
+        svg
+          .append("defs")
+          .append("marker")
+          .attr("id", "arrow-${}")
+          .attr("viewBox", "0 -5 10 10")
+          .attr("refX", 25) // Position du marqueur sur l'edge (ajuste selon le rayon du nœud)
+          .attr("refY", 0)
+          .attr("markerWidth", 6)
+          .attr("markerHeight", 6)
+          .attr("orient", "auto")
+          .attr("markerUnits", "userSpaceOnUse")
+          .append("path")
+          .attr("d", "M0,-5L10,0L0,5")
+          .attr("fill", "#999");
+
+        d3.select("svg").style("pointer-events", "all");
+        d3.select("g.zoom-group").style("pointer-events", "all");
+        d3.selectAll(".nodes circle").style("pointer-events", "all");
+
+        const zoom = d3
+          .zoom()
+          .scaleExtent([0.1, 5])
+          .on("zoom", (event) => {
+            zoomGroup.attr("transform", event.transform);
+          });
+
+        svg.call(zoom);
+
+        // Simulation init
+        let simulation = d3
+          .forceSimulation()
+          .force(
+            "link",
+            d3
+              .forceLink()
+              .id((d) => d.id)
+              .distance(200)
+          )
+          .force("charge", d3.forceManyBody().strength(-300))
+          .force(
+            "center",
+            d3
+              .forceCenter(+svg.attr("width") / 2, +svg.attr("height") / 2)
+              .strength(0.01)
+          );
+
+        updateGraph(
+          nodesData,
+          edgesData,
+          svg,
+          linkGroup,
+          nodeGroup,
+          labelGroup,
+          edgeLabelGroup,
+          simulation,
+          zoomGroup
+        ); // première update
+        return {
+          svg,
+          linkGroup,
+          nodeGroup,
+          labelGroup,
+          edgeLabelGroup,
+          simulation,
+          zoomGroup,
+          zoom,
+        };
+      }
+
+      function updateGraph(
+        nodesData,
+        edgesData,
+        svg,
+        linkGroup,
+        nodeGroup,
+        labelGroup,
+        edgeLabelGroup,
+        simulation,
+        zoomGroup
+      ) {
+        const edgesD3 = edgesData.map((e) => ({
+          ...e,
+          source: e.from,
+          target: e.to,
+        }));
+
+        // Vérifier positions initiales
+        nodesData.forEach((n) => {
+          if (n.x == null) n.x = Math.random() * +svg.attr("width");
+          if (n.y == null) n.y = Math.random() * +svg.attr("height");
+        });
+
+        // Met à jour les données dans la simulation
+        console.log("update data edged3 :", edgesD3);
+        console.log("update data nodes :", nodesData);
+        simulation.nodes(nodesData);
+        simulation.force("link").links(edgesD3);
+        simulation.alpha(1).restart();
+
+        // Liens
+        const linkSelection = linkGroup
+          .selectAll("path")
+          .data(edgesD3, (d) => d.id || d.source.id + "-" + d.target.id);
+
+        linkSelection.exit().remove();
+        var color = "#aaa";
+
+        const linkEnter = linkSelection
+          .enter()
+          .append("path") //////////////////
+          .attr("fill", "none")
+          .attr("stroke-width", 1.5)
+          .attr("stroke", (d) => {
+            // Trouver la couleur du nœud source
+            if (typeof d.source === "object") {
+              return getNodeColor(d.source.group);
             }
-            liste_node_click = []
-            // Recentrer après reset
-            network.fit({
-                animation: true
-            });
-        }
-
-        function orderNodesByEdges(nodes, edges) { // Permet d'afficher les petits chemins toujours dans le même ordre
-            // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
-            const toNodes = new Set(edges.map(e => e.to));
-            const fromNodes = new Set(edges.map(e => e.from));
-
-            let startNode = nodes.find(n => !toNodes.has(n.id));
-            if (!startNode) startNode = nodes[0]; // fallback
-
-            const orderedNodes = [];
-            let currentId = startNode.id;
-
-            while (currentId !== undefined) {
-                const currentNode = nodes.find(n => n.id === currentId);
-                if (!currentNode) break;
-                orderedNodes.push(currentNode);
-
-                const nextEdge = edges.find(e => e.from === currentId);
-                currentId = nextEdge ? nextEdge.to : undefined;
-            }
-            return orderedNodes;
-        }
-
-        function getOrderOfData(listId) {
-
-            //get the list
-            var list = document.getElementById(listId);
-
-
-            var orderArray = [];
-            var childs = list.children;
-            for (var i = 0; i < childs.length; i++) {
-                var child = childs[i];
-                orderArray.push(child.id);
-            }
-
-            return orderArray;
-        }
-
-
-        function dragstartHandler(ev) {
-            ev.dataTransfer.setData("text", ev.target.id);
-        }
-
-        function dragoverHandler(ev) {
-            if (ev.target.id == "div_drop_predicat" || ev.target.id == "listPredicats") {
-                ev.preventDefault();
-            }
-        }
-
-        function dropHandler(ev) {
-            ev.preventDefault();
-            const data3 = ev.dataTransfer.getData("text");
-            ev.target.appendChild(document.getElementById(data3));
-        }
-
-
-        function chercherNode() { // button Chercher node
-            const node = document.getElementById("node").value;
-            console.log('node : ', node);
-            for (n of data.nodes) {
-                console.log('n :', n.label);
-                if (n.label == node) {
-                    const graph = window.graphPrincipal;
-                    const width = +graph.svg.attr("width");
-                    const height = +graph.svg.attr("height");
-                    focusOnNode(graph, n.id, width, height);
-                    return
-                }
-            }
-            alert("Node non trouvé");
-            return
-        }
-
-        function updateGraphSize(width, height, simulation, svg) { // Si modif taille de l'onglet
-            svg
-                .attr("width", width)
-                .attr("height", height);
-
-            // Si tu as un `simulation` (force layout), réactualise aussi
-            simulation.force("center", d3.forceCenter(width / 2, height / 2).strength(0.01));
-            simulation.alpha(1).restart();
-        }
-
-        function fitToGraph(svg, zoomfunction) {
-            // container: le groupe 'g' contenant les noeuds et liens
-            console.log("svg.node() =", svg.select('g.zoom-group').node());
-
-            const bounds = svg.select('g.zoom-group').node().getBBox();
-            const fullWidth = +svg.attr("width");
-            const fullHeight = +svg.attr("height");
-
-            const width = bounds.width;
-            const height = bounds.height;
-            const midX = bounds.x + width / 2;
-            const midY = bounds.y + height / 2;
-
-            const scale = 0.85 / Math.max(width / fullWidth, height / fullHeight); // 0.85 pour un peu de marge
-            const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
-
-            svg.transition()
-                .duration(750)
-                .call(
-                    zoomfunction.transform,
-                    d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-                );
-        }
-
-        function focusOnNode(graph, nodeId, width, height) {
-            const node = graph.simulation.nodes().find(n => n.id === nodeId);
-            if (!node) return;
-
-            // Mise en évidence (changer la couleur)
-
-            graph.nodeGroup.selectAll("circle")
-                .attr("stroke", d => d.id === nodeId ? "black" : null)
-                .attr("stroke-width", d => d.id === nodeId ? 4 : null)
-                .attr("fill", d => d.id === nodeId ? "limegreen" : (getNodeColor(d.group)));
-
-            // Zoom centré sur le nœud (vers le centre de l'écran)
-            const newZoom = d3.zoomIdentity
-                .translate(width / 2, height / 2)
-                .scale(1.5)
-                .translate(-node.x, -node.y);
-
-            graph.svg.transition().duration(750)
-                .call(graph.zoom.transform, newZoom);
-
-        }
-
-        function collectGeneralFeedback() {
-            const feedback = {};
-            const selects = document.querySelectorAll("#questionsGenerales select");
-
-            selects.forEach(select => {
-                const label = select.previousElementSibling?.textContent?.trim() || select.name;
-                feedback[label] = select.value;
-            });
-
-            return feedback;
-        }
-
-
-
-        function drawGraph(container, nodesData, edgesData) {
-            if (!container) {
-                console.error("Élément #graph-container introuvable.")
-                return
-            }
-            container.innerHTML = "";
-
-            var width = container.clientWidth;
-            var height = container.clientHeight;
-            console.log("container.style.display:", container.style.display);
-            if (container.parentElement.style.display == "none") {
-
-                const oldDisplay = container.parentElement.style.display;
-                container.parentElement.style.display = "block";
-
-                // Forcer le reflow en lisant une propriété
-                void container.parentElement.offsetWidth;
-
-                width = container.clientWidth || 600;
-                height = container.clientHeight || 400;
-                container.parentElement.style.display = oldDisplay;
-
-            }
-            console.log("container.clientWidth :", width);
-
-
-            const svg = d3.select(container)
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-
-
-            const zoomGroup = svg.append("g").attr("class", "zoom-group");
-
-            const linkGroup = zoomGroup.append("g").attr("class", "links");
-            const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
-            const labelGroup = zoomGroup.append("g").attr("class", "labels");
-            const edgeLabelGroup = zoomGroup.append("g").attr("class", "edge-labels");
-
-
-            // pour fleche : 
-            // Ajouter une définition de flèche
-            svg.append("defs").append("marker")
-                .attr("id", "arrow-${}")
-                .attr("viewBox", "0 -5 10 10")
-                .attr("refX", 25) // Position du marqueur sur l'edge (ajuste selon le rayon du nœud)
-                .attr("refY", 0)
-                .attr("markerWidth", 6)
-                .attr("markerHeight", 6)
-                .attr("orient", "auto")
-                .attr("markerUnits", "userSpaceOnUse")
-                .append("path")
-                .attr("d", "M0,-5L10,0L0,5")
-                .attr("fill", "#999");
-
-
-
-            d3.select("svg").style("pointer-events", "all");
-            d3.select("g.zoom-group").style("pointer-events", "all");
-            d3.selectAll(".nodes circle").style("pointer-events", "all");
-
-
-            const zoom = d3.zoom()
-                .scaleExtent([0.1, 5])
-                .on("zoom", (event) => {
-                    zoomGroup.attr("transform", event.transform);
-                });
-
-            svg.call(zoom);
-
-
-
-            // Simulation init
-            let simulation = d3.forceSimulation()
-                .force("link", d3.forceLink().id(d => d.id).distance(200))
-                .force("charge", d3.forceManyBody().strength(-300))
-                .force("center", d3.forceCenter(+svg.attr("width") / 2, +svg.attr("height") / 2).strength(0.01));
-
-            updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup); // première update
-            return { svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup, zoom };
-        }
-
-        function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup) {
-            const edgesD3 = edgesData.map(e => ({
-                ...e,
-                source: e.from,
-                target: e.to
-            }));
-
-            // Vérifier positions initiales
-            nodesData.forEach(n => {
-                if (n.x == null) n.x = Math.random() * +svg.attr("width");
-                if (n.y == null) n.y = Math.random() * +svg.attr("height");
-            });
-
-            // Met à jour les données dans la simulation
-            console.log('update data edged3 :', edgesD3);
-            console.log('update data nodes :', nodesData);
-            simulation.nodes(nodesData);
-            simulation.force("link").links(edgesD3);
-            simulation.alpha(1).restart();
-
-
-            // Liens
-            const linkSelection = linkGroup.selectAll("path")
-                .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
-
-            linkSelection.exit().remove();
-            var color = "#aaa"
-
-            const linkEnter = linkSelection.enter()
-                .append("path") //////////////////
-                .attr("fill", "none")
-                .attr("stroke-width", 1.5)
-                .attr("stroke", d => {
-                    // Trouver la couleur du nœud source
-                    if (typeof d.source === "object") {
-                        return getNodeColor(d.source.group);
-                    }
-                    // fallback
-                    return "#aaa";
-                });
-            /*.attr("marker-end", d =>{
+            // fallback
+            return "#aaa";
+          });
+        /*.attr("marker-end", d =>{
                  // Trouver la couleur du nœud source
                  if (typeof d.source === "object") {
                     color =  getNodeColor(d.source.group);
@@ -705,76 +780,86 @@ and open the template in the editor.
 
             });*/
 
-            const linkElements = linkEnter.merge(linkSelection);
+        const linkElements = linkEnter.merge(linkSelection);
 
-            // Noeuds
-            const nodeSelection = nodeGroup.selectAll(".node")
-                .data(nodesData, d => d.id);
+        // Noeuds
+        const nodeSelection = nodeGroup
+          .selectAll(".node")
+          .data(nodesData, (d) => d.id);
 
-            nodeSelection.exit().remove();
+        nodeSelection.exit().remove();
 
-            // Pour le popup title: 
-            const attrs = {
-                onNodeHover: function (value) {
-                    console.log("Hovered:", value);
-                }
-            };
-            const tooltip = d3.select("#tooltip");
+        // Pour le popup title:
+        const attrs = {
+          onNodeHover: function (value) {
+            console.log("Hovered:", value);
+          },
+        };
+        const tooltip = d3.select("#tooltip");
 
-            const nodeEnter = nodeSelection.enter()
-                .append(d => {
-                    if (d.label === d.id) {
-                        // Créer un groupe <g> qui contiendra le rectangle et le texte
-                        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const nodeEnter = nodeSelection
+          .enter()
+          .append((d) => {
+            if (d.label === d.id) {
+              // Créer un groupe <g> qui contiendra le rectangle et le texte
+              const g = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "g"
+              );
 
-                        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                        rect.setAttribute("rx", 5); // bords arrondis (optionnel)
-                        rect.setAttribute("ry", 5);
-                        rect.setAttribute("fill", "#eee");
-                        rect.setAttribute("stroke", "#999");
+              const rect = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "rect"
+              );
+              rect.setAttribute("rx", 5); // bords arrondis (optionnel)
+              rect.setAttribute("ry", 5);
+              rect.setAttribute("fill", "#eee");
+              rect.setAttribute("stroke", "#999");
 
-                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        text.textContent = d.label;
-                        text.setAttribute("x", 0);
-                        text.setAttribute("y", 0);
-                        text.setAttribute("dominant-baseline", "middle");
-                        text.setAttribute("text-anchor", "middle");
+              const text = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+              );
+              text.textContent = d.label;
+              text.setAttribute("x", 0);
+              text.setAttribute("y", 0);
+              text.setAttribute("dominant-baseline", "middle");
+              text.setAttribute("text-anchor", "middle");
 
-                        g.appendChild(rect);
-                        g.appendChild(text);
+              g.appendChild(rect);
+              g.appendChild(text);
 
-                        return g;
-                    } else {
-                        return document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    }
+              return g;
+            } else {
+              return document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "circle"
+              );
+            }
+          })
+          .classed("node", true)
+          .each(function (d) {
+            const isRect = d.label === d.id;
+            const node = d3.select(this);
+            if (isRect) {
+              const g = d3.select(this);
+              const text = g.select("text");
+              const rect = g.select("rect");
 
-                })
-                .classed("node", true)
-                .each(function (d) {
-                    const isRect = d.label === d.id;
-                    const node = d3.select(this);
-                    if (isRect) {
-                        const g = d3.select(this);
-                        const text = g.select("text");
-                        const rect = g.select("rect");
+              // On mesure le texte pour ajuster le rectangle autour
+              const bbox = text.node().getBBox();
 
-                        // On mesure le texte pour ajuster le rectangle autour
-                        const bbox = text.node().getBBox();
+              rect
+                .attr("x", bbox.x - 6)
+                .attr("y", bbox.y - 4)
+                .attr("width", bbox.width + 12)
+                .attr("height", bbox.height + 8)
+                .attr("fill", getNodeColor(d.group));
 
-                        rect
-                            .attr("x", bbox.x - 6)
-                            .attr("y", bbox.y - 4)
-                            .attr("width", bbox.width + 12)
-                            .attr("height", bbox.height + 8)
-                            .attr("fill", getNodeColor(d.group));
+              // Position du texte (centré)
+              text.attr("x", 0).attr("y", 0).attr("font-size", "10px");
 
-                        // Position du texte (centré)
-                        text
-                            .attr("x", 0)
-                            .attr("y", 0)
-                            .attr("font-size", "10px");
-
-                        /*if (isRect) {
+              /*if (isRect) {
                             node
                                 .attr("width", 16)
                                 .attr("height", 16)
@@ -782,1378 +867,1574 @@ and open the template in the editor.
                                 .attr("y", 100)
                                 .attr("fill", getNodeColor(d.group));
                                 */
-                    } else {
-                        node
-                            .attr("r", 8)
-                            .attr("fill", getNodeColor(d.group));
-                    }
-                })
-                .call(drag(simulation))
-                .on("mouseover", (event, d) => {
-                    console.log("Node mouseover:", d.id);
-                    if (d.label === d.id) {
-                        d3.select(event.currentTarget).select('rect')
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 3);
-                    } else {
-                        d3.select(event.currentTarget)
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 3);
-                    }
-                    // popup title:
-                    const value = d.title ?? '';
-                    attrs.onNodeHover?.(d.title ?? '');
-                    if (value != '') {
-                        tooltip
-                            .style("display", "block")
-                            .html(value)
-                            .style("left", (event.pageX + 10) + "px")
-                            .style("top", (event.pageY + 10) + "px");
-                    }
+            } else {
+              node.attr("r", 8).attr("fill", getNodeColor(d.group));
+            }
+          })
+          .call(drag(simulation))
+          .on("mouseover", (event, d) => {
+            console.log("Node mouseover:", d.id);
+            if (d.label === d.id) {
+              d3.select(event.currentTarget)
+                .select("rect")
+                .attr("stroke", "black")
+                .attr("stroke-width", 3);
+            } else {
+              d3.select(event.currentTarget)
+                .attr("stroke", "black")
+                .attr("stroke-width", 3);
+            }
+            // popup title:
+            const value = d.title ?? "";
+            attrs.onNodeHover?.(d.title ?? "");
+            if (value != "") {
+              tooltip
+                .style("display", "block")
+                .html(value)
+                .style("left", event.pageX + 10 + "px")
+                .style("top", event.pageY + 10 + "px");
+            }
+          })
+          .on("mouseout", (event, d) => {
+            console.log("Node mouseout:", d.id);
 
-                })
-                .on("mouseout", (event, d) => {
-                    console.log("Node mouseout:", d.id);
+            tooltip.style("display", "none");
 
-                    tooltip.style("display", "none");
+            if (d.label === d.id) {
+              d3.select(event.currentTarget)
+                .select("rect")
+                .attr("stroke-width", 0);
+            } else {
+              d3.select(event.currentTarget).attr("stroke-width", 0);
+            }
+          });
+        const nodeElements = nodeEnter.merge(nodeSelection);
 
-                    if (d.label === d.id) {
-                        d3.select(event.currentTarget).select('rect')
-                            .attr("stroke-width", 0);
-                    } else {
-                        d3.select(event.currentTarget)
-                            .attr("stroke-width", 0);
-                    }
-                });
-            const nodeElements = nodeEnter.merge(nodeSelection);
+        // Labels
+        const labelSelection = labelGroup
+          .selectAll("text")
+          .data(nodesData, (d) => d.id);
 
-            // Labels
-            const labelSelection = labelGroup.selectAll("text")
-                .data(nodesData, d => d.id);
+        labelSelection.exit().remove();
 
-            labelSelection.exit().remove();
+        const labelEnter = labelSelection
+          .enter()
+          .append("text")
+          .text((d) => {
+            if (d.label !== d.id) return d.label;
+          })
+          .attr("font-size", "10px")
+          .attr("text-anchor", "middle")
+          .attr("dy", 15);
 
-            const labelEnter = labelSelection.enter()
-                .append("text")
-                .text(d => {
-                    if (d.label !== d.id)
-                        return d.label;
-                })
-                .attr("font-size", "10px")
-                .attr("text-anchor", "middle")
-                .attr("dy", 15);
+        const labelElements = labelEnter.merge(labelSelection);
 
-            const labelElements = labelEnter.merge(labelSelection);
+        // edge label
 
+        // Labels pour les arêtes
+        const edgeLabelSelection = edgeLabelGroup
+          .selectAll("text")
+          .data(edgesD3, (d) => d.id || d.source.id + "-" + d.target.id);
 
-            // edge label
+        edgeLabelSelection.exit().remove();
 
-            // Labels pour les arêtes
-            const edgeLabelSelection = edgeLabelGroup.selectAll("text")
-                .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
+        const edgeLabelEnter = edgeLabelSelection
+          .enter()
+          .append("text")
+          .attr("font-size", "9px")
+          .attr("fill", "#555")
+          .attr("text-anchor", "middle")
+          .text((d) => d.label || ""); // ou une propriété d.label sur les arêtes
 
-            edgeLabelSelection.exit().remove();
+        const edgeLabelElements = edgeLabelEnter.merge(edgeLabelSelection);
 
-            const edgeLabelEnter = edgeLabelSelection.enter()
-                .append("text")
-                .attr("font-size", "9px")
-                .attr("fill", "#555")
-                .attr("text-anchor", "middle")
-                .text(d => d.label || ""); // ou une propriété d.label sur les arêtes
+        simulation.on("tick", () => {
+          linkElements.attr("d", (d) => {
+            const x1 = d.source.x;
+            const y1 = d.source.y;
+            const x2 = d.target.x;
+            const y2 = d.target.y;
 
-            const edgeLabelElements = edgeLabelEnter.merge(edgeLabelSelection);
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const cx = x1 + dx / 2 + dy * 0.1; // ← ajout d’un petit décalage
+            const cy = y1 + dy / 2 - dx * 0.1; // ← pour créer le "bend"
+            //const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // rayon de la courbure
 
+            //return `M${x1},${y1} A${dr},${dr} 0 0,1 ${x2},${y2}`;
+            return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
+          });
 
-            simulation.on("tick", () => {
-                linkElements.attr("d", d => {
-                    const x1 = d.source.x;
-                    const y1 = d.source.y;
-                    const x2 = d.target.x;
-                    const y2 = d.target.y;
+          nodeElements.each(function (d) {
+            const node = d3.select(this);
+            if (d.label === d.id) {
+              // rectangle
+              node.attr("transform", `translate(${d.x}, ${d.y})`);
+            } else {
+              // cercle
+              node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
+            }
+          });
 
-                    const dx = x2 - x1;
-                    const dy = y2 - y1;
-                    const cx = x1 + dx / 2 + dy * 0.1; // ← ajout d’un petit décalage
-                    const cy = y1 + dy / 2 - dx * 0.1; // ← pour créer le "bend"
-                    //const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // rayon de la courbure
+          labelElements.attr("x", (d) => d.x || 0).attr("y", (d) => d.y || 0);
 
-                    //return `M${x1},${y1} A${dr},${dr} 0 0,1 ${x2},${y2}`;
-                    return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
-                })
+          edgeLabelElements.attr("transform", (d) => {
+            const x = (d.source.x + d.target.x) / 2;
+            const y = (d.source.y + d.target.y) / 2;
+            const angle =
+              (Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) *
+                180) /
+              Math.PI;
 
-                nodeElements.each(function (d) {
-                    const node = d3.select(this);
-                    if (d.label === d.id) {
-                        // rectangle
-                        node.attr("transform", `translate(${d.x}, ${d.y})`);
-                    } else {
-                        // cercle
-                        node.attr("cx", d => d.x || 0)
-                            .attr("cy", d => d.y || 0);
-                    }
-                })
+            // ne pas retourner le texte à l’envers
+            const correctedAngle =
+              angle > 90 || angle < -90 ? angle + 180 : angle;
 
+            //return `rotate(${correctedAngle}, ${x}, ${y})`;
+            return `translate(${x}, ${y}) rotate(${correctedAngle})`;
+          });
+        });
+      }
 
-                labelElements
-                    .attr("x", d => d.x || 0)
-                    .attr("y", d => d.y || 0);
-
-                edgeLabelElements
-                    .attr("transform", d => {
-                        const x = (d.source.x + d.target.x) / 2;
-                        const y = (d.source.y + d.target.y) / 2;
-                        const angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) * 180 / Math.PI;
-
-                        // ne pas retourner le texte à l’envers
-                        const correctedAngle = (angle > 90 || angle < -90) ? angle + 180 : angle;
-
-                        //return `rotate(${correctedAngle}, ${x}, ${y})`;
-                        return `translate(${x}, ${y}) rotate(${correctedAngle})`;
-                    });
-
-
-            });
-            
+      function drag(simulation) {
+        function dragstarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          if (d.fy !== 100) d.fy = d.y;
         }
 
-        function drag(simulation) {
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                if (d.fy !== 100)
-                    d.fy = d.y;
-            }
-
-            function dragged(event, d) {
-                d.fx = event.x;
-                if (d.fy !== 100)
-                    d.fy = event.y;
-            }
-
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                if (d.fy !== 100)
-                    d.fy = null;
-            }
-
-            return d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended);
+        function dragged(event, d) {
+          d.fx = event.x;
+          if (d.fy !== 100) d.fy = event.y;
         }
 
-
-
-
-
-        window.onload = function () {
-            const container = document.getElementById("graph");
-
-            const graphe_svg = d3.select("#graph");
-            console.log("graphe_svg", graphe_svg.node());
-
-            const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
-            window.graphPrincipal = graphCtx;
-
-            // Observer les changements de taille du conteneur
-            const resizeObserver = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    const width = entry.contentRect.width;
-                    const height = entry.contentRect.height;
-
-                    console.log("Nouvelle taille du graphe :", width, height);
-
-                    // Re-rendre le graphe D3 ici
-                    updateGraphSize(width, height, window.graphPrincipal.simulation, window.graphPrincipal.svg);
-                }
-            });
-
-            resizeObserver.observe(container);
-
-            //updateGraph(data.nodes, data.edges, svg, linkGroup, nodeGroup, labelGroup);
-
-            //drawGraph(container, data["nodes"], data["edges"]);
-
-
-            // -----------------EVENT LISTENER------------------- //    
-            document.getElementById("resetView").addEventListener("click", () => {
-
-                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-
-            });
-
-            document.getElementById("resetPath").addEventListener("click", () => {
-
-                data = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };
-
-                updateGraph(data["nodes"], data["edges"],
-                    window.graphPrincipal.svg,
-                    window.graphPrincipal.linkGroup,
-                    window.graphPrincipal.nodeGroup,
-                    window.graphPrincipal.labelGroup,
-                    window.graphPrincipal.edgeLabelGroup,
-                    window.graphPrincipal.simulation,
-                    window.graphPrincipal.zoomGroup);
-
-                for (k of Object.keys(parent)) {
-                    parent[k] = null;
-                }
-                liste_node_click = []
-                // Recentrer après reset
-                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-                path2_en_cours = false;
-            });
-
-            document.getElementById("ajouterGraph").addEventListener("click", () => {
-                document.getElementById("modeAjoutGraph").innerHTML = 'Add Path Mode Activated';
-                mode = "modeAjoutGraph";
-                path2_en_cours = false;
-
-                data = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };
-                /*path2 = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };*/
-                updateGraph(data["nodes"], data["edges"],
-                    window.graphPrincipal.svg,
-                    window.graphPrincipal.linkGroup,
-                    window.graphPrincipal.nodeGroup,
-                    window.graphPrincipal.labelGroup,
-                    window.graphPrincipal.edgeLabelGroup,
-                    window.graphPrincipal.simulation,
-                    window.graphPrincipal.zoomGroup);
-                for (k of Object.keys(parent)) {
-                    parent[k] = null;
-                }
-                liste_node_click = []
-                // Recentrer après reset
-                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-            });
-
-            document.getElementById("echangerGraph").addEventListener("click", () => {
-                document.getElementById("modeAjoutGraph").innerHTML = 'Swap Path Mode Activated';
-                mode = "modeEchangeGraph";
-                path2_en_cours = false;
-
-
-                data = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };
-                /*path2 = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };*/
-
-
-                updateGraph(data["nodes"], data["edges"],
-                    window.graphPrincipal.svg,
-                    window.graphPrincipal.linkGroup,
-                    window.graphPrincipal.nodeGroup,
-                    window.graphPrincipal.labelGroup,
-                    window.graphPrincipal.edgeLabelGroup,
-                    window.graphPrincipal.simulation,
-                    window.graphPrincipal.zoomGroup);
-                for (k of Object.keys(parent)) {
-                    parent[k] = null;
-                }
-                liste_node_click = []
-                // Recentrer après reset
-                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-            });
-
-
-            graphe_svg.on('click', function (properties) {
-                console.log("click");
-                window.graphPrincipal.simulation.stop();
-
-                const user = document.getElementById("user").value;
-
-                // Récupère la transformation appliquée par le zoom
-                const transform = d3.zoomTransform(window.graphPrincipal.svg.node());
-                console.log(transform);
-
-                // Coordonnées du clic dans le repère logique du graphe
-                const [mouseX, mouseY] = transform.invert(d3.pointer(event));
-                // Calculer distance par rapport à chaque nœud
-                const clickedNode = data["nodes"].find(d => {
-                    const dx = d.x - mouseX;
-                    const dy = d.y - mouseY;
-                    return Math.sqrt(dx * dx + dy * dy) < 10; // rayon toléré
-                });
-                console.log("Clicked node:", clickedNode);
-                if (clickedNode) {
-                    console.log("Clicked node:", clickedNode);
-                    var nodeId = clickedNode.id;
-                }
-
-
-                if (!nodeId) return
-                if (!liste_node_click.includes(nodeId)) { // Si node jamais cliqué :
-                    liste_node_click.push(nodeId) // ajouter dans liste
-
-                    console.log("liste click :", liste_node_click);
-                    console.log("afficher voisins !")
-                    console.log("clic sur : ", nodeId);
-                    console.log("parent dico : ", parent);
-
-                    //var node = data.nodes.get(nodeId);
-
-                    const checkboxes = document.querySelectorAll('.myCheckbox:checked');
-                    const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
-
-                    if (cb_predicates.length > 0) {
-                        //alert(`Cases cochées : ${cb_predicates.join(', ')}`);
-                    } else {
-                        //alert("Aucune case n'est cochée.");
-                    }
-                    const encodedNodeId = encodeURIComponent(nodeId);
-                    fetch(`${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ predicates: cb_predicates })
-                    })
-                        .then(res => res.json())
-                        .then(data2 => {
-                            // Exclure les doublons de nœuds
-                            const existingNodeIds = new Set(data.nodes.map(n => n.id));
-                            console.log("data nodes : ", data2.nodes);
-                            console.log("data edges : ", data2.edges);
-                            console.log("already existing nodes : ", existingNodeIds);
-                            console.log("path et voisins de ", nodeId, " : ", data2);
-                            const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
-                            console.log("new nodes not in data actu :", newNodes);
-
-                            // Mise à jour dict parent
-                            for (n in newNodes) {
-                                console.log("new nodes : ", newNodes[n].id);
-                                parent[newNodes[n].id] = nodeId;
-
-                            }
-                            console.log("dico parent apres ajout enfant", parent);
-
-                            // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-                            const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
-                            const newEdges = data2.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
-                            console.log("new edges not in data actu :", newEdges);
-
-                            // Fusionner les données
-                            newNodes.forEach(n => {
-                                n.x = Math.random() * +600;
-                                n.y = Math.random() * +600;
-                            });
-                            data = {
-                                nodes: [...data.nodes, ...newNodes],
-                                edges: [...data.edges, ...newEdges]
-                            };
-
-
-                            if (data2.nodes.length == 0) {
-                                alert("Pas de voisins ! ");
-                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
-                            } else {
-                                console.log("liste click :", liste_node_click);
-
-                                // Mettre à jour le graphe
-                                console.log("data avant update:", data);
-                                console.log("data['nodes']:", data["nodes"]);
-
-                                updateGraph(data["nodes"], data["edges"],
-                                    window.graphPrincipal.svg,
-                                    window.graphPrincipal.linkGroup,
-                                    window.graphPrincipal.nodeGroup,
-                                    window.graphPrincipal.labelGroup,
-                                    window.graphPrincipal.edgeLabelGroup,
-                                    window.graphPrincipal.simulation,
-                                    window.graphPrincipal.zoomGroup);
-                            }
-
-                        });
-
-                } else { // Sinon, si node cliqué une seconde fois
-                    console.log("liste click :", liste_node_click);
-                    console.log("dico parents :", parent);
-                    console.log("enfant : ", Object.keys(parent));
-                    console.log("parent: ", Object.values(parent));
-
-                    // Vérifier si ses noeuds voisins ont des noeuds sortants
-                    var grandparent = 0;
-
-                    for (k of Object.keys(parent)) {
-                        //console.log("key : " + k);
-                        if (parent[k] == nodeId && Object.values(parent).includes(k)) {
-                            grandparent = 1;
-                        }
-                    }
-
-                    if (grandparent == 0) {
-
-
-                        liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
-                        const encodedNodeId = encodeURIComponent(nodeId);
-                        fetch(`${API_URL}/api/voisins?voisin=${encodedNodeId}&choix=${choix}`) // Récuperer ses voisins pour les retirer
-                            .then(res => res.json())
-                            .then(data2 => {
-                                console.log("retirer voisins de ", nodeId, " !");
-
-                                // Récupérer les ids des voisins à retirer
-                                const idsToRemove = new Set(data2.nodes.map(n => n.id));
-                                const edgesToRemove = new Set(data2.edges.map(e => `${e.from}->${e.to}`));
-
-                                // Construire un set des ids du chemin initial (path)
-                                var pathNodeIds = new Set(path.nodes.map(n => n.id));
-                                var pathEdge = new Set(path.edges.map(e => `${e.from}->${e.to}`));
-
-                                if (path2_en_cours) { // Si on a ajouté au chemin initial d'autres chemins (mode ajout ou échange), prendre en consideration le total des chemins
-                                    pathNodeIds = new Set(path2.nodes.map(n => n.id));
-                                    pathEdge = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
-                                }
-
-                                console.log("path 2 en cours : ", path2_en_cours);
-                                console.log("path nodes : ", pathNodeIds);
-                                console.log("path edges : ", pathEdge);
-                                console.log("voisins : ", data2);
-                                console.log("nodes à enlever : ", idsToRemove);
-
-                                // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
-                                data.nodes = data.nodes.filter(n => {
-                                    // Retirer uniquement si le noeud est un voisin ET pas dans le chemin initial
-                                    p = 0;
-                                    for (k of Object.keys(parent)) {
-                                        //console.log("key : " + k);
-                                        if (parent[k] == n.id) {
-                                            p = 1;
-                                        }
-                                    }
-                                    if (idsToRemove.has(n.id) && !pathNodeIds.has(n.id) && p == 0) {
-                                        parent[n.id] = null; // mettre à jour dict parent
-                                        if (n.id in liste_node_click) {
-                                            liste_node_click.splice(liste_node_click.indexOf(n.id), 1);
-                                        }
-                                        return false; // retirer
-                                    }
-                                    return true; // garder
-                                });
-                                const validNodeIds = new Set(data.nodes.map(n => n.id));
-
-                                data.edges = data.edges.filter(e =>
-                                    validNodeIds.has(e.from) && validNodeIds.has(e.to) && !(edgesToRemove.has(`${e.from}->${e.to}`) && !pathEdge.has(`${e.from}->${e.to}`))
-                                );
-
-
-                                console.log("data finale : ", data);
-
-                                //si un element est dans liste node click mais n'est pas parent, le retirer : 
-                                p = 0
-                                for (n of liste_node_click) {
-                                    for (k of Object.keys(parent)) {
-
-                                        if (parent[k] == n) {
-                                            p = 1;
-                                        }
-                                    }
-                                    console.log("node check : " + n, " p= " + p);
-                                    if (p == 0) {
-                                    liste_node_click.splice(liste_node_click.indexOf(n), 1); ///////////////////////////////////////////////////retirer aussi les edges ???????????????????????????????????????????????????????????????!!!!!!!!!!!!!!! A FAIRE
-                                }
-                                }
-                                
-
-                                // Mettre à jour le graphe
-                                updateGraph(
-                                    data["nodes"],
-                                    data["edges"],
-                                    window.graphPrincipal.svg,
-                                    window.graphPrincipal.linkGroup,
-                                    window.graphPrincipal.nodeGroup,
-                                    window.graphPrincipal.labelGroup,
-                                    window.graphPrincipal.edgeLabelGroup,
-                                    window.graphPrincipal.simulation,
-                                    window.graphPrincipal.zoomGroup
-                                );
-
-
-                            });
-                    } else {
-                        alert("Clique d'abord sur les nodes enfants de celui-là !");
-
-                    }
-                }
-            }
-            )
-
-
-            // --------------RECUPERATION DES PREDICATS AU DEBUT------------------ //
-            fetch(`${API_URL}/api/predicats`)
-                .then(res => res.json())
-                .then(data2 => {
-
-                    //const container = document.getElementById("listPredicats");
-                    const container2 = document.getElementById("cochePredicats");
-
-                    console.log("all predicats : ", data2);
-
-                    data2.forEach((p, i) => {
-                        liste = p.split("/");
-                        // // Creation div predicat (à gauche en jaune, drag&drop)
-                        // const div = document.createElement("div");
-                        // div.className = "predicat";
-
-                        // div.innerHTML = liste[liste.length - 1];
-                        // div.id = liste[liste.length - 1];
-                        // div.draggable = "true";
-                        // div.ondragstart = dragstartHandler;
-                        // container.appendChild(div);
-
-                        // Creation checkbox predicat en dessous du grand graph
-                        const div2 = document.createElement("div");
-
-                        const input = document.createElement("input");
-                        input.type = "checkbox";
-                        input.id = liste[liste.length - 1];
-                        input.name = liste[liste.length - 1];
-                        input.className = "myCheckbox";
-                        input.value = liste[liste.length - 1];
-
-                        const label = document.createElement("label");
-                        label.for = liste[liste.length - 1];
-                        label.appendChild(input);
-                        label.innerHTML += liste[liste.length - 1];
-
-
-                        div2.appendChild(label);
-                        container2.appendChild(div2);
-
-                        i += 1;
-                    });
-                    const buttonDecocher = document.createElement("div")
-                    buttonDecocher.className = 'button';
-                    buttonDecocher.id = 'uncheckAllBtn';
-                    buttonDecocher.innerHTML = 'Uncheck All';
-                    document.getElementById('graphs-container').appendChild(buttonDecocher);
-                    buttonDecocher.addEventListener("click", () => {
-                        const checkboxes = document.querySelectorAll("#cochePredicats .myCheckbox");
-                        checkboxes.forEach(cb => cb.checked = false);
-                    })
-
-
-                })
+        function dragended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          if (d.fy !== 100) d.fy = null;
         }
 
+        return d3
+          .drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended);
+      }
 
-        // ------------------FONCTIONS COMPLEXES------------------- //
+      window.onload = function () {
+        const container = document.getElementById("graph");
 
-        function resetPredicats() { // Mettre à jour les prédicats (les enlever de la zone drop), mais aussi tout le reste (BUTTON REINITIALISER)
+        const graphe_svg = d3.select("#graph");
+        console.log("graphe_svg", graphe_svg.node());
 
-            // Vider le conteneur de prédicats dropés
-            //const dropZone = document.getElementById("div_drop_predicat");
-            //dropZone.innerHTML = "";
-            document.getElementById('pagination').remove()
-            document.getElementById("titre2").innerHTML = '';
-            const element = document.getElementById("validerQuestions");
-            if (element) {
-                element.remove(); // Supprime l'élément du DOM
-            }
+        const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
+        window.graphPrincipal = graphCtx;
 
+        // Observer les changements de taille du conteneur
+        const resizeObserver = new ResizeObserver((entries) => {
+          for (let entry of entries) {
+            const width = entry.contentRect.width;
+            const height = entry.contentRect.height;
 
-            // Réinitialiser les variables globales
-            choix = "false";
-            index_path_affiché = 0;
-            path = { nodes: [], edges: [] };
-            data = { nodes: [], edges: [] };
-            parent = {};
-            liste_node_click = [];
+            console.log("Nouvelle taille du graphe :", width, height);
 
-            // Nettoyer les graphes affichés
-            updateGraph(data["nodes"], data["edges"],
-                window.graphPrincipal.svg,
-                window.graphPrincipal.linkGroup,
-                window.graphPrincipal.nodeGroup,
-                window.graphPrincipal.labelGroup,
-                window.graphPrincipal.edgeLabelGroup,
-                window.graphPrincipal.simulation,
-                window.graphPrincipal.zoomGroup);
+            // Re-rendre le graphe D3 ici
+            updateGraphSize(
+              width,
+              height,
+              window.graphPrincipal.simulation,
+              window.graphPrincipal.svg
+            );
+          }
+        });
 
-            document.getElementById("g_petit-container").innerHTML = "";
-            document.getElementById("affichage-cours").innerHTML = "";
-            document.getElementById("top5chart").innerHTML = "";
-            top5ChartInstance.destroy();
-            document.getElementById("titre2").innerHTML = "";
+        resizeObserver.observe(container);
 
-            // Vider et recharger les prédicats disponibles
-            // const predContainer = document.getElementById("listPredicats");
-            // predContainer.innerHTML = "";
+        //updateGraph(data.nodes, data.edges, svg, linkGroup, nodeGroup, labelGroup);
 
-            // fetch(`http://localhost:5000/api/predicats`)
-            //     .then(res => res.json())
-            //     .then(preds => {
-            //         preds.forEach(p => {
-            //             const div = document.createElement("div");
-            //             const id = p.split("/").pop();
-            //             div.className = "predicat";
-            //             div.id = id;
-            //             div.draggable = true;
-            //             div.ondragstart = dragstartHandler;
-            //             div.innerHTML = id;
-            //             predContainer.appendChild(div);
-            //         });
-            //     });
+        //drawGraph(container, data["nodes"], data["edges"]);
 
+        // -----------------EVENT LISTENER------------------- //
+        document.getElementById("resetView").addEventListener("click", () => {
+          fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+        });
 
-            //alert("Réinitialisation effectuée.");
-        }
+        document.getElementById("resetPath").addEventListener("click", () => {
+          data = {
+            nodes: [...path.nodes],
+            edges: [...path.edges],
+          };
 
+          updateGraph(
+            data["nodes"],
+            data["edges"],
+            window.graphPrincipal.svg,
+            window.graphPrincipal.linkGroup,
+            window.graphPrincipal.nodeGroup,
+            window.graphPrincipal.labelGroup,
+            window.graphPrincipal.edgeLabelGroup,
+            window.graphPrincipal.simulation,
+            window.graphPrincipal.zoomGroup
+          );
 
-        function loadPath() { // Charger les chemins (BUTTON AFFICHER CHEMIN)
+          for (k of Object.keys(parent)) {
+            parent[k] = null;
+          }
+          liste_node_click = [];
+          // Recentrer après reset
+          fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+          path2_en_cours = false;
+        });
 
-            const user = document.getElementById("user").value;
+        document
+          .getElementById("ajouterGraph")
+          .addEventListener("click", () => {
+            document.getElementById("modeAjoutGraph").innerHTML =
+              "Add Path Mode Activated";
+            mode = "modeAjoutGraph";
             path2_en_cours = false;
-            parent = {}
-            path = { nodes: [], edges: [] };
-            data = { nodes: [], edges: [] };
-            const element = document.getElementById("validerQuestions");
-            if (element) {
-                element.remove(); // Supprime l'élément du DOM
+
+            data = {
+              nodes: [...path.nodes],
+              edges: [...path.edges],
+            };
+            /*path2 = {
+                    nodes: [...path.nodes],
+                    edges: [...path.edges]
+                };*/
+            updateGraph(
+              data["nodes"],
+              data["edges"],
+              window.graphPrincipal.svg,
+              window.graphPrincipal.linkGroup,
+              window.graphPrincipal.nodeGroup,
+              window.graphPrincipal.labelGroup,
+              window.graphPrincipal.edgeLabelGroup,
+              window.graphPrincipal.simulation,
+              window.graphPrincipal.zoomGroup
+            );
+            for (k of Object.keys(parent)) {
+              parent[k] = null;
             }
-            if (document.getElementById('pagination'))
-                document.getElementById('pagination').remove();
-            //Nettoyer les graphes affichés
-            updateGraph(data["nodes"], data["edges"],
-                window.graphPrincipal.svg,
-                window.graphPrincipal.linkGroup,
-                window.graphPrincipal.nodeGroup,
-                window.graphPrincipal.labelGroup,
-                window.graphPrincipal.edgeLabelGroup,
-                window.graphPrincipal.simulation,
-                window.graphPrincipal.zoomGroup);
+            liste_node_click = [];
+            // Recentrer après reset
+            fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+          });
 
-            setTimeout(() => {
-                window.graphPrincipal.svg.transition().duration(750).call(
-                    window.graphPrincipal.zoom.transform,
-                    d3.zoomIdentity
+        document
+          .getElementById("echangerGraph")
+          .addEventListener("click", () => {
+            document.getElementById("modeAjoutGraph").innerHTML =
+              "Swap Path Mode Activated";
+            mode = "modeEchangeGraph";
+            path2_en_cours = false;
+
+            data = {
+              nodes: [...path.nodes],
+              edges: [...path.edges],
+            };
+            /*path2 = {
+                    nodes: [...path.nodes],
+                    edges: [...path.edges]
+                };*/
+
+            updateGraph(
+              data["nodes"],
+              data["edges"],
+              window.graphPrincipal.svg,
+              window.graphPrincipal.linkGroup,
+              window.graphPrincipal.nodeGroup,
+              window.graphPrincipal.labelGroup,
+              window.graphPrincipal.edgeLabelGroup,
+              window.graphPrincipal.simulation,
+              window.graphPrincipal.zoomGroup
+            );
+            for (k of Object.keys(parent)) {
+              parent[k] = null;
+            }
+            liste_node_click = [];
+            // Recentrer après reset
+            fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+          });
+
+        graphe_svg.on("click", function (properties) {
+          console.log("click");
+          window.graphPrincipal.simulation.stop();
+
+          const user = document.getElementById("user").value;
+
+          // Récupère la transformation appliquée par le zoom
+          const transform = d3.zoomTransform(window.graphPrincipal.svg.node());
+          console.log(transform);
+
+          // Coordonnées du clic dans le repère logique du graphe
+          const [mouseX, mouseY] = transform.invert(d3.pointer(event));
+          // Calculer distance par rapport à chaque nœud
+          const clickedNode = data["nodes"].find((d) => {
+            const dx = d.x - mouseX;
+            const dy = d.y - mouseY;
+            return Math.sqrt(dx * dx + dy * dy) < 10; // rayon toléré
+          });
+          console.log("Clicked node:", clickedNode);
+          if (clickedNode) {
+            console.log("Clicked node:", clickedNode);
+            var nodeId = clickedNode.id;
+          }
+
+          if (!nodeId) return;
+          if (!liste_node_click.includes(nodeId)) {
+            // Si node jamais cliqué :
+            liste_node_click.push(nodeId); // ajouter dans liste
+
+            console.log("liste click :", liste_node_click);
+            console.log("afficher voisins !");
+            console.log("clic sur : ", nodeId);
+            console.log("parent dico : ", parent);
+
+            //var node = data.nodes.get(nodeId);
+
+            const checkboxes = document.querySelectorAll(".myCheckbox:checked");
+            const cb_predicates = Array.from(checkboxes).map((cb) => cb.value);
+
+            if (cb_predicates.length > 0) {
+              //alert(`Cases cochées : ${cb_predicates.join(', ')}`);
+            } else {
+              //alert("Aucune case n'est cochée.");
+            }
+            const encodedNodeId = encodeURIComponent(nodeId);
+            fetch(
+              `${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`,
+              {
+                // Récuperer les voisins sortants de nodeId
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ predicates: cb_predicates }),
+              }
+            )
+              .then((res) => res.json())
+              .then((data2) => {
+                // Exclure les doublons de nœuds
+                const existingNodeIds = new Set(data.nodes.map((n) => n.id));
+                console.log("data nodes : ", data2.nodes);
+                console.log("data edges : ", data2.edges);
+                console.log("already existing nodes : ", existingNodeIds);
+                console.log("path et voisins de ", nodeId, " : ", data2);
+                const newNodes = data2.nodes.filter(
+                  (n) => !existingNodeIds.has(n.id)
                 );
-            }, 300); // attendre que D3 ait posé les positions
+                console.log("new nodes not in data actu :", newNodes);
 
-            document.getElementById("g_petit-container").innerHTML = "";
-            index_path_affiché = 0;
+                // Mise à jour dict parent
+                for (n in newNodes) {
+                  console.log("new nodes : ", newNodes[n].id);
+                  parent[newNodes[n].id] = nodeId;
+                }
+                console.log("dico parent apres ajout enfant", parent);
 
-            fetch(`${API_URL}/api/random_course?start=${user}`)
-                .then(res => res.json())
-                .then(data4 => {
-                    if (data4.error) {
-                        alert(data4.error);
-                        return;
+                // Exclure les doublons d'arêtes (selon from/to ou id si défini)
+                const existingEdgeKeys = new Set(
+                  data.edges.map((e) => `${e.from}->${e.to}`)
+                );
+                const newEdges = data2.edges.filter(
+                  (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
+                );
+                console.log("new edges not in data actu :", newEdges);
+
+                // Fusionner les données
+                newNodes.forEach((n) => {
+                  n.x = Math.random() * +600;
+                  n.y = Math.random() * +600;
+                });
+                data = {
+                  nodes: [...data.nodes, ...newNodes],
+                  edges: [...data.edges, ...newEdges],
+                };
+
+                if (data2.nodes.length == 0) {
+                  alert("Pas de voisins ! ");
+                  liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
+                } else {
+                  console.log("liste click :", liste_node_click);
+
+                  // Mettre à jour le graphe
+                  console.log("data avant update:", data);
+                  console.log("data['nodes']:", data["nodes"]);
+
+                  updateGraph(
+                    data["nodes"],
+                    data["edges"],
+                    window.graphPrincipal.svg,
+                    window.graphPrincipal.linkGroup,
+                    window.graphPrincipal.nodeGroup,
+                    window.graphPrincipal.labelGroup,
+                    window.graphPrincipal.edgeLabelGroup,
+                    window.graphPrincipal.simulation,
+                    window.graphPrincipal.zoomGroup
+                  );
+                }
+              });
+          } else {
+            // Sinon, si node cliqué une seconde fois
+            console.log("liste click :", liste_node_click);
+            console.log("dico parents :", parent);
+            console.log("enfant : ", Object.keys(parent));
+            console.log("parent: ", Object.values(parent));
+
+            // Vérifier si ses noeuds voisins ont des noeuds sortants
+            var grandparent = 0;
+
+            for (k of Object.keys(parent)) {
+              //console.log("key : " + k);
+              if (parent[k] == nodeId && Object.values(parent).includes(k)) {
+                grandparent = 1;
+              }
+            }
+
+            if (grandparent == 0) {
+              liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
+              const encodedNodeId = encodeURIComponent(nodeId);
+              fetch(
+                `${API_URL}/api/voisins?voisin=${encodedNodeId}&choix=${choix}`
+              ) // Récuperer ses voisins pour les retirer
+                .then((res) => res.json())
+                .then((data2) => {
+                  console.log("retirer voisins de ", nodeId, " !");
+
+                  // Récupérer les ids des voisins à retirer
+                  const idsToRemove = new Set(data2.nodes.map((n) => n.id));
+                  const edgesToRemove = new Set(
+                    data2.edges.map((e) => `${e.from}->${e.to}`)
+                  );
+
+                  // Construire un set des ids du chemin initial (path)
+                  var pathNodeIds = new Set(path.nodes.map((n) => n.id));
+                  var pathEdge = new Set(
+                    path.edges.map((e) => `${e.from}->${e.to}`)
+                  );
+
+                  if (path2_en_cours) {
+                    // Si on a ajouté au chemin initial d'autres chemins (mode ajout ou échange), prendre en consideration le total des chemins
+                    pathNodeIds = new Set(path2.nodes.map((n) => n.id));
+                    pathEdge = new Set(
+                      path2.edges.map((e) => `${e.from}->${e.to}`)
+                    );
+                  }
+
+                  console.log("path 2 en cours : ", path2_en_cours);
+                  console.log("path nodes : ", pathNodeIds);
+                  console.log("path edges : ", pathEdge);
+                  console.log("voisins : ", data2);
+                  console.log("nodes à enlever : ", idsToRemove);
+
+                  // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
+                  data.nodes = data.nodes.filter((n) => {
+                    // Retirer uniquement si le noeud est un voisin ET pas dans le chemin initial
+                    p = 0;
+                    for (k of Object.keys(parent)) {
+                      //console.log("key : " + k);
+                      if (parent[k] == n.id) {
+                        p = 1;
+                      }
                     }
-                    course = data4.course;
-
-                    const affichageDiv = document.getElementById("affichage-cours");
-                    affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
-
-                    const pagination = document.createElement("div");
-                    pagination.id = 'pagination';
-                    const page_actuelle = document.createElement("span");
-                    page_actuelle.id = 'page_actuelle';
-                    page_actuelle.innerHTML = index_path_affiché + 1;
-                    pagination.appendChild(page_actuelle);
-                    document.getElementById('graph-controls2').appendChild(pagination);
-
-
-                    fetch(`${API_URL}/api/path?start=${user}&end=${course}&w=true&choix=${choix}`)
-                        .then(res => res.json())
-                        .then(data2 => {
-
-                            // Mise à jour du graphe, du chemin principal et de l'explication textuelle
-                            data = data2.path;
-                            console.log('data :', data);
-                            var texte = data2.texte;
-                            document.getElementById('Explication').innerHTML = texte;
-                            console.log("Path : ", data2);
-                            path = {
-                                nodes: [...data.nodes],
-                                edges: [...data.edges]
-                            };
-                            console.log("chargement du path :", path);
-                            //network.setData(data);
-                            //----------------------------------------------------------------------------------------------------
-                            updateGraph(data.nodes, data.edges,
-                                window.graphPrincipal.svg,
-                                window.graphPrincipal.linkGroup,
-                                window.graphPrincipal.nodeGroup,
-                                window.graphPrincipal.labelGroup,
-                                window.graphPrincipal.edgeLabelGroup,
-                                window.graphPrincipal.simulation,
-                                window.graphPrincipal.zoomGroup);
-                            // Ne lancer all_path que quand path a fini et retourné une réponse
-                            const container = document.getElementById("g_petit-container");
-                            container.innerHTML = "";  // Nettoyer l'ancien contenu
-                            return fetch(`${API_URL}/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`);
-                        })
-                        .then(res => res.json())
-                        .then(data2 => {
-                            const container = document.getElementById("g_petit-container");
-                            pagination.innerHTML += ' / ' + data2.length;
-
-                            console.log("all paths from ", user, " to ", course, " : ", data2);
-                            document.getElementById("titre2").innerHTML = "Other possible paths";
-
-                            ////// bouton predecent [<]
-                            const precedent = document.createElement('button');
-                            //precedent.className = 'button';
-                            precedent.className = "predicat";
-                            precedent.id = 'buttonPrecedent';
-                            precedent.innerHTML = '<';
-                            precedent.style.visibility = 'hidden';
-                            container.appendChild(precedent);
-
-                            const div_graphes_tous = document.createElement('div');
-                            div_graphes_tous.id = 'div_graphes_tous';
-
-                            data2.forEach((p, i) => {
-                                // Création div où se trouvera le chemin + infos
-                                const div_chemin_info_button = document.createElement("div");
-                                div_chemin_info_button.id = "div" + i;
-                                div_chemin_info_button.className = "div_chemin_info_button";
-
-
-                                const div = document.createElement("div");
-                                div.className = "g_petit";
-                                div.id = "g" + i;
-                                console.log(' g i =', i);
-
-                                if (i !== 0) {
-                                    div_chemin_info_button.style.display = "none";
-                                }
-
-                                div_chemin_info_button.appendChild(div);
-                                const orderedNodes = orderNodesByEdges(p.nodes, p.edges);
-
-                                const line = document.createElement("div");
-                                line.innerHTML = "S_rw = " + p['S_rw'] + ", S_jac = " + p['S_jac'] + " --> " + p['S_final'];
-                                div_chemin_info_button.appendChild(line);
-                                const line2 = document.createElement("div");
-                                line2.innerHTML = "Longueur = " + p['longueur'];
-                                div_chemin_info_button.appendChild(line2);
-                                const line3 = document.createElement("div");
-                                line3.innerHTML = "Pattern : " + p['pattern'];
-                                div_chemin_info_button.appendChild(line3);
-
-
-                                // Création block de questions
-                                const button_answer = document.createElement('button');
-                                button_answer.className = 'button';
-                                button_answer.id = 'buttonAnswer' + i;
-                                button_answer.innerHTML = 'Answer';
-                                div_chemin_info_button.appendChild(button_answer);
-
-
-
-
-                                const div_questions = document.createElement("div");
-                                div_questions.className = "divQuestions";
-                                div_questions.id = "Questions" + i;
-                                div_questions.style.display = "none";
-                                div_questions.repondu = 'false';
-
-
-                                var i_qt = 0;
-                                const form = document.createElement('form');
-                                for (elt of Object.keys(liste_question_possible)) {
-
-                                    const div = document.createElement("div");
-                                    div.innerHTML = elt;
-                                    form.appendChild(div);
-
-                                    for (qt of liste_question_possible[elt]) {
-                                        var i_answer = 0;
-                                        const question = document.createElement("div");
-                                        question.innerHTML = '<strong>' + qt + '</strong>';
-                                        form.appendChild(question);
-
-                                        const select = document.createElement("select");
-                                        select.name = 'answer' + i_qt;
-                                        select.className = "mySelect";
-                                        select.style.margin = "6px 0";
-                                        select.style.padding = "6px 12px";
-                                        select.style.borderRadius = "6px";
-                                        select.style.border = "1px solid #ccc";
-                                        select.style.backgroundColor = "#fff";
-
-                                        // Option vide par défaut
-                                        const defaultOption = document.createElement("option");
-                                        defaultOption.value = "";
-                                        defaultOption.textContent = "-- Select an answer --";
-                                        defaultOption.disabled = true;
-                                        defaultOption.selected = true;
-                                        select.appendChild(defaultOption);
-
-                                        // Ajoute les 5 réponses possibles
-                                        for (const reponse of liste_answer_possible) {
-                                            const option = document.createElement("option");
-                                            option.value = reponse;
-                                            option.textContent = reponse;
-                                            select.appendChild(option);
-                                        }
-
-                                        form.appendChild(select);
-                                        ++i_qt;
-                                    }
-                                }
-                                div_questions.appendChild(form);
-
-                                const button_valider = document.createElement('button');
-                                button_valider.className = 'button';
-                                button_valider.id = 'buttonValider' + i;
-                                button_valider.innerHTML = 'Validate';
-                                div_questions.appendChild(button_valider);
-
-                                div_chemin_info_button.appendChild(div_questions);
-                                div_graphes_tous.appendChild(div_chemin_info_button);
-                                container.appendChild(div_graphes_tous);
-
-
-                                // Event listener des boutons :
-
-                                button_answer.addEventListener("click", () => {
-                                    if (div_questions.style.display === "block") {
-                                        div_questions.style.display = "none";
-                                    } else {
-                                        div_questions.style.display = "block"; // Afficher les questions
-                                    };
-                                })
-
-                                button_valider.addEventListener("click", () => {
-                                    const questions = form.querySelectorAll("div > strong");
-                                    let allAnswered = true;
-                                    const responses = {};
-
-                                    questions.forEach((qEl, index) => {
-                                        const questionWrapper = qEl.parentElement;
-                                        const select = form.querySelector(`select[name="answer${index}"]`);
-
-                                        // Supprimer la coloration rouge précédente
-                                        qEl.style.color = "";
-
-                                        if (!select || !select.value) {
-                                            allAnswered = false;
-                                            qEl.style.color = "red"; // surligne la question
-                                        } else {
-                                            responses[select.name] = select.value;
-                                        }
-                                    });
-
-                                    if (allAnswered) {
-                                        div_questions.style.display = "none"; // cacher les questions
-                                        button_answer.style.backgroundColor = '#9EBC8A';
-                                        div_questions.repondu = 'true';
-                                        // Ajout indices jaccard, random walk
-                                        responses['longueur'] = p['longueur'];
-                                        responses['S_jac'] = p['S_jac'];
-                                        responses['S_rw'] = p['S_rw'];
-                                        responses['S_tot'] = p['S_final'];
-                                        responses['path'] = p['path'];
-
-                                        console.log("Réponses enregistrées :", responses);
-                                        if (!reponse_user_study.path_feedback) {
-                                            reponse_user_study.path_feedback = {};
-                                        }
-                                        reponse_user_study.path_feedback[p['pattern']] = responses;
-
-                                        console.log("Réponses totales :", reponse_user_study, ' keys:', Object.keys(reponse_user_study));
-                                    } else {
-                                        alert("Merci de répondre à toutes les questions.");
-                                    }
-                                });
-
-                                // position des nodes horizontalement selon cet ordre
-                                const spacedNodes = orderedNodes.map((node, i) => ({
-                                    ...node,
-                                    x: i * 150,  // espacement horizontal
-                                    y: 0,
-                                    fy: 100
-
-                                }));
-
-                                var petitgraphCtx = drawGraph(div, spacedNodes, p.edges);
-
-                                // Observer les changements de taille du conteneur
-                                const resizeObserverSmallGraph = new ResizeObserver(entries => {
-                                    for (let entry of entries) {
-                                        const width = entry.contentRect.width;
-                                        const height = entry.contentRect.height;
-
-                                        console.log("Nouvelle taille du graphe :", width, height);
-
-                                        // Re-rendre le graphe D3 ici
-                                        updateGraphSize(width, height, petitgraphCtx.simulation, petitgraphCtx.svg);
-                                    }
-                                });
-
-                                resizeObserverSmallGraph.observe(div);
-
-                                petitgraphCtx.svg.on('click', function (properties) {
-                                    console.log("click path");
-                                    fitToGraph(petitgraphCtx.svg, petitgraphCtx.zoom);
-                                    pathNew = {
-                                        nodes: [...orderedNodes],
-                                        edges: [...p.edges]
-                                    };
-
-
-                                    if (mode == "modeAjoutGraph") {
-                                        // Exclure les doublons de nœuds
-                                        const existingNodeIds = new Set(data.nodes.map(n => n.id));
-                                        const newNodes = pathNew.nodes.filter(n => !existingNodeIds.has(n.id));
-
-                                        var existingNodeIdsInPath = new Set(path.nodes.map(n => n.id));
-                                        var newNodesPath = pathNew.nodes.filter(n => !existingNodeIdsInPath.has(n.id));
-                                        if (path2_en_cours) {
-                                            existingNodeIdsInPath = new Set(path2.nodes.map(n => n.id));
-                                            newNodesPath = pathNew.nodes.filter(n => !existingNodeIdsInPath.has(n.id));
-                                        }
-
-
-                                        // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-                                        const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
-                                        const newEdges = pathNew.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
-
-                                        var existingEdgeKeysInPath = new Set(path.edges.map(e => `${e.from}->${e.to}`));
-                                        var newEdgesPath = pathNew.edges.filter(e => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`));
-                                        if (path2_en_cours) {
-                                            existingEdgeKeysInPath = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
-                                            newEdgesPath = pathNew.edges.filter(e => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`));
-                                        }
-
-                                        console.log("existing nodes  u:", existingNodeIds);
-                                        console.log("existin edges u:", existingEdgeKeys);
-                                        console.log("pathNew:", pathNew);
-                                        console.log("new nodes :", newNodesPath);
-                                        console.log("new edges :", newEdgesPath);
-                                        console.log("new nodes utilisé :", newNodes);
-                                        console.log("new edges utilisé:", newEdges);
-                                        console.log("data : ", data);
-
-                                        // Fusionner les données
-                                        data = {
-                                            nodes: [...data.nodes, ...newNodes],
-                                            edges: [...data.edges, ...newEdges]
-                                        };
-
-                                        if (path2_en_cours) {
-                                            path2 = {
-                                                nodes: [...path2.nodes, ...newNodesPath],
-                                                edges: [...path2.edges, ...newEdgesPath]
-                                            };
-                                        } else {
-                                            path2 = {
-                                                nodes: [...path.nodes, ...newNodesPath],
-                                                edges: [...path.edges, ...newEdgesPath]
-                                            };
-                                        }
-                                        console.log('path total :', path2);
-
-
-                                    } else {
-                                        // Remplacer
-                                        data = {
-                                            nodes: [...pathNew.nodes],
-                                            edges: [...pathNew.edges]
-                                        };
-                                        path2 = {
-                                            nodes: [...pathNew.nodes],
-                                            edges: [...pathNew.edges]
-                                        };
-                                        console.log('path2 swap:', path2);
-
-                                    }
-                                    path2_en_cours = true;
-
-                                    //network.setData(data);
-                                    updateGraph(data.nodes, data.edges, window.graphPrincipal.svg,
-                                        window.graphPrincipal.linkGroup,
-                                        window.graphPrincipal.nodeGroup,
-                                        window.graphPrincipal.labelGroup,
-                                        window.graphPrincipal.edgeLabelGroup,
-                                        window.graphPrincipal.simulation,
-                                        window.graphPrincipal.zoomGroup);
-                                })
-                                // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
-
-                            });
-                            container.appendChild(div_graphes_tous);
-
-                            ////// bouton suivant [>]
-                            const suivant = document.createElement('button');
-                            //suivant.className = 'button';
-                            suivant.className = "predicat";
-                            suivant.id = 'buttonSuivant';
-                            suivant.innerHTML = '>';
-                            container.appendChild(suivant);
-
-                            const validerQuestions = document.createElement('button');
-                            validerQuestions.className = 'button';
-                            validerQuestions.id = 'validerQuestions';
-                            validerQuestions.innerHTML = 'Save';
-                            document.getElementById("center-panel").appendChild(validerQuestions);
-
-                            ////// ZONE POUR QUESTIONS GENERALES
-                            const separator = document.getElementById("separateurGeneral");
-                            separator.innerHTML = `
+                    if (
+                      idsToRemove.has(n.id) &&
+                      !pathNodeIds.has(n.id) &&
+                      p == 0
+                    ) {
+                      parent[n.id] = null; // mettre à jour dict parent
+                      if (n.id in liste_node_click) {
+                        liste_node_click.splice(
+                          liste_node_click.indexOf(n.id),
+                          1
+                        );
+                      }
+                      return false; // retirer
+                    }
+                    return true; // garder
+                  });
+                  const validNodeIds = new Set(data.nodes.map((n) => n.id));
+
+                  data.edges = data.edges.filter(
+                    (e) =>
+                      validNodeIds.has(e.from) &&
+                      validNodeIds.has(e.to) &&
+                      !(
+                        edgesToRemove.has(`${e.from}->${e.to}`) &&
+                        !pathEdge.has(`${e.from}->${e.to}`)
+                      )
+                  );
+
+                  console.log("data finale : ", data);
+
+                  //si un element est dans liste node click mais n'est pas parent, le retirer :
+                  p = 0;
+                  for (n of liste_node_click) {
+                    for (k of Object.keys(parent)) {
+                      if (parent[k] == n) {
+                        p = 1;
+                      }
+                    }
+                    console.log("node check : " + n, " p= " + p);
+                    if (p == 0) {
+                      liste_node_click.splice(liste_node_click.indexOf(n), 1); ///////////////////////////////////////////////////retirer aussi les edges ???????????????????????????????????????????????????????????????!!!!!!!!!!!!!!! A FAIRE
+                    }
+                  }
+
+                  // Mettre à jour le graphe
+                  updateGraph(
+                    data["nodes"],
+                    data["edges"],
+                    window.graphPrincipal.svg,
+                    window.graphPrincipal.linkGroup,
+                    window.graphPrincipal.nodeGroup,
+                    window.graphPrincipal.labelGroup,
+                    window.graphPrincipal.edgeLabelGroup,
+                    window.graphPrincipal.simulation,
+                    window.graphPrincipal.zoomGroup
+                  );
+                });
+            } else {
+              alert("Clique d'abord sur les nodes enfants de celui-là !");
+            }
+          }
+        });
+
+        // --------------RECUPERATION DES PREDICATS AU DEBUT------------------ //
+        fetch(`${API_URL}/api/predicats`)
+          .then((res) => res.json())
+          .then((data2) => {
+            //const container = document.getElementById("listPredicats");
+            const container2 = document.getElementById("cochePredicats");
+
+            console.log("all predicats : ", data2);
+
+            data2.forEach((p, i) => {
+              liste = p.split("/");
+              // // Creation div predicat (à gauche en jaune, drag&drop)
+              // const div = document.createElement("div");
+              // div.className = "predicat";
+
+              // div.innerHTML = liste[liste.length - 1];
+              // div.id = liste[liste.length - 1];
+              // div.draggable = "true";
+              // div.ondragstart = dragstartHandler;
+              // container.appendChild(div);
+
+              // Creation checkbox predicat en dessous du grand graph
+              const div2 = document.createElement("div");
+
+              const input = document.createElement("input");
+              input.type = "checkbox";
+              input.id = liste[liste.length - 1];
+              input.name = liste[liste.length - 1];
+              input.className = "myCheckbox";
+              input.value = liste[liste.length - 1];
+
+              const label = document.createElement("label");
+              label.for = liste[liste.length - 1];
+              label.appendChild(input);
+              label.innerHTML += liste[liste.length - 1];
+
+              div2.appendChild(label);
+              container2.appendChild(div2);
+
+              i += 1;
+            });
+            const buttonDecocher = document.createElement("div");
+            buttonDecocher.className = "button";
+            buttonDecocher.id = "uncheckAllBtn";
+            buttonDecocher.innerHTML = "Uncheck All";
+            document
+              .getElementById("graphs-container")
+              .appendChild(buttonDecocher);
+            buttonDecocher.addEventListener("click", () => {
+              const checkboxes = document.querySelectorAll(
+                "#cochePredicats .myCheckbox"
+              );
+              checkboxes.forEach((cb) => (cb.checked = false));
+            });
+          });
+      };
+
+      // ------------------FONCTIONS COMPLEXES------------------- //
+
+      function resetPredicats() {
+        // Mettre à jour les prédicats (les enlever de la zone drop), mais aussi tout le reste (BUTTON REINITIALISER)
+
+        // Vider le conteneur de prédicats dropés
+        //const dropZone = document.getElementById("div_drop_predicat");
+        //dropZone.innerHTML = "";
+        if (document.getElementById("pagination")) {
+          document.getElementById("pagination").remove();
+        }
+        document.getElementById("titre2").innerHTML = "";
+        const element = document.getElementById("validerQuestions");
+        if (element) {
+          element.remove(); // Supprime l'élément du DOM
+        }
+
+        // Réinitialiser les variables globales
+        choix = "false";
+        index_path_affiché = 0;
+        path = { nodes: [], edges: [] };
+        data = { nodes: [], edges: [] };
+        parent = {};
+        liste_node_click = [];
+
+        // Nettoyer les graphes affichés
+        updateGraph(
+          data["nodes"],
+          data["edges"],
+          window.graphPrincipal.svg,
+          window.graphPrincipal.linkGroup,
+          window.graphPrincipal.nodeGroup,
+          window.graphPrincipal.labelGroup,
+          window.graphPrincipal.edgeLabelGroup,
+          window.graphPrincipal.simulation,
+          window.graphPrincipal.zoomGroup
+        );
+
+        document.getElementById("g_petit-container").innerHTML = "";
+        document.getElementById("affichage-cours").innerHTML = "";
+        document.getElementById("top5chart").innerHTML = "";
+        top5ChartInstance.destroy();
+        document.getElementById("titre2").innerHTML = "";
+
+        // Vider et recharger les prédicats disponibles
+        // const predContainer = document.getElementById("listPredicats");
+        // predContainer.innerHTML = "";
+
+        // fetch(`http://localhost:5000/api/predicats`)
+        //     .then(res => res.json())
+        //     .then(preds => {
+        //         preds.forEach(p => {
+        //             const div = document.createElement("div");
+        //             const id = p.split("/").pop();
+        //             div.className = "predicat";
+        //             div.id = id;
+        //             div.draggable = true;
+        //             div.ondragstart = dragstartHandler;
+        //             div.innerHTML = id;
+        //             predContainer.appendChild(div);
+        //         });
+        //     });
+
+        //alert("Réinitialisation effectuée.");
+      }
+
+      function loadPath() {
+        // Charger les chemins (BUTTON AFFICHER CHEMIN)
+        if (loadingPath) return; // 🚫 Ne pas lancer si déjà en cours
+        loadingPath = true;
+        if (document.getElementById("pagination")) {
+          document.getElementById("pagination").remove();
+        }
+
+        const user = document.getElementById("user").value;
+        path2_en_cours = false;
+        parent = {};
+        path = { nodes: [], edges: [] };
+        data = { nodes: [], edges: [] };
+
+        if (document.getElementById("pagination"))
+          document.getElementById("pagination").remove();
+        //Nettoyer les graphes affichés
+        updateGraph(
+          data["nodes"],
+          data["edges"],
+          window.graphPrincipal.svg,
+          window.graphPrincipal.linkGroup,
+          window.graphPrincipal.nodeGroup,
+          window.graphPrincipal.labelGroup,
+          window.graphPrincipal.edgeLabelGroup,
+          window.graphPrincipal.simulation,
+          window.graphPrincipal.zoomGroup
+        );
+
+        setTimeout(() => {
+          window.graphPrincipal.svg
+            .transition()
+            .duration(750)
+            .call(window.graphPrincipal.zoom.transform, d3.zoomIdentity);
+        }, 300); // attendre que D3 ait posé les positions
+
+        document.getElementById("g_petit-container").innerHTML = "";
+        index_path_affiché = 0;
+
+        fetch(`${API_URL}/api/random_course?start=${user}`)
+          .then((res) => res.json())
+          .then((data4) => {
+            if (data4.error) {
+              alert(data4.error);
+              return;
+            }
+            course = data4.course;
+
+            const affichageDiv = document.getElementById("affichage-cours");
+            affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
+
+            const pagination = document.createElement("div");
+            pagination.id = "pagination";
+            const page_actuelle = document.createElement("span");
+            page_actuelle.id = "page_actuelle";
+            page_actuelle.innerHTML = index_path_affiché + 1;
+            pagination.appendChild(page_actuelle);
+            document.getElementById("graph-controls2").appendChild(pagination);
+            return fetch(
+              `${API_URL}/api/path?start=${user}&end=${course}&w=true&choix=${choix}`
+            );
+          })
+          .then((res) => res.json())
+          .then((data2) => {
+            // Mise à jour du graphe, du chemin principal et de l'explication textuelle
+            data = data2.path;
+            console.log("data :", data);
+            var texte = data2.texte;
+            document.getElementById("Explication").innerHTML = texte;
+            console.log("Path : ", data2);
+            path = {
+              nodes: [...data.nodes],
+              edges: [...data.edges],
+            };
+            console.log("chargement du path :", path);
+            //network.setData(data);
+            //----------------------------------------------------------------------------------------------------
+            updateGraph(
+              data.nodes,
+              data.edges,
+              window.graphPrincipal.svg,
+              window.graphPrincipal.linkGroup,
+              window.graphPrincipal.nodeGroup,
+              window.graphPrincipal.labelGroup,
+              window.graphPrincipal.edgeLabelGroup,
+              window.graphPrincipal.simulation,
+              window.graphPrincipal.zoomGroup
+            );
+            // Ne lancer all_path que quand path a fini et retourné une réponse
+            const container = document.getElementById("g_petit-container");
+            container.innerHTML = ""; // Nettoyer l'ancien contenu
+            return fetch(
+              `${API_URL}/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`
+            );
+          })
+          .then((res) => res.json())
+          .then((data2) => {
+            const container = document.getElementById("g_petit-container");
+            pagination.innerHTML += " / " + data2.length;
+
+            console.log("all paths from ", user, " to ", course, " : ", data2);
+            document.getElementById("titre2").innerHTML =
+              "Other possible paths";
+
+            ////// bouton predecent [<]
+            const precedent = document.createElement("button");
+            //precedent.className = 'button';
+            precedent.className = "predicat";
+            precedent.id = "buttonPrecedent";
+            precedent.innerHTML = "<";
+            precedent.style.visibility = "hidden";
+            container.appendChild(precedent);
+
+            const div_graphes_tous = document.createElement("div");
+            div_graphes_tous.id = "div_graphes_tous";
+
+            data2.forEach((p, i) => {
+              // Création div où se trouvera le chemin + infos
+              const div_chemin_info_button = document.createElement("div");
+              div_chemin_info_button.id = "div" + i;
+              div_chemin_info_button.className = "div_chemin_info_button";
+
+              const div = document.createElement("div");
+              div.className = "g_petit";
+              div.id = "g" + i;
+              console.log(" g i =", i);
+
+              if (i !== 0) {
+                div_chemin_info_button.style.display = "none";
+              }
+
+              div_chemin_info_button.appendChild(div);
+              const orderedNodes = orderNodesByEdges(p.nodes, p.edges);
+
+              const line = document.createElement("div");
+              line.innerHTML =
+                "S_rw = " +
+                p["S_rw"] +
+                ", S_jac = " +
+                p["S_jac"] +
+                " --> " +
+                p["S_final"];
+              div_chemin_info_button.appendChild(line);
+              const line2 = document.createElement("div");
+              line2.innerHTML = "Longueur = " + p["longueur"];
+              div_chemin_info_button.appendChild(line2);
+              const line3 = document.createElement("div");
+              line3.innerHTML = "Pattern : " + p["pattern"];
+              div_chemin_info_button.appendChild(line3);
+
+              // Création block de questions
+              const button_answer = document.createElement("button");
+              button_answer.className = "button";
+              button_answer.id = "buttonAnswer" + i;
+              button_answer.innerHTML = "Answer";
+              div_chemin_info_button.appendChild(button_answer);
+
+              const div_questions = document.createElement("div");
+              div_questions.className = "divQuestions";
+              div_questions.id = "Questions" + i;
+              div_questions.style.display = "none";
+              div_questions.repondu = "false";
+
+              var i_qt = 0;
+              const form = document.createElement("form");
+              for (elt of Object.keys(liste_question_possible)) {
+                const div = document.createElement("div");
+                div.innerHTML = elt;
+                form.appendChild(div);
+
+                for (qt of liste_question_possible[elt]) {
+                  var i_answer = 0;
+                  const question = document.createElement("div");
+                  question.innerHTML = "<strong>" + qt + "</strong>";
+                  form.appendChild(question);
+
+                  const select = document.createElement("select");
+                  select.name = "answer" + i_qt;
+                  select.className = "mySelect";
+                  select.style.margin = "6px 0";
+                  select.style.padding = "6px 12px";
+                  select.style.borderRadius = "6px";
+                  select.style.border = "1px solid #ccc";
+                  select.style.backgroundColor = "#fff";
+
+                  // Option vide par défaut
+                  const defaultOption = document.createElement("option");
+                  defaultOption.value = "";
+                  defaultOption.textContent = "-- Select an answer --";
+                  defaultOption.disabled = true;
+                  defaultOption.selected = true;
+                  select.appendChild(defaultOption);
+
+                  // Ajoute les 5 réponses possibles
+                  for (const reponse of liste_answer_possible) {
+                    const option = document.createElement("option");
+                    option.value = reponse;
+                    option.textContent = reponse;
+                    select.appendChild(option);
+                  }
+
+                  form.appendChild(select);
+                  ++i_qt;
+                }
+              }
+              div_questions.appendChild(form);
+
+              const button_valider = document.createElement("button");
+              button_valider.className = "button";
+              button_valider.id = "buttonValider" + i;
+              button_valider.innerHTML = "Validate";
+              div_questions.appendChild(button_valider);
+
+              div_chemin_info_button.appendChild(div_questions);
+              div_graphes_tous.appendChild(div_chemin_info_button);
+              container.appendChild(div_graphes_tous);
+
+              // Event listener des boutons :
+
+              button_answer.addEventListener("click", () => {
+                if (div_questions.style.display === "block") {
+                  div_questions.style.display = "none";
+                } else {
+                  div_questions.style.display = "block"; // Afficher les questions
+                }
+              });
+
+              button_valider.addEventListener("click", () => {
+                const questions = form.querySelectorAll("div > strong");
+                let allAnswered = true;
+                const responses = {};
+
+                questions.forEach((qEl, index) => {
+                  const questionWrapper = qEl.parentElement;
+                  const select = form.querySelector(
+                    `select[name="answer${index}"]`
+                  );
+
+                  // Supprimer la coloration rouge précédente
+                  qEl.style.color = "";
+
+                  if (!select || !select.value) {
+                    allAnswered = false;
+                    qEl.style.color = "red"; // surligne la question
+                  } else {
+                    responses[select.name] = select.value;
+                  }
+                });
+
+                if (allAnswered) {
+                  div_questions.style.display = "none"; // cacher les questions
+                  button_answer.style.backgroundColor = "#9EBC8A";
+                  div_questions.repondu = "true";
+                  // Ajout indices jaccard, random walk
+                  responses["longueur"] = p["longueur"];
+                  responses["S_jac"] = p["S_jac"];
+                  responses["S_rw"] = p["S_rw"];
+                  responses["S_tot"] = p["S_final"];
+                  responses["path"] = p["path"];
+
+                  console.log("Réponses enregistrées :", responses);
+                  if (!reponse_user_study.path_feedback) {
+                    reponse_user_study.path_feedback = {};
+                  }
+                  reponse_user_study.path_feedback[p["pattern"]] = responses;
+
+                  console.log(
+                    "Réponses totales :",
+                    reponse_user_study,
+                    " keys:",
+                    Object.keys(reponse_user_study)
+                  );
+                } else {
+                  alert("Merci de répondre à toutes les questions.");
+                }
+              });
+
+              // position des nodes horizontalement selon cet ordre
+              const spacedNodes = orderedNodes.map((node, i) => ({
+                ...node,
+                x: i * 150, // espacement horizontal
+                y: 0,
+                fy: 100,
+              }));
+
+              var petitgraphCtx = drawGraph(div, spacedNodes, p.edges);
+
+              // Observer les changements de taille du conteneur
+              const resizeObserverSmallGraph = new ResizeObserver((entries) => {
+                for (let entry of entries) {
+                  const width = entry.contentRect.width;
+                  const height = entry.contentRect.height;
+
+                  console.log("Nouvelle taille du graphe :", width, height);
+
+                  // Re-rendre le graphe D3 ici
+                  updateGraphSize(
+                    width,
+                    height,
+                    petitgraphCtx.simulation,
+                    petitgraphCtx.svg
+                  );
+                }
+              });
+
+              resizeObserverSmallGraph.observe(div);
+
+              petitgraphCtx.svg.on("click", function (properties) {
+                console.log("click path");
+                fitToGraph(petitgraphCtx.svg, petitgraphCtx.zoom);
+                pathNew = {
+                  nodes: [...orderedNodes],
+                  edges: [...p.edges],
+                };
+
+                if (mode == "modeAjoutGraph") {
+                  // Exclure les doublons de nœuds
+                  const existingNodeIds = new Set(data.nodes.map((n) => n.id));
+                  const newNodes = pathNew.nodes.filter(
+                    (n) => !existingNodeIds.has(n.id)
+                  );
+
+                  var existingNodeIdsInPath = new Set(
+                    path.nodes.map((n) => n.id)
+                  );
+                  var newNodesPath = pathNew.nodes.filter(
+                    (n) => !existingNodeIdsInPath.has(n.id)
+                  );
+                  if (path2_en_cours) {
+                    existingNodeIdsInPath = new Set(
+                      path2.nodes.map((n) => n.id)
+                    );
+                    newNodesPath = pathNew.nodes.filter(
+                      (n) => !existingNodeIdsInPath.has(n.id)
+                    );
+                  }
+
+                  // Exclure les doublons d'arêtes (selon from/to ou id si défini)
+                  const existingEdgeKeys = new Set(
+                    data.edges.map((e) => `${e.from}->${e.to}`)
+                  );
+                  const newEdges = pathNew.edges.filter(
+                    (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
+                  );
+
+                  var existingEdgeKeysInPath = new Set(
+                    path.edges.map((e) => `${e.from}->${e.to}`)
+                  );
+                  var newEdgesPath = pathNew.edges.filter(
+                    (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
+                  );
+                  if (path2_en_cours) {
+                    existingEdgeKeysInPath = new Set(
+                      path2.edges.map((e) => `${e.from}->${e.to}`)
+                    );
+                    newEdgesPath = pathNew.edges.filter(
+                      (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
+                    );
+                  }
+
+                  console.log("existing nodes  u:", existingNodeIds);
+                  console.log("existin edges u:", existingEdgeKeys);
+                  console.log("pathNew:", pathNew);
+                  console.log("new nodes :", newNodesPath);
+                  console.log("new edges :", newEdgesPath);
+                  console.log("new nodes utilisé :", newNodes);
+                  console.log("new edges utilisé:", newEdges);
+                  console.log("data : ", data);
+
+                  // Fusionner les données
+                  data = {
+                    nodes: [...data.nodes, ...newNodes],
+                    edges: [...data.edges, ...newEdges],
+                  };
+
+                  if (path2_en_cours) {
+                    path2 = {
+                      nodes: [...path2.nodes, ...newNodesPath],
+                      edges: [...path2.edges, ...newEdgesPath],
+                    };
+                  } else {
+                    path2 = {
+                      nodes: [...path.nodes, ...newNodesPath],
+                      edges: [...path.edges, ...newEdgesPath],
+                    };
+                  }
+                  console.log("path total :", path2);
+                } else {
+                  // Remplacer
+                  data = {
+                    nodes: [...pathNew.nodes],
+                    edges: [...pathNew.edges],
+                  };
+                  path2 = {
+                    nodes: [...pathNew.nodes],
+                    edges: [...pathNew.edges],
+                  };
+                  console.log("path2 swap:", path2);
+                }
+                path2_en_cours = true;
+
+                //network.setData(data);
+                updateGraph(
+                  data.nodes,
+                  data.edges,
+                  window.graphPrincipal.svg,
+                  window.graphPrincipal.linkGroup,
+                  window.graphPrincipal.nodeGroup,
+                  window.graphPrincipal.labelGroup,
+                  window.graphPrincipal.edgeLabelGroup,
+                  window.graphPrincipal.simulation,
+                  window.graphPrincipal.zoomGroup
+                );
+              });
+              // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
+            });
+            container.appendChild(div_graphes_tous);
+
+            ////// bouton suivant [>]
+            const suivant = document.createElement("button");
+            //suivant.className = 'button';
+            suivant.className = "predicat";
+            suivant.id = "buttonSuivant";
+            suivant.innerHTML = ">";
+            container.appendChild(suivant);
+
+            if (!document.getElementById("validerQuestions")) {
+              const validerQuestions = document.createElement("button");
+              validerQuestions.className = "button";
+              validerQuestions.id = "validerQuestions";
+              validerQuestions.innerHTML = "Save";
+              document
+                .getElementById("center-panel")
+                .appendChild(validerQuestions);
+            }
+
+            ////// ZONE POUR QUESTIONS GENERALES
+            const separator = document.getElementById("separateurGeneral");
+            separator.innerHTML = `
                                 <hr style="margin: 40px 0; border-top: 2px solid #ccc;">
                                 <h3 style="text-align: center; margin-bottom: 20px;">
                                 ⬇️General Feedback on the Explanation Interface⬇️
                                 </h3>
                             `;
 
-                            const containerQuG = document.getElementById("questionsGenerales");
-                            containerQuG.innerHTML = '';
+            const containerQuG = document.getElementById("questionsGenerales");
+            containerQuG.innerHTML = "";
 
-                            // Génère chaque question + select
-                            Object.entries(questions_reponses_generales).forEach(([questionText, options], index) => {
-                                const wrapper = document.createElement("div");
-                                wrapper.style.marginBottom = "20px";
+            // Génère chaque question + select
+            Object.entries(questions_reponses_generales).forEach(
+              ([questionText, options], index) => {
+                const wrapper = document.createElement("div");
+                wrapper.style.marginBottom = "20px";
 
-                                // Question
-                                const label = document.createElement("label");
-                                label.htmlFor = `generalQuestion${index}`;
-                                label.textContent = questionText;
-                                label.style.display = "block";
-                                label.style.fontWeight = "bold";
-                                label.style.marginBottom = "8px";
-                                wrapper.appendChild(label);
+                // Question
+                const label = document.createElement("label");
+                label.htmlFor = `generalQuestion${index}`;
+                label.textContent = questionText;
+                label.style.display = "block";
+                label.style.fontWeight = "bold";
+                label.style.marginBottom = "8px";
+                wrapper.appendChild(label);
 
-                                if (options.length > 0) {
-                                    // Liste déroulante
-                                    const select = document.createElement("select");
-                                    select.id = `generalQuestion${index}`;
-                                    select.name = `generalQuestion${index}`;
-                                    select.style.padding = "8px 12px";
-                                    select.style.borderRadius = "6px";
-                                    select.style.border = "1px solid #ccc";
-                                    select.style.width = "100%";
-                                    select.style.maxWidth = "400px";
+                if (options.length > 0) {
+                  // Liste déroulante
+                  const select = document.createElement("select");
+                  select.id = `generalQuestion${index}`;
+                  select.name = `generalQuestion${index}`;
+                  select.style.padding = "8px 12px";
+                  select.style.borderRadius = "6px";
+                  select.style.border = "1px solid #ccc";
+                  select.style.width = "100%";
+                  select.style.maxWidth = "400px";
 
-                                    // Option vide par défaut
-                                    const defaultOption = document.createElement("option");
-                                    defaultOption.text = "-- Select an answer --";
-                                    defaultOption.disabled = true;
-                                    defaultOption.selected = true;
-                                    select.appendChild(defaultOption);
+                  // Option vide par défaut
+                  const defaultOption = document.createElement("option");
+                  defaultOption.text = "-- Select an answer --";
+                  defaultOption.disabled = true;
+                  defaultOption.selected = true;
+                  select.appendChild(defaultOption);
 
-                                    // Ajouter les options
-                                    options.forEach(opt => {
-                                        const option = document.createElement("option");
-                                        option.value = opt;
-                                        option.textContent = opt;
-                                        select.appendChild(option);
-                                    });
+                  // Ajouter les options
+                  options.forEach((opt) => {
+                    const option = document.createElement("option");
+                    option.value = opt;
+                    option.textContent = opt;
+                    select.appendChild(option);
+                  });
 
+                  wrapper.appendChild(select);
+                }
+                containerQuG.appendChild(wrapper);
+              }
+            );
 
-                                    wrapper.appendChild(select);
-                                }
-                                containerQuG.appendChild(wrapper);
+            precedent.addEventListener("click", () => {
+              if (index_path_affiché - 1 > -1) {
+                //suivant.style.display = 'block';
+                suivant.style.visibility = "visible";
+                document.getElementById(
+                  "div" + index_path_affiché
+                ).style.display = "none";
+                index_path_affiché -= 1;
+                console.log("window i = ", index_path_affiché);
+                document.getElementById(
+                  "div" + index_path_affiché
+                ).style.display = "block";
+                document.getElementById("page_actuelle").innerHTML =
+                  index_path_affiché + 1;
+                if (index_path_affiché == 0) {
+                  //precedent.style.display = 'none';
+                  precedent.style.visibility = "hidden";
+                }
+              }
+            });
+            suivant.addEventListener("click", () => {
+              //precedent.style.display = 'block';
+              precedent.style.visibility = "visible";
+              if (index_path_affiché + 1 < data2.length) {
+                document.getElementById(
+                  "div" + index_path_affiché
+                ).style.display = "none"; //
+                index_path_affiché += 1;
+                console.log("window i = ", index_path_affiché);
+                document.getElementById(
+                  "div" + index_path_affiché
+                ).style.display = "block"; //Afficher
+                document.getElementById("page_actuelle").innerHTML =
+                  index_path_affiché + 1;
+                if (index_path_affiché + 1 == data2.length) {
+                  //suivant.style.display = 'none';
+                  suivant.style.visibility = "hidden";
+                }
+              }
+            });
+            validerQuestions.addEventListener("click", () => {
+              const questionsDivs =
+                document.querySelectorAll("div.divQuestions");
 
-                            });
+              let allPathAnswered = true;
 
-                            precedent.addEventListener("click", () => {
+              questionsDivs.forEach((qEl, index) => {
+                if (qEl.repondu == "false") {
+                  allPathAnswered = false;
+                }
+              });
 
-                                if (index_path_affiché - 1 > -1) {
-                                    //suivant.style.display = 'block';
-                                    suivant.style.visibility = 'visible';
-                                    document.getElementById("div" + index_path_affiché).style.display = "none";
-                                    index_path_affiché -= 1;
-                                    console.log('window i = ', index_path_affiché);
-                                    document.getElementById('div' + index_path_affiché).style.display = "block";
-                                    document.getElementById('page_actuelle').innerHTML = index_path_affiché + 1;
-                                    if (index_path_affiché == 0) {
-                                        //precedent.style.display = 'none';
-                                        precedent.style.visibility = 'hidden';
-                                    }
-                                }
-                            })
-                            suivant.addEventListener("click", () => {
-                                //precedent.style.display = 'block';
-                                precedent.style.visibility = 'visible';
-                                if (index_path_affiché + 1 < data2.length) {
+              const generalSelects = document.querySelectorAll(
+                "#questionsGenerales select"
+              );
+              let allGeneralAnswered = true;
 
-                                    document.getElementById("div" + index_path_affiché).style.display = "none"; // 
-                                    index_path_affiché += 1;
-                                    console.log('window i = ', index_path_affiché);
-                                    document.getElementById('div' + index_path_affiché).style.display = "block"; //Afficher
-                                    document.getElementById('page_actuelle').innerHTML = index_path_affiché + 1;
-                                    if (index_path_affiché + 1 == data2.length) {
-                                        //suivant.style.display = 'none';
-                                        suivant.style.visibility = 'hidden';
-                                    }
-                                }
-                            })
-                            validerQuestions.addEventListener("click", () => {
+              generalSelects.forEach((select) => {
+                const questionWrapper = select.parentElement;
+                questionWrapper.style.color = "";
 
-                                const questionsDivs = document.querySelectorAll("div.divQuestions");
+                if (
+                  !select.value ||
+                  select.value === "-- Select an answer --"
+                ) {
+                  allGeneralAnswered = false;
+                  questionWrapper.style.color = "red";
+                }
+              });
 
-                                let allPathAnswered = true;
+              if (allPathAnswered && allGeneralAnswered) {
+                reponse_user_study.general_feedback = collectGeneralFeedback();
 
-                                questionsDivs.forEach((qEl, index) => {
-                                    if (qEl.repondu == 'false') {
-                                        allPathAnswered = false;
-                                    }
-                                });
-
-                                const generalSelects = document.querySelectorAll("#questionsGenerales select");
-                                let allGeneralAnswered = true;
-
-                                generalSelects.forEach(select => {
-                                    const questionWrapper = select.parentElement;
-                                    questionWrapper.style.color = "";
-
-                                    if (!select.value || select.value === "-- Select an answer --") {
-                                        allGeneralAnswered = false;
-                                        questionWrapper.style.color = "red";
-                                    }
-                                });
-
-                                if (allPathAnswered && allGeneralAnswered) {
-                                    reponse_user_study.general_feedback = collectGeneralFeedback();
-
-                                    fetch(`${API_URL}/api/user_study`, {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: JSON.stringify({ user_study: reponse_user_study, user_id: user })
-                                    })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            console.log("Réponse du serveur :", data);
-                                            alert("réponses envoyées avec succès !");
-
-                                        })
-                                        .catch(error => {
-                                            console.error("Erreur lors de l’envoi :", error);
-                                            alert("Erreur lors de l’envoi des réponses.");
-                                        });
-
-
-
-                                    console.log("Réponses totales :", reponse_user_study);
-                                } else {
-                                    alert("Merci de répondre à toutes les questions.");
-                                }
-                            });
-
-                        })
-                    //.catch(err => alert("Erreur dans le chargement des chemins : " + err));
-
-                    fetch(`${API_URL}/api/top5?user=${user}&course=${course}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            document.getElementById("messageTop5").innerText = "";
-                            console.log("DEBUG top5 raw data:", data);
-                            if (Object.keys(data).length == 0) {
-                                console.log("Aucun attribut en commun");
-                                document.getElementById("top5chart").style.display = "none";
-                                document.getElementById("messageTop5").innerText = "Aucun attribut en commun";
-                                return;
-                            }
-                            const labels = Object.keys(data).map(uri => uri.split("/").pop()); // simplifier les noms
-                            const values = Object.values(data).map(Number);
-                            console.log("top5 : ", data);
-                            const ctx = document.getElementById('top5chart').getContext('2d');
-                            if (top5ChartInstance !== null) {
-                                top5ChartInstance.destroy();
-                            }
-                            top5ChartInstance = new Chart(ctx, {
-                                type: 'bar',
-                                data: {
-                                    labels: labels,
-                                    datasets: [{
-                                        label: 'Similarity percentage',
-                                        data: values,
-                                        backgroundColor: 'rgba(255, 251, 222, 0.7)',
-                                        borderColor: '#ada56a',
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            max: 1
-                                        }
-                                    }
-                                }
-                            });
-                            document.getElementById("top5chart").style.display = "block";  // réaffiche si caché
-                            document.getElementById("messageTop5").innerText = "";
-                        })
-                        .catch(error => {
-                            console.error("Erreur lors du chargement du top 5 :", error);
-                        });
-
+                fetch(`${API_URL}/api/user_study`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    user_study: reponse_user_study,
+                    user_id: user,
+                  }),
                 })
-                .catch(err => alert("Erreur lors de la récupération du cours aléatoire."));
+                  .then((response) => response.json())
+                  .then((data) => {
+                    console.log("Réponse du serveur :", data);
+                    alert("réponses envoyées avec succès !");
+                  })
+                  .catch((error) => {
+                    console.error("Erreur lors de l’envoi :", error);
+                    alert("Erreur lors de l’envoi des réponses.");
+                  });
 
+                console.log("Réponses totales :", reponse_user_study);
+              } else {
+                alert("Merci de répondre à toutes les questions.");
+              }
+            });
+            return fetch(`${API_URL}/api/top5?user=${user}&course=${course}`);
+          })
 
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("messageTop5").innerText = "";
+            console.log("DEBUG top5 raw data:", data);
+            if (Object.keys(data).length == 0) {
+              console.log("Aucun attribut en commun");
+              document.getElementById("top5chart").style.display = "none";
+              document.getElementById("messageTop5").innerText =
+                "Aucun attribut en commun";
+              return;
+            }
+            const labels = Object.keys(data).map((uri) => uri.split("/").pop()); // simplifier les noms
+            const values = Object.values(data).map(Number);
+            console.log("top5 : ", data);
+            const ctx = document.getElementById("top5chart").getContext("2d");
+            if (top5ChartInstance !== null) {
+              top5ChartInstance.destroy();
+            }
+            top5ChartInstance = new Chart(ctx, {
+              type: "bar",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Similarity percentage",
+                    data: values,
+                    backgroundColor: "rgba(255, 251, 222, 0.7)",
+                    borderColor: "#ada56a",
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    max: 1,
+                  },
+                },
+              },
+            });
+            document.getElementById("top5chart").style.display = "block"; // réaffiche si caché
+            document.getElementById("messageTop5").innerText = "";
 
-        }
+            loadingPath = false; // ✅ Libérer le verrou
+          })
+          .catch((error) => {
+            console.error("Erreur lors du chargement du top 5 :", error);
+          })
 
+          .finally(() => {
+            loadingPath = false;
+          });
+      }
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <!-- Conteneur principal à 3 colonnes -->
-    <div id="main-layout" style="display: flex; flex-direction: column; height: 100vh;">
-
-        <!-- Barre de navigation (optionnelle selon ta capture) -->
-        <div id="nav-bar"
-            style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ccc;">
-            <div>
-                <h1>ExplainGraph </h1>
-            </div>
-            <div style="display: flex; flex: 1; overflow: hidden; padding-left: 20px;"><img src="./liris.png"
-                    alt="Description de l'image" height="50"></div>
-            <div style="display: flex; gap: 15px;">
-                <a href="http://localhost:8000/page3.html">Home</a>
-                <a href="https://liris.cnrs.fr/equipe/tweak">About</a>
-                <a href="#">Export</a>
-                <a href="http://localhost:8000">Settings</a>
-            </div>
+    <div
+      id="main-layout"
+      style="display: flex; flex-direction: column; height: 100vh"
+    >
+      <!-- Barre de navigation (optionnelle selon ta capture) -->
+      <div
+        id="nav-bar"
+        style="
+          display: flex;
+          justify-content: space-between;
+          padding: 10px;
+          border-bottom: 1px solid #ccc;
+        "
+      >
+        <div>
+          <h1>ExplainGraph</h1>
         </div>
+        <div
+          style="display: flex; flex: 1; overflow: hidden; padding-left: 20px"
+        >
+          <img src="./liris.png" alt="Description de l'image" height="50" />
+        </div>
+        <div style="display: flex; gap: 15px">
+          <a href="http://localhost:8000/page3.html">Home</a>
+          <a href="https://liris.cnrs.fr/equipe/tweak">About</a>
+          <a href="#">Export</a>
+          <a href="http://localhost:8000">Settings</a>
+        </div>
+      </div>
 
-        <!-- Zone de contenu principale -->
-        <div id="content-area" style="display: flex; flex: 1; overflow: hidden;">
+      <!-- Zone de contenu principale -->
+      <div id="content-area" style="display: flex; flex: 1; overflow: hidden">
+        <!-- Colonne de gauche : panneau de contrôle -->
+        <div
+          id="left-panel"
+          style="
+            flex: 0 0 300px;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #ccc;
+          "
+        >
+          <h3>Control panel</h3>
+          <p>
+            Enter a User id to generate a recommendation and its explanation.
+          </p>
 
-            <!-- Colonne de gauche : panneau de contrôle -->
-            <div id="left-panel"
-                style="flex: 0 0 300px; padding: 20px; overflow-y: auto; border-right: 1px solid #ccc;">
-                <h3>Control panel</h3>
-                <p>Enter a User id to generate a recommendation and its explanation.</p>
+          <label for="user">User</label>
+          <input type="text" id="user" placeholder="user_xx" />
 
-                <label for="user">User</label>
-                <input type="text" id="user" placeholder="user_xx" />
+          <button
+            class="button"
+            onclick="loadPath()"
+            title="Click here to generate a recommendation and its explanation"
+          >
+            Show Path
+          </button>
+          <!--<button class="button" onclick="sendPredicatesToServer()">Appliquer prédicats</button>-->
+          <button
+            class="button"
+            onclick="resetPredicats()"
+            title="Click here to delete the explanation"
+          >
+            Reset
+          </button>
 
-                <button class="button" onclick="loadPath()"
-                    title="Click here to generate a recommendation and its explanation">Show Path</button>
-                <!--<button class="button" onclick="sendPredicatesToServer()">Appliquer prédicats</button>-->
-                <button class="button" onclick="resetPredicats()"
-                    title="Click here to delete the explanation">Reset</button>
-
-                <!--<div style="margin-top: 10px;">Drag & drop les prédicats les plus importants ci-dessous :</div>
+          <!--<div style="margin-top: 10px;">Drag & drop les prédicats les plus importants ci-dessous :</div>
                 <div id="div_drop_predicat" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"
                     style="min-height: 60px; border: 1px dashed #999; margin: 10px 0;"></div>
                 <div id="listPredicats" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>-->
-            </div>
-
-            <!-- Colonne centrale : graphe et contrôles -->
-            <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto;">
-                <div id="affichage-cours"></div>
-                <h3>Path From A Weighted Graph</h3>
-
-                <div class="graph-controls">
-                    <button class="button" id="resetView"
-                        title="Click here to recenter the graph and adjust the zoom">Recenter The Graph</button>
-                    <button class="button" id="resetPath"
-                        title="Click here to come back to the initial path explanation">Reset Path</button>
-                    <input type="text" id="node" placeholder="course_xx, user_xx,..." />
-                    <button class="button" onclick="chercherNode()"
-                        title="Enter a node's name and click here to show its position in the graph">Find A
-                        Node</button>
-                </div>
-
-                <div>Click on a node to extend the graph by showing its neighbors. You can also select below the graph
-                    what type of neighbors you want to display.</div>
-
-                <div id="graphs-container">
-                    <div class="g" id="graph"></div>
-
-                    <fieldset id="cochePredicats">
-                        <legend>Choose the predicates you want to display (Coming out of the clicked node)</legend>
-                    </fieldset>
-                </div>
-
-                <!-- Test popup hover node-->
-                <div id="tooltip" style="
-                position: absolute;
-                background-color: white;
-                border: 1px solid #ccc;
-                padding: 6px 10px;
-                font-size: 12px;
-                pointer-events: none;
-                display: none;
-                z-index: 1000;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                border-radius: 4px;">
-                </div>
-
-
-                <div class="graph-controls" id="graph-controls2">
-                    <h3 id="titre2" style="display: block; width: 100%; margin-bottom: 20px;"></h3>
-                    <h3 style="display: block; width: 100%;">Choose how to interact with the other paths : </h3>
-                    <button class="button" id="ajouterGraph" title="Add a path to the main one by clicking on it">Add
-                        The Path</button>
-                    <button class="button" id="echangerGraph"
-                        title="Click on a path to display it instead of the main path">Swap The Path</button>
-                    <h3 id="modeAjoutGraph">Add Path Mode Activated</h3>
-                </div>
-
-                <div id="g_petit-container"></div>
-
-                <div id="separateurGeneral"></div>
-
-                <div id="questionsGenerales"></div>
-            </div>
-
-            <!--  Colonne de droite : explication + légende -->
-            <div id="right-panel"
-                style="flex: 0 0 500px; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc;">
-                <h3>Explanation</h3>
-                <p id="Explication">
-
-                </p>
-
-                <h4>Legend</h4>
-                <ul style="list-style: none; padding-left: 0;">
-                    <li><span
-                            style="display: inline-block; width: 12px; height: 12px; background: rgb(236, 112, 90); border-radius: 50%; margin-right: 5px;"></span>
-                        Topic</li>
-                    <li><span
-                            style="display: inline-block; width: 12px; height: 12px; background: rgb(67, 143, 206); border-radius: 50%; margin-right: 5px;"></span>
-                        User and recommended course</li>
-                    <li><span
-                            style="display: inline-block; width: 12px; height: 12px; background: rgb(245, 221, 6); border-radius: 50%; margin-right: 5px;"></span>
-                        Course</li>
-                    <li><span
-                            style="display: inline-block; width: 12px; height: 12px; background: #bce98f; border-radius: 50%; margin-right: 5px;"></span>
-                        Type</li>
-                    <li>
-                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                            <div id="legendLiteral">
-                                Literal
-                            </div>
-                            <span>Literal</span>
-                        </div>
-
-                    </li>
-                </ul>
-
-                <h4>Top 5 Semantic Attributes</h4>
-                <p>This bar chart shows what percentage of the user's high interest courses shares the same semantic
-                    attributes as the recommended course. This chart only shows the top 5, non-zero percentages.</p>
-                <div id="messageTop5"></div>
-                <canvas id="top5chart" width="260" height="200"></canvas>
-            </div>
         </div>
+
+        <!-- Colonne centrale : graphe et contrôles -->
+        <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto">
+          <div id="affichage-cours"></div>
+          <h3>Path From A Weighted Graph</h3>
+
+          <div class="graph-controls">
+            <button
+              class="button"
+              id="resetView"
+              title="Click here to recenter the graph and adjust the zoom"
+            >
+              Recenter The Graph
+            </button>
+            <button
+              class="button"
+              id="resetPath"
+              title="Click here to come back to the initial path explanation"
+            >
+              Reset Path
+            </button>
+            <input type="text" id="node" placeholder="course_xx, user_xx,..." />
+            <button
+              class="button"
+              onclick="chercherNode()"
+              title="Enter a node's name and click here to show its position in the graph"
+            >
+              Find A Node
+            </button>
+          </div>
+
+          <div>
+            Click on a node to extend the graph by showing its neighbors. You
+            can also select below the graph what type of neighbors you want to
+            display.
+          </div>
+
+          <div id="graphs-container">
+            <div class="g" id="graph"></div>
+
+            <fieldset id="cochePredicats">
+              <legend>
+                Choose the predicates you want to display (Coming out of the
+                clicked node)
+              </legend>
+            </fieldset>
+          </div>
+
+          <!-- Test popup hover node-->
+          <div
+            id="tooltip"
+            style="
+              position: absolute;
+              background-color: white;
+              border: 1px solid #ccc;
+              padding: 6px 10px;
+              font-size: 12px;
+              pointer-events: none;
+              display: none;
+              z-index: 1000;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+              border-radius: 4px;
+            "
+          ></div>
+
+          <div class="graph-controls" id="graph-controls2">
+            <h3
+              id="titre2"
+              style="display: block; width: 100%; margin-bottom: 20px"
+            ></h3>
+            <h3 style="display: block; width: 100%">
+              Choose how to interact with the other paths :
+            </h3>
+            <button
+              class="button"
+              id="ajouterGraph"
+              title="Add a path to the main one by clicking on it"
+            >
+              Add The Path
+            </button>
+            <button
+              class="button"
+              id="echangerGraph"
+              title="Click on a path to display it instead of the main path"
+            >
+              Swap The Path
+            </button>
+            <h3 id="modeAjoutGraph">Add Path Mode Activated</h3>
+          </div>
+
+          <div id="g_petit-container"></div>
+
+          <div id="separateurGeneral"></div>
+
+          <div id="questionsGenerales"></div>
+        </div>
+
+        <!--  Colonne de droite : explication + légende -->
+        <div
+          id="right-panel"
+          style="
+            flex: 0 0 500px;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid #ccc;
+          "
+        >
+          <h3>Explanation</h3>
+          <p id="Explication"></p>
+
+          <h4>Legend</h4>
+          <ul style="list-style: none; padding-left: 0">
+            <li>
+              <span
+                style="
+                  display: inline-block;
+                  width: 12px;
+                  height: 12px;
+                  background: rgb(236, 112, 90);
+                  border-radius: 50%;
+                  margin-right: 5px;
+                "
+              ></span>
+              Topic
+            </li>
+            <li>
+              <span
+                style="
+                  display: inline-block;
+                  width: 12px;
+                  height: 12px;
+                  background: rgb(67, 143, 206);
+                  border-radius: 50%;
+                  margin-right: 5px;
+                "
+              ></span>
+              User and recommended course
+            </li>
+            <li>
+              <span
+                style="
+                  display: inline-block;
+                  width: 12px;
+                  height: 12px;
+                  background: rgb(245, 221, 6);
+                  border-radius: 50%;
+                  margin-right: 5px;
+                "
+              ></span>
+              Course
+            </li>
+            <li>
+              <span
+                style="
+                  display: inline-block;
+                  width: 12px;
+                  height: 12px;
+                  background: #bce98f;
+                  border-radius: 50%;
+                  margin-right: 5px;
+                "
+              ></span>
+              Type
+            </li>
+            <li>
+              <div
+                style="display: flex; align-items: center; margin-bottom: 8px"
+              >
+                <div id="legendLiteral">Literal</div>
+                <span>Literal</span>
+              </div>
+            </li>
+          </ul>
+
+          <h4>Top 5 Semantic Attributes</h4>
+          <p>
+            This bar chart shows what percentage of the user's high interest
+            courses shares the same semantic attributes as the recommended
+            course. This chart only shows the top 5, non-zero percentages.
+          </p>
+          <div id="messageTop5"></div>
+          <canvas id="top5chart" width="260" height="200"></canvas>
+        </div>
+      </div>
     </div>
-</body>
-
-
+  </body>
 </html>
