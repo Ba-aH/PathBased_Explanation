@@ -10,6 +10,7 @@ const course = ref("");
 const searchNode = ref("");
 const explanation = ref("");
 const top5Message = ref("");
+let showButtonSave = false;
 const mode = ref("Mode Ajout Graphe Activé");
 let top5ChartInstance = null;
 
@@ -459,7 +460,7 @@ const loadPath = async () => {
     alert("Veuillez entrer un nom d'utilisateur.");
     return;
   }
-
+	showButtonSave = true;
   try {
     // 1. Obtenir cours recommandé
     console.log("hey");
@@ -740,17 +741,17 @@ function resetPredicats() {
   console.log("Réinitialisation des prédicats");
   //document.getElementById('pagination').remove()
   document.getElementById("titre2").innerHTML = "";
-
+	showButtonSave = false;
   // Réinitialiser les variables globales
   path = { nodes: [], edges: [] };
   data = { nodes: [], edges: [] };
+	dataPaths.value = [];
   parent = {};
   liste_node_click = [];
 
   // Nettoyer les graphes affichés
   updateGraph(data.nodes, data.edges, graphCtx.value);
 
-  document.getElementById("g_petit-container").innerHTML = "";
   document.getElementById("affichage-cours").innerHTML = "";
   document.getElementById("top5chart").innerHTML = "";
   top5ChartInstance.destroy();
@@ -1306,6 +1307,8 @@ onMounted(async () => {
             class="button"
             @click="ajouterGraph"
             title="Add a path to the main one by clicking on it"
+						:style="{ backgroundColor: (mode == 'Mode Ajout Graphe Activé' ? '#4682a9' : '#749bc2') }"
+
           >
             Add The Path
           </button>
@@ -1313,6 +1316,7 @@ onMounted(async () => {
             class="button"
             @click="echangerGraph"
             title="Click on a path to display it instead of the main path"
+						:style="{ backgroundColor: (mode != 'Mode Ajout Graphe Activé' ? '#4682a9' : '#749bc2') }"
           >
             Swap The Path
           </button>
@@ -1414,7 +1418,7 @@ onMounted(async () => {
         </div>
 
         <!-- Bouton global -->
-        <button class="button" @click="saveAll">Save</button>
+        <button :style = "{visibility:(showButtonSave ? 'visible':'hidden')}" class="button" @click="saveAll">Save</button>
       </div>
 
       <div id="right-panel">
