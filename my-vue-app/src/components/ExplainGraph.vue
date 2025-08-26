@@ -1,4 +1,5 @@
 <script setup>
+import tuto from "../assets/tuto.mp4"
 import * as d3 from "d3";
 import { ref, reactive, onMounted, nextTick } from "vue";
 import Chart from "chart.js/auto";
@@ -6,6 +7,8 @@ import Chart from "chart.js/auto";
 // Références réactives
 const user = ref("");
 const course = ref("");
+
+const showHelp = ref(false)
 
 const searchNode = ref("");
 const explanation = ref("");
@@ -135,7 +138,7 @@ const drawGraph = (container, nodes, edges) => {
     .append("marker")
     .attr("id", "arrow")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 25)
+    .attr("refX", 23)
     .attr("refY", 0)
     .attr("markerWidth", 6)
     .attr("markerHeight", 6)
@@ -233,6 +236,7 @@ const updateGraph = (nodes, edges, infos) => {
     .append("path")
     .attr("fill", "none")
     .attr("stroke-width", 1.5)
+	.attr("marker-end", "url(#arrow)")
     .attr("stroke", (d) => getNodeColor(d.source.group));
   const linkElements = linkEnter.merge(linkSelection);
 
@@ -667,9 +671,9 @@ const loadPath = async () => {
     top5Message.value = "";
     console.log("DEBUG top5 raw data:", top5);
     if (Object.keys(top5).length == 0) {
-      console.log("Aucun attribut en commun");
+      console.log("No common attribute");
       document.getElementById("top5chart").style.display = "none";
-      top5Message.value = "Aucun attribut en commun";
+      top5Message.value = "No common attribute";
       return;
     }
     const labels = Object.keys(top5).map((uri) => uri.split("/").pop()); // simplifier les noms
@@ -1450,12 +1454,96 @@ onMounted(async () => {
         </p>
         <div id="messageTop5">{{ top5Message }}</div>
         <canvas id="top5chart" width="260" height="200"></canvas>
+
+				<div>
+				<!-- Bouton Help -->
+				<button @click="showHelp = true" class="help-btn">
+				<img src="../assets/ampoule.png" alt="ampoule" height = "35 px" />
+					
+				</button>
+				<!--<a href="https://www.flaticon.com/fr/icones-gratuites/idee" title="idée icônes">Idée icônes créées par Good Ware - Flaticon</a>-->
+
+				<!-- Modal -->
+				<div v-if="showHelp" class="modal-overlay">
+					<div class="modal-content">
+						<h2>Tutorial</h2>
+						<video width="560" height="315" controls>
+							<source :src="tuto" type="video/mp4" />
+						</video>
+
+						<br/>
+						<button @click="showHelp = false" class="return-btn">
+							Return
+						</button>
+					</div>
+				</div>
+			</div>
       </div>
     </div>
   </div>
 </template>
 
 <style>
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 90%;
+  text-align: center;
+}
+
+.return-btn {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background: #4682a9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.help-btn {
+  position: fixed;       /* collé sur l’écran */
+  bottom: 20px;          /* distance du bas */
+  right: 20px;           /* distance de la droite */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;    /* cercle */
+  background-color: #f8d4097e;
+  color: white;
+  font-size: 24px;       /* taille de l’icône */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+.help-btn:hover {
+  transform: scale(1.1);
+	background-color: #f8d409ff;
+}
+
+
+
+
 /* ----------- RESET & BASE ----------- */
 * {
   box-sizing: border-box;
@@ -1738,7 +1826,7 @@ body {
 
 /* ----------- DROITE - EXPLICATION ----------- */
 #right-panel {
-  flex: 0 0 300px;
+  flex: 0 0 500px;
   background-color: #ffffff;
   border-left: 1px solid #eee;
   padding: 24px;
@@ -1835,7 +1923,7 @@ body {
 
 #graph {
   width: 100%;
-  height: 400px; /* ou ce que tu veux */
+  height: 800px;
   border: 1px solid #ccc;
 }
 </style>

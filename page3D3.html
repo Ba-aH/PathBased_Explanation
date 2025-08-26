@@ -17,6 +17,63 @@ and open the template in the editor.
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+
+			/* ---------------------Button help + tuto ---------------------*/
+			.modal-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0,0,0,0.6);
+				display: none;
+				align-items: center;
+				justify-content: center;
+				z-index: 999;
+			}
+
+			.modal-content {
+				background: white;
+				padding: 20px;
+				border-radius: 12px;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+				max-width: 90%;
+				text-align: center;
+			}
+
+			.return-btn {
+				margin-top: 15px;
+				padding: 8px 16px;
+				background: #4682a9;
+				color: white;
+				border: none;
+				border-radius: 8px;
+				cursor: pointer;
+			}
+
+			.help-btn {
+				position: fixed;       /* collé sur l’écran */
+				bottom: 20px;          /* distance du bas */
+				right: 20px;           /* distance de la droite */
+				width: 60px;
+				height: 60px;
+				border-radius: 50%;    /* cercle */
+				background-color: #f8d4097e;
+				color: white;
+				font-size: 24px;       /* taille de l’icône */
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				cursor: pointer;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				transition: transform 0.2s ease;
+			}
+
+			.help-btn:hover {
+				transform: scale(1.1);
+				background-color: #f8d409ff;
+			}
       /* ----------- RESET & BASE ----------- */
       * {
         box-sizing: border-box;
@@ -429,6 +486,14 @@ and open the template in the editor.
       var mode = "modeAjoutGraph";
 
       // -----------------FONCTIONS SIMPLES---------------//
+
+		function openModal() {
+		document.getElementById('modal').style.display = 'flex';
+		}
+		function closeModal() {
+		document.getElementById('modal').style.display = 'none';
+		}
+
       function getNodeColor(group) {
         return group === 0
           ? "orange"
@@ -650,21 +715,21 @@ and open the template in the editor.
           .attr("class", "edge-labels");
 
         // pour fleche :
-        // Ajouter une définition de flèche
-        svg
-          .append("defs")
-          .append("marker")
-          .attr("id", "arrow-${}")
-          .attr("viewBox", "0 -5 10 10")
-          .attr("refX", 25) // Position du marqueur sur l'edge (ajuste selon le rayon du nœud)
-          .attr("refY", 0)
-          .attr("markerWidth", 6)
-          .attr("markerHeight", 6)
-          .attr("orient", "auto")
-          .attr("markerUnits", "userSpaceOnUse")
-          .append("path")
-          .attr("d", "M0,-5L10,0L0,5")
-          .attr("fill", "#999");
+        // Définition de flèche
+		svg
+			.append("defs")
+			.append("marker")
+			.attr("id", "arrow")
+			.attr("viewBox", "0 -5 10 10")
+			.attr("refX", 25)
+			.attr("refY", 0)
+			.attr("markerWidth", 6)
+			.attr("markerHeight", 6)
+			.attr("orient", "auto")
+			.attr("markerUnits", "userSpaceOnUse")
+			.append("path")
+			.attr("d", "M0,-5L10,0L0,5")
+			.attr("fill", "#999");
 
         d3.select("svg").style("pointer-events", "all");
         d3.select("g.zoom-group").style("pointer-events", "all");
@@ -763,6 +828,7 @@ and open the template in the editor.
           .append("path") //////////////////
           .attr("fill", "none")
           .attr("stroke-width", 1.5)
+			.attr("marker-end", "url(#arrow)") ///////////??????????????????????????????
           .attr("stroke", (d) => {
             // Trouver la couleur du nœud source
             if (typeof d.source === "object") {
@@ -1050,9 +1116,7 @@ and open the template in the editor.
 
         resizeObserver.observe(container);
 
-        //updateGraph(data.nodes, data.edges, svg, linkGroup, nodeGroup, labelGroup);
-
-        //drawGraph(container, data["nodes"], data["edges"]);
+        document.getElementById("ajouterGraph").style.backgroundColor='#4682a9';
 
         // -----------------EVENT LISTENER------------------- //
         document.getElementById("resetView").addEventListener("click", () => {
@@ -1092,6 +1156,8 @@ and open the template in the editor.
             document.getElementById("modeAjoutGraph").innerHTML =
               "Add Path Mode Activated";
             mode = "modeAjoutGraph";
+			document.getElementById("ajouterGraph").style.backgroundColor='#4682a9';
+			document.getElementById("echangerGraph").style.backgroundColor='#749bc2';
             path2_en_cours = false;
 
             data = {
@@ -1127,6 +1193,8 @@ and open the template in the editor.
             document.getElementById("modeAjoutGraph").innerHTML =
               "Swap Path Mode Activated";
             mode = "modeEchangeGraph";
+			document.getElementById("ajouterGraph").style.backgroundColor='#749bc2';
+			document.getElementById("echangerGraph").style.backgroundColor='#4682a9';
             path2_en_cours = false;
 
             data = {
@@ -1456,6 +1524,9 @@ and open the template in the editor.
               checkboxes.forEach((cb) => (cb.checked = false));
             });
           });
+
+		const video = document.getElementById('tutoVideo');
+  		video.load();
       };
 
       // ------------------FONCTIONS COMPLEXES------------------- //
@@ -2125,10 +2196,10 @@ and open the template in the editor.
             document.getElementById("messageTop5").innerText = "";
             console.log("DEBUG top5 raw data:", data);
             if (Object.keys(data).length == 0) {
-              console.log("Aucun attribut en commun");
+              console.log("No common attribute");
               document.getElementById("top5chart").style.display = "none";
               document.getElementById("messageTop5").innerText =
-                "Aucun attribut en commun";
+                "No common attribute";
               return;
             }
             const labels = Object.keys(data).map((uri) => uri.split("/").pop()); // simplifier les noms
@@ -2433,6 +2504,28 @@ and open the template in the editor.
           </p>
           <div id="messageTop5"></div>
           <canvas id="top5chart" width="260" height="200"></canvas>
+
+
+		 <!-- Bouton Help -->
+			<button class="help-btn" onclick="openModal()">
+				<img src="./ampoule.png" alt="ampoule" height = "35 px" />
+			</button>
+
+			<!-- Modal -->
+			<div id="modal" class="modal-overlay">
+				<div class="modal-content">
+				<h2>Tutorial</h2>
+				<video id="tutoVideo" width="560" height="315" controls preload="none">
+					<source src="tuto.mp4" type="video/mp4">
+					Votre navigateur ne supporte pas la vidéo.
+				</video>
+				<!-- Bouton Return -->
+				 <br/>
+				<button class="return-btn" onclick="closeModal()">Return</button>
+				</div>
+
+				
+			</div>
         </div>
       </div>
     </div>
