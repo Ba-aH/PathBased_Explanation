@@ -342,6 +342,21 @@ def predicats(G):
             liste.append(l)
     return liste
 
+def predicats_node(G, node):
+    """
+    Permet de récupérer le label de l'ensemble des arrêtes du graphe
+    Entrée : 
+    - G : DiGraph
+    - node : str, noeud dont on cherche les prédicats sortants.
+    Sortie : 
+    - liste : list, la liste comportant l'ensemble des labels des arêtes."""
+    liste = []
+    for u,v,e in G.edges(data=True):
+        if u==node:
+            l=e.get("label","")
+            if l not in liste:
+                liste.append(l)
+    return liste
 
 
 
@@ -577,6 +592,20 @@ def api_predicats():
 
     return jsonify(data)
 
+@app.route("/api/predicats_node")
+def api_predicats_node():
+    """
+    Permet de récupérer l'ensemble des labels des prédicats du noeud donné en paramètre.
+    """
+
+    node = request.args.get('node')
+    print(">> API predicats_node appelé avec :", node)
+    data_node = predicats_node(G, node)
+    data_node.sort()
+
+    # Retourne toujours une liste
+    return jsonify(data_node)
+
 
 @app.route("/api/random_course")
 def api_random_course():
@@ -742,10 +771,6 @@ def receive_user_study():
         json.dump(feedback_data, f, ensure_ascii=False, indent=4)
 
     return jsonify({"status": "success", "message": f"Data saved for {user_id}"})
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
 
 
 if __name__ == "__main__":

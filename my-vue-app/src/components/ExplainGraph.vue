@@ -435,7 +435,7 @@ const drag = (simulation) => {
       d.fy = null;
     });
 };
-
+/*
 const fetchPredicats = async () => {
   try {
     const res = await fetch(`${API_URL}/api/predicats`);
@@ -454,6 +454,7 @@ const fetchPredicats = async () => {
     console.error("Erreur fetchPredicats:", err);
   }
 };
+*/
 
 const uncheckAll = () => {
   predicats.value.forEach((p) => (p.checked = false));
@@ -932,9 +933,59 @@ async function saveAll() {
   alert("Réponses envoyées avec succès !");
 }
 
+
+function showToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+
+            container.appendChild(toast);
+
+            // Retirer après 3s
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function showNodeMessage(svg, node, message) {
+            // Supprimer messages précédents
+            if (!svg.selectAll(".node-message")){
+			svg.selectAll(".node-message").remove();
+			}
+
+            // Ajouter le texte directement au-dessus du nœud
+            const g = svg.append("g")
+                .attr("class", "node-message");
+
+            g.append("rect")
+                .attr("x", node.x - message.length * 3)  // centré environ
+                .attr("y", node.y - 30)                  // un peu au-dessus du nœud
+                .attr("rx", 6)
+                .attr("ry", 6)
+                .attr("fill", "rgba(0,0,0,0.7)")
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .attr("width", message.length * 7)       // largeur en fonction du texte
+                .attr("height", 20);
+
+            g.append("text")
+                .attr("x", node.x)
+                .attr("y", node.y - 15)
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", "12px")
+                .text(message);
+
+            // Disparition auto après 2s
+            setTimeout(() => {
+                g.transition().duration(500).style("opacity", 0).remove();
+            }, 2000);
+        }
+
 onMounted(async () => {
-  await fetchPredicats();
-  console.log("Predicats après fetch:", predicats.value);
+  //await fetchPredicats();
+  //console.log("Predicats après fetch:", predicats.value);
 
   const container = document.getElementById("graph");
   console.log(container);
@@ -987,87 +1038,143 @@ onMounted(async () => {
 
     if (!nodeId) return;
     if (!liste_node_click.includes(nodeId)) {
-      // Si node jamais cliqué :
-      liste_node_click.push(nodeId); // ajouter dans liste
+		 // Si node jamais cliqué :
+		fetch(`${API_URL}/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error("HTTP error " + res.status);
+                            return res.json();
+                        })
+                        .then(predicats => {
+                            if (predicats.error) {
+                                checklist.append("p").text("No predicates found.");
+                                return;
+                            }
 
-      console.log("liste click :", liste_node_click);
-      console.log("afficher voisins !");
-      console.log("clic sur : ", nodeId);
-      console.log("parent dico : ", parent);
+                            if (!predicats || predicats.length === 0) { // Si aucun prédicat sortant
+                                //showToast("⚠️ Ce nœud n’a aucun voisin sortant.");
+                                showNodeMessage(graphCtx.value.svg, clickedNode, "⚠️ No outgoing neighbors");
+                                return;
+                            }
 
-      //var node = data.nodes.get(nodeId);
+                            // Supprimer modal existant et création nouveau
+                            d3.selectAll(".modal-overlay").remove();
 
-      const cb_predicates = predicats.value
-        .filter((p) => p.checked)
-        .map((p) => p.name);
+                            const overlay = d3.select("body").append("div")
+                                .attr("class", "modal-overlay");
+
+                            const modal = overlay.append("div")
+                                .attr("class", "predicat-modal");
+
+                            modal.append("h4").text("Outgoing predicates of the node : " + clickedNode.label);
+                            modal.append("p").text("Choose what predicates to show in the node's neighborhood :");
+
+                            const checklist = modal.append("div");
+                            predicats.forEach(p => {
+                                const label = checklist.append("label").style("display", "block");
+                                label.append("input")
+                                    .attr("type", "checkbox")
+                                    .attr("class", "myCheckbox")
+                                    .attr("value", p.split("/").pop())
+                                    .property("checked", false);
+                                label.append("span").text(" " + p.split("/").pop());
+                            });
 
 
-      const encodedNodeId = encodeURIComponent(nodeId);
-      fetch(
-        `${API_URL}/api/pathETvoisins?start=${user.value}&end=${course.value}&voisin=${encodedNodeId}&choix=false`,
-        {
-          // Récuperer les voisins sortants de nodeId
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ predicates: cb_predicates }),
-        }
-      )
-        .then((res) => res.json())
-        .then((data2) => {
-          // Exclure les doublons de nœuds
-          const existingNodeIds = new Set(data.nodes.map((n) => n.id));
-          console.log("data nodes : ", data2.nodes);
-          console.log("data edges : ", data2.edges);
-          console.log("already existing nodes : ", existingNodeIds);
-          console.log("path et voisins de ", nodeId, " : ", data2);
-          const newNodes = data2.nodes.filter(
-            (n) => !existingNodeIds.has(n.id)
-          );
-          console.log("new nodes not in data actu :", newNodes);
+                            const btns = modal.append("div").attr("class", "buttons");
 
-          // Mise à jour dict parent
+                            btns.append("button")
+                                .attr("class", "button")
+                                .text("Select all").on("click", () => {
+                                    checklist.selectAll("input").property("checked", true);
+                                });
 
-          for (const node of newNodes) {
-            console.log("new node:", node.id);
-            parent[node.id] = nodeId;
-          }
+                            btns.append("button")
+                                .attr("class", "button")
+                                .text("Unselect all").on("click", () => {
+                                    checklist.selectAll("input").property("checked", false);
+                                });
 
-          console.log("dico parent apres ajout enfant", parent);
+                            btns.append("button")
+                                .attr("class", "button")
+                                .text("Confirm").on("click", () => {
+                                    liste_node_click.push(nodeId) // ajouter dans liste
+                                    const checkboxes = document.querySelectorAll('.myCheckbox:checked');
+                                    const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
 
-          // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-          const existingEdgeKeys = new Set(
-            data.edges.map((e) => `${e.from}->${e.to}`)
-          );
-          const newEdges = data2.edges.filter(
-            (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
-          );
-          console.log("new edges not in data actu :", newEdges);
+                                    console.log("Prédicats sélectionnés :", cb_predicates);
 
-          // Fusionner les données
-          newNodes.forEach((n) => {
-            n.x = Math.random() * +600;
-            n.y = Math.random() * +600;
-          });
-          data.nodes = [...data.nodes, ...newNodes];
-          data.edges = [...data.edges, ...newEdges];
+                                    const encodedNodeId = encodeURIComponent(nodeId); // On récupère l'URI du noeud
+									fetch(`${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=false`, { // Récuperer les voisins sortants de nodeId et les arêtes les atteignant
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({ predicates: cb_predicates })
+                                    })
+                                        .then(res => res.json())
+                                        .then(data2 => {
+                                            // Exclure les doublons de nœuds
+                                            const existingNodeIds = new Set(data.nodes.map(n => n.id));
+                                            console.log("data nodes : ", data2.nodes);
+                                            console.log("data edges : ", data2.edges);
+                                            console.log("already existing nodes : ", existingNodeIds);
+                                            console.log("path et voisins de ", nodeId, " : ", data2);
+                                            const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
+                                            console.log("new nodes not in data actu :", newNodes);
 
-          if (data2.nodes.length == 0) {
-            alert("Pas de voisins ! ");
-            liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
-          } else {
-            console.log("liste click :", liste_node_click);
+                                            // Mise à jour dict parent
+                                            for (const n in newNodes) {
+                                                console.log("new nodes : ", newNodes[n].id);
+                                                parent[newNodes[n].id] = nodeId;
 
-            // Mettre à jour le graphe
-            console.log("data avant update:", data);
-            console.log("data['nodes']:", data["nodes"]);
+                                            }
+                                            console.log("dico parent apres ajout enfant", parent);
 
-            updateGraph(data.nodes, data.edges, graphCtx.value);
-            fitToGraph(graphCtx.value.svg, graphCtx.value.zoom);
-          }
-        });
-    } else {
+                                            // Exclure les doublons d'arêtes (selon from/to ou id si défini)
+                                            const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
+                                            const newEdges = data2.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
+                                            console.log("new edges not in data actu :", newEdges);
+
+                                            // Fusionner les données
+                                            newNodes.forEach(n => {
+                                                n.x = Math.random() * +600;
+                                                n.y = Math.random() * +600;
+                                            });
+                                            data = {
+                                                nodes: [...data.nodes, ...newNodes],
+                                                edges: [...data.edges, ...newEdges]
+                                            };
+
+
+                                            if (data2.nodes.length == 0) {
+                                                //alert("Pas de voisins ! ");
+                                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
+                                            } else {
+                                                console.log("liste click :", liste_node_click);
+
+                                                // Mettre à jour le graphe
+                                                console.log("data avant update:", data);
+                                                console.log("data['nodes']:", data["nodes"]);
+
+                                                updateGraph(data.nodes, data.edges, graphCtx.value);
+                                            }
+
+
+                                        });
+
+                                    overlay.remove();
+                                });
+
+                            btns.append("button")
+                                .attr("class", "button")
+                                .text("Cancel").on("click", () => {
+                                    overlay.remove();
+                                });
+
+							
+
+                        });
+		 } else {
       // Sinon, si node cliqué une seconde fois
       console.log("liste click :", liste_node_click);
       console.log("dico parents :", parent);
@@ -1207,7 +1314,7 @@ onMounted(async () => {
           @click="loadPath"
           title="Click here to generate a recommendation and its explanation"
         >
-          Show Path
+          Show Recommendation
         </button>
         <button
           class="button"
@@ -1464,7 +1571,7 @@ onMounted(async () => {
 				<!--<a href="https://www.flaticon.com/fr/icones-gratuites/idee" title="idée icônes">Idée icônes créées par Good Ware - Flaticon</a>-->
 
 				<!-- Modal -->
-				<div v-if="showHelp" class="modal-overlay">
+				<div v-if="showHelp" id="modal-tuto">
 					<div class="modal-content">
 						<h2>Tutorial</h2>
 						<video width="560" height="315" controls>
@@ -1480,69 +1587,108 @@ onMounted(async () => {
 			</div>
       </div>
     </div>
+		<div id="toast-container"></div>
   </div>
 </template>
 
 <style>
+/* modal predicats*/
+			.modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
+        .predicat-modal {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.4);
+            max-width: 350px;
+        }
 
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  max-width: 90%;
-  text-align: center;
-}
+        .predicat-modal h4 {
+            margin-top: 0;
+        }
 
-.return-btn {
-  margin-top: 15px;
-  padding: 8px 16px;
-  background: #4682a9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+        .predicat-modal .buttons {
+            /* margin-top: 10px; */
+            flex-wrap: wrap;
+            display: flex;
+            justify-content: space-between;
+        }
 
-.help-btn {
-  position: fixed;       /* collé sur l’écran */
-  bottom: 20px;          /* distance du bas */
-  right: 20px;           /* distance de la droite */
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;    /* cercle */
-  background-color: #f8d4097e;
-  color: white;
-  font-size: 24px;       /* taille de l’icône */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  transition: transform 0.2s ease;
-}
-
-.help-btn:hover {
-  transform: scale(1.1);
-	background-color: #f8d409ff;
-}
+        .predicat-modal .button {
+            width: auto;/* taille selon contenu */
+            margin: 6px;/* petit espacement autour */
+            display: inline-block;/* pour qu'ils s’alignent */
+            min-width: 100px;/* (optionnel) éviter des boutons trop petits */
+        }
 
 
+			/* ---------------------Button help + tuto ---------------------*/
+			#modal-tuto {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0,0,0,0.6);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 999;
+			}
 
+			.modal-content {
+				background: white;
+				padding: 20px;
+				border-radius: 12px;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+				max-width: 90%;
+				text-align: center;
+			}
+
+			.return-btn {
+				margin-top: 15px;
+				padding: 8px 16px;
+				background: #4682a9;
+				color: white;
+				border: none;
+				border-radius: 8px;
+				cursor: pointer;
+			}
+
+			.help-btn {
+				position: fixed;       /* collé sur l’écran */
+				bottom: 20px;          /* distance du bas */
+				right: 20px;           /* distance de la droite */
+				width: 60px;
+				height: 60px;
+				border-radius: 50%;    /* cercle */
+				background-color: #f8d4097e;
+				color: white;
+				font-size: 24px;       /* taille de l’icône */
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				cursor: pointer;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+				transition: transform 0.2s ease;
+			}
+
+			.help-btn:hover {
+				transform: scale(1.1);
+				background-color: #f8d409ff;
+			}
 
 /* ----------- RESET & BASE ----------- */
 * {
@@ -1926,4 +2072,47 @@ body {
   height: 800px;
   border: 1px solid #ccc;
 }
+
+
+/* -------- TOAST ----------- */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: rgba(50, 50, 50, 0.9);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 14px;
+            animation: fadein 0.3s, fadeout 0.3s 2.7s;
+        }
+
+        @keyframes fadein {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
 </style>

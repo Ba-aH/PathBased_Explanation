@@ -1,7 +1,7 @@
 **Instructions :**
 - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :
   * python -m http.server 8000
-  * python server.py
+  * python server_rapide.py
 - Accéder ensuite à l'adresse : http://localhost:8000/page3D3.html
 
 **Fonctionnement :**
