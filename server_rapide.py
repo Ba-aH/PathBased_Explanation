@@ -114,7 +114,6 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
         # On sort de la boucle si trop de patterns ou de chemins trouvés.
         if nbr_pattern > 20 or nbr_paths >300:
             print("break")
-            print(len(liste_res))
             break
         nbr_paths += 1
 
@@ -136,7 +135,6 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
         nodes = []
         # On traite tous les noeuds du chemin
         for n in path:
-            print(f"n dans for n in path  : {n}")
             t = ""
             for _, v, edge_data in G.out_edges(n, data=True):  # arêtes sortantes de n
                 if "title" in edge_data.get("label", ""):
@@ -180,8 +178,124 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
         liste_patterns.append(pattern)
         nbr_pattern += 1
         liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern, 'path':texte})
-        print("nodes :",nodes)
+
     
+    
+    # Indice simplicity, popularity, diversity
+    ## Score
+    a = 0.2
+    b = 0.5
+    c = 1 - a - b
+    
+    
+    ## Simplicity
+    liste_S_simplicity = []
+    min_S_sim = sys.maxsize
+    max_S_sim = 0
+    
+    ## Popularity
+    page_rank_allnodes = nx.pagerank(G, alpha=0.85, weight='weight')
+    liste_S_popularity = []
+    min_S_pop = sys.maxsize
+    max_S_pop = 0
+    
+    ## Diversity
+    liste_S_diversity = []
+    liste_max_j = []
+    min_maxS_jac = sys.maxsize
+    max_maxS_jac = 0
+    
+    for i in range(len(liste_res)):
+        #S
+        S_sim = 1/(len(liste_res[i]['edges']))
+        liste_S_simplicity.append(S_sim)
+        if S_sim < min_S_sim:
+            min_S_sim = S_sim
+        if S_sim > max_S_sim:
+            max_S_sim = S_sim
+        #P
+        S_pop = (1/len(liste_res[i]['nodes']))
+        sum_pagerank = 0
+        for node in liste_res[i]['nodes']:
+            sum_pagerank += page_rank_allnodes[node['id']]
+        S_pop *= sum_pagerank
+        liste_S_popularity.append(S_pop)
+        if S_pop < min_S_pop:
+            min_S_pop = S_pop
+        if S_pop > max_S_pop:
+            max_S_pop = S_pop
+            
+        #D
+        S_jac = 0
+        max_S_j = 0
+        for j in range(len(liste_res)):
+            if i != j :
+                S_jac = (len(list((set(node['id'] for node in liste_res[i]['nodes']) & set(node['id'] for node in liste_res[j]['nodes'])))))/ (len(list(set(node['id'] for node in liste_res[i]['nodes']) |
+                                                                                                set(node['id'] for node in liste_res[j]['nodes']) )))
+        
+            if S_jac > max_S_j:
+                max_S_j = S_jac
+            
+        if max_S_j < min_maxS_jac:
+            min_maxS_jac = max_S_j
+        if max_S_j > max_maxS_jac:
+            max_maxS_jac = max_S_j
+
+        liste_max_j.append(max_S_j)
+            
+    # Normalisation
+    for i in range(len(liste_res)):
+        #S
+        if max_S_sim == min_S_sim:
+            S_SIM= 1
+        else:
+            S_SIM = (liste_S_simplicity[i]-min_S_sim)/(max_S_sim - min_S_sim)
+        
+       
+        liste_res[i]['S_sim'] = S_SIM
+        liste_res[i]['Score'] = a*S_SIM
+        
+        #P
+        if max_S_pop == min_S_pop:
+            S_POP= 1
+        else:
+            S_POP = (liste_S_popularity[i]-min_S_pop)/(max_S_pop - min_S_pop)
+        
+       
+        liste_res[i]['S_pop'] = S_POP
+        liste_res[i]['Score'] += b*S_POP
+        
+        #D
+        if max_maxS_jac == min_maxS_jac:
+            MAX_J= 1
+        else:
+            MAX_J = (liste_max_j[i]-min_maxS_jac)/(max_maxS_jac - min_maxS_jac)
+        
+        S_D = 1.0 - MAX_J
+        liste_S_diversity.append(S_D)
+        liste_res[i]['S_div'] = S_D
+        liste_res[i]['Score'] += c*S_D
+        
+    
+        
+        
+        
+
+        
+    print(f"min : {min_maxS_jac}, max: {max_maxS_jac}")
+
+    
+    
+    """   
+    # Enregistrer les valeurs dans liste_res
+    for i in range(len(liste_res)):
+        liste_res[i]['S_sim'] = liste_S_simplicity[i]
+        liste_res[i]['S_pop'] = liste_S_popularity[i]
+        liste_res[i]['S_div'] = liste_S_diversity[i]
+        liste_res[i]['Score'] = a*liste_S_simplicity[i] + b*liste_S_popularity[i] + c*liste_S_diversity[i]
+    """  
+    
+
 
     # Appliquer à ces chemins sélectionnés les indexs Jaccard et Random Walk based
     ## Random walk based :
@@ -216,9 +330,7 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
         liste_res[i]['S_final'] = a*S_RW
 
     
-    print(liste_S_rw)
-    print(len(liste_res))
-    print(liste_res)    
+     
 
     # Jaccard :
     liste_S_jac = []
@@ -235,7 +347,6 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
                                                                                                 set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[i]['edges']) |
                                                                                                 set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[j]['edges']))))
         S_jac /= (len(liste_res))
-        print(S_jac)
 
         if S_jac < min_S_jac:
             min_S_jac = S_jac
@@ -245,7 +356,6 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
         p['S_jac']=S_jac
         liste_S_jac.append(S_jac)
 
-    print('liste s_jac : ',liste_S_jac)
     ## Normalisation
     for i in range(len(liste_S_jac)):
         if max_S_jac != min_S_jac:
@@ -391,7 +501,6 @@ def receive_predicates_pathETvoisins():
     # On récupère les paramètres de la requête
     data = request.get_json()
     predicates = data.get('predicates', [])
-    print("Liste reçue :", predicates)
 
     user = request.args.get("start")
     course = request.args.get("end")
@@ -400,12 +509,10 @@ def receive_predicates_pathETvoisins():
     if not user or not course or not node_id:
         return jsonify({"error": "Missing parameters"}), 400
 
-    print("node_id avant :",node_id)
     
     # Si le noeud cliqué n'existe pas dans le graphe
     if node_id not in G:
         node_id = quote(node_id, safe=":/")
-        print("node_id après :",node_id)
         if node_id not in G:
             return jsonify({"error": f"No such node: {node_id}"}), 404
 
@@ -413,16 +520,15 @@ def receive_predicates_pathETvoisins():
 
     json_chemin = {"nodes":[],"edges":[]}
     liste_voisins= list(graph.successors(node_id))
-    print("liste voisins : ",liste_voisins)
     
     # Pour chaque voisin sortant, on crée le noeud dans le graphe
     for n in liste_voisins:
         label = graph[node_id][n].get("label", "").split('/')[-1]
-        print("label : ",label, label in predicates)
-        if len(predicates)==0:
+        ignorer = False
+        """if len(predicates)==0:
             ignorer = True
         else:
-            ignorer = False
+            ignorer = False"""
 
         # Si le label est une URL on le conserve, sinon on le simplifie
         if 'url' in label:
@@ -456,8 +562,7 @@ def receive_predicates_pathETvoisins():
                     ),
                     "title":"Title : "+t,
                 })
-            print(label)
-            print()
+            
 
             # On ajoute l'arête dans le graphe
             json_chemin["edges"].append({"from": node_id, "to": n, "label": label})
@@ -479,12 +584,9 @@ def api_voisins():
         return jsonify({"error": "Missing parameters"}), 400
 
     graph = G
-
-    print("node_id avant :",node_id)
    
     if node_id not in G:
         node_id = quote(node_id, safe=":/")
-        print("node_id après :",node_id)
         if node_id not in G:
             return jsonify({"error": f"No such node: {node_id}"}), 404
 
@@ -564,7 +666,6 @@ def api_all_path():
     user = request.args.get("start")
     course = request.args.get("end")
     choix = request.args.get("choix")
-    print("choix : ", choix)
 
     if not user or not course:
         return jsonify({"error": "start and end required"}), 400
@@ -599,7 +700,6 @@ def api_predicats_node():
     """
 
     node = request.args.get('node')
-    print(">> API predicats_node appelé avec :", node)
     data_node = predicats_node(G, node)
     data_node.sort()
 
@@ -737,7 +837,6 @@ def receive_user_study():
     print("Type de user_study :", type(user_study))
     print("Contenu de user_study :", user_study)
 
-    print("Contenu brut reçu du front :", json.dumps(user_study, indent=2, ensure_ascii=False))
 
 
 # Traitement du feedback général

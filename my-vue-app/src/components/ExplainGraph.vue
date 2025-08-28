@@ -1,5 +1,5 @@
 <script setup>
-import tuto from "../assets/tuto.mp4"
+import tuto from "../assets/tuto.mp4";
 import * as d3 from "d3";
 import { ref, reactive, onMounted, nextTick } from "vue";
 import Chart from "chart.js/auto";
@@ -8,7 +8,9 @@ import Chart from "chart.js/auto";
 const user = ref("");
 const course = ref("");
 
-const showHelp = ref(false)
+const afficher_questions_generales = ref(false);
+const afficher_page_principale = ref(false);
+const showHelp = ref(false);
 
 const searchNode = ref("");
 const explanation = ref("");
@@ -48,7 +50,6 @@ let liste_node_click = reactive([]);
 const API_URL = "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/";
 
 let parent = reactive({});
-
 
 const predicats = ref([]); // tableau réactif pour les prédicats
 const indexPathAffiche = ref(0);
@@ -236,7 +237,7 @@ const updateGraph = (nodes, edges, infos) => {
     .append("path")
     .attr("fill", "none")
     .attr("stroke-width", 1.5)
-	.attr("marker-end", "url(#arrow)")
+    .attr("marker-end", "url(#arrow)")
     .attr("stroke", (d) => getNodeColor(d.source.group));
   const linkElements = linkEnter.merge(linkSelection);
 
@@ -465,7 +466,8 @@ const loadPath = async () => {
     alert("Veuillez entrer un nom d'utilisateur.");
     return;
   }
-	showButtonSave = true;
+  showButtonSave = true;
+
   try {
     // 1. Obtenir cours recommandé
     console.log("hey");
@@ -485,6 +487,7 @@ const loadPath = async () => {
       alert("courseData == null");
       return;
     }
+    //resetPredicats();
 
     course.value = courseData.course;
     document.getElementById(
@@ -494,7 +497,11 @@ const loadPath = async () => {
     parent = {};
     path = { nodes: [], edges: [] };
     data = { nodes: [], edges: [] };
+	dataPaths.value = [];
     updateGraph(data.nodes, data.edges, graphCtx.value);
+    explanation.value = "";
+	indexPathAffiche.value = 0;
+    afficher_page_principale.value = true;
 
     // 2. Charger chemin principal
     const pathResp = await fetch(
@@ -521,146 +528,18 @@ const loadPath = async () => {
       showQuestions: false,
       repondu: false,
       answers: {},
-      spacedNodes: [],
-      petitgraphCtx: null,
-    }));
-
-    // Attendre que Vue ait rendu les divs #g{i}
-    await nextTick();
-
-    // Maintenant seulement dessiner les graphes
-    dataPaths.value.forEach((p, i) => {
-      const container = document.getElementById("g" + i);
-      if (!container) {
-        console.warn("Pas trouvé le conteneur pour g" + i);
-        return;
-      }
-
-      const orderedNodes = orderNodesByEdges(p.nodes, p.edges);
-      const spacedNodes = orderedNodes.map((node, j) => ({
+      spacedNodes: orderNodesByEdges(p.nodes, p.edges).map((node, j) => ({
         ...node,
         x: j * 150,
         y: 0,
         fy: 100,
-      }));
+      })),
+      petitgraphCtx: null,
+    }));
+	console.log(dataPaths.value);
 
-      p.spacedNodes = spacedNodes;
-      p.petitgraphCtx = drawGraph(container, spacedNodes, p.edges);
-
-      // Observer les changements de taille du conteneur
-      const resizeObserverSmallGraph = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-          const width = entry.contentRect.width;
-          const height = entry.contentRect.height;
-
-          console.log("Nouvelle taille du graphe :", width, height);
-
-          // Re-rendre le graphe D3 ici
-          updateGraphSize(
-            width,
-            height,
-            p.petitgraphCtx.simulation,
-            p.petitgraphCtx.svg
-          );
-        }
-      });
-
-      resizeObserverSmallGraph.observe(container);
-
-      p.petitgraphCtx.svg.on("click", (event) => {
-        console.log("click path");
-        fitToGraph(p.petitgraphCtx.svg, p.petitgraphCtx.zoom);
-        let pathNew = {
-          nodes: [...orderedNodes],
-          edges: [...p.edges],
-        };
-
-        if (mode.value == "Mode Ajout Graphe Activé") {
-          // Exclure les doublons de nœuds
-          const existingNodeIds = new Set(data.nodes.map((n) => n.id));
-          const newNodes = pathNew.nodes.filter(
-            (n) => !existingNodeIds.has(n.id)
-          );
-
-          var existingNodeIdsInPath = new Set(path.nodes.map((n) => n.id));
-          var newNodesPath = pathNew.nodes.filter(
-            (n) => !existingNodeIdsInPath.has(n.id)
-          );
-          if (path2_en_cours) {
-            existingNodeIdsInPath = new Set(path2.nodes.map((n) => n.id));
-            newNodesPath = pathNew.nodes.filter(
-              (n) => !existingNodeIdsInPath.has(n.id)
-            );
-          }
-
-          // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-          const existingEdgeKeys = new Set(
-            data.edges.map((e) => `${e.from}->${e.to}`)
-          );
-          const newEdges = pathNew.edges.filter(
-            (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
-          );
-
-          var existingEdgeKeysInPath = new Set(
-            path.edges.map((e) => `${e.from}->${e.to}`)
-          );
-          var newEdgesPath = pathNew.edges.filter(
-            (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
-          );
-          if (path2_en_cours) {
-            existingEdgeKeysInPath = new Set(
-              path2.edges.map((e) => `${e.from}->${e.to}`)
-            );
-            newEdgesPath = pathNew.edges.filter(
-              (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
-            );
-          }
-
-          console.log("existing nodes  u:", existingNodeIds);
-          console.log("existin edges u:", existingEdgeKeys);
-          console.log("pathNew:", pathNew);
-          console.log("new nodes :", newNodesPath);
-          console.log("new edges :", newEdgesPath);
-          console.log("new nodes utilisé :", newNodes);
-          console.log("new edges utilisé:", newEdges);
-          console.log("data : ", data);
-
-          // Fusionner les données
-          data = {
-            nodes: [...data.nodes, ...newNodes],
-            edges: [...data.edges, ...newEdges],
-          };
-
-          if (path2_en_cours) {
-            path2 = {
-              nodes: [...path2.nodes, ...newNodesPath],
-              edges: [...path2.edges, ...newEdgesPath],
-            };
-          } else {
-            path2 = {
-              nodes: [...path.nodes, ...newNodesPath],
-              edges: [...path.edges, ...newEdgesPath],
-            };
-          }
-          console.log("path total :", path2);
-        } else {
-          // Remplacer
-          data = {
-            nodes: [...pathNew.nodes],
-            edges: [...pathNew.edges],
-          };
-          path2 = {
-            nodes: [...pathNew.nodes],
-            edges: [...pathNew.edges],
-          };
-          console.log("path2 swap:", path2);
-        }
-        path2_en_cours = true;
-
-        updateGraph(data.nodes, data.edges, graphCtx.value);
-      });
-      // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
-    });
+    // Attendre que Vue ait rendu les divs #g{i}
+    await nextTick();
 
     // 4. top5 :
 
@@ -716,8 +595,6 @@ const loadPath = async () => {
   }
 };
 
-
-
 function orderNodesByEdges(nodes, edges) {
   // Permet d'afficher les petits chemins toujours dans le même ordre
   // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
@@ -746,11 +623,13 @@ function resetPredicats() {
   console.log("Réinitialisation des prédicats");
   //document.getElementById('pagination').remove()
   document.getElementById("titre2").innerHTML = "";
-	showButtonSave = false;
+
+  explanation.value = "";
+  showButtonSave = false;
   // Réinitialiser les variables globales
   path = { nodes: [], edges: [] };
   data = { nodes: [], edges: [] };
-	dataPaths.value = [];
+  dataPaths.value = [];
   parent = {};
   liste_node_click = [];
 
@@ -864,27 +743,37 @@ function echangerGraph() {
 }
 
 function prevPath() {
-  if (indexPathAffiche.value > 0) indexPathAffiche.value--;
+  if (indexPathAffiche.value > 0) {
+    indexPathAffiche.value--;
+    data.nodes = [...dataPaths.value[indexPathAffiche.value].nodes];
+    data.edges = [...dataPaths.value[indexPathAffiche.value].edges];
+    path.nodes = [...data.nodes];
+    path.edges = [...data.edges];
+    updateGraph(data.nodes, data.edges, graphCtx.value);
+  }
 }
 
 function nextPath() {
-  if (indexPathAffiche.value < dataPaths.value.length - 1)
+  if (indexPathAffiche.value < dataPaths.value.length - 1) {
     indexPathAffiche.value++;
+    data.nodes = [...dataPaths.value[indexPathAffiche.value].nodes];
+    data.edges = [...dataPaths.value[indexPathAffiche.value].edges];
+    path.nodes = [...data.nodes];
+    path.edges = [...data.edges];
+    updateGraph(data.nodes, data.edges, graphCtx.value);
+  }
 }
 
 function validatePath(p) {
   console.log("validatePath");
   let unanswered = false;
-	unanswered = liste_question_possible.length > p.answers;
-  /*for (const qtGroup of Object.values(liste_question_possible)) {
-    for (const qt of qtGroup) {
-      if (!p.answers.hasOwnProperty(qt) || !p.answers[qt]) {
-        unanswered = true;
-        break;
-      }
-    }
-    if (unanswered) break;
-  }*/
+  console.log(p.answers);
+  const questions = liste_question_possible[""]; // tableau des questions
+  const nbQuestions = questions ? questions.length : 0;
+  const nbAnswers = p.answers ? Object.keys(p.answers).length : 0;
+
+  unanswered = nbQuestions > nbAnswers;
+
   if (unanswered) {
     alert("Merci de répondre à toutes les questions.");
     return;
@@ -931,57 +820,57 @@ async function saveAll() {
     body: JSON.stringify({ user_study: reponseUserStudy, user_id: user.value }),
   });
   alert("Réponses envoyées avec succès !");
+	afficher_page_principale.value = false;
+	afficher_questions_generales.value = false;
 }
 
-
 function showToast(message) {
-            const container = document.getElementById("toast-container");
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.innerText = message;
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerText = message;
 
-            container.appendChild(toast);
+  container.appendChild(toast);
 
-            // Retirer après 3s
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
+  // Retirer après 3s
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
 
-        function showNodeMessage(svg, node, message) {
-            // Supprimer messages précédents
-            if (!svg.selectAll(".node-message")){
-			svg.selectAll(".node-message").remove();
-			}
+function showNodeMessage(svg, node, message) {
+  // Supprimer messages précédents
+  if (!svg.selectAll(".node-message")) {
+    svg.selectAll(".node-message").remove();
+  }
 
-            // Ajouter le texte directement au-dessus du nœud
-            const g = svg.append("g")
-                .attr("class", "node-message");
+  // Ajouter le texte directement au-dessus du nœud
+  const g = svg.append("g").attr("class", "node-message");
 
-            g.append("rect")
-                .attr("x", node.x - message.length * 3)  // centré environ
-                .attr("y", node.y - 30)                  // un peu au-dessus du nœud
-                .attr("rx", 6)
-                .attr("ry", 6)
-                .attr("fill", "rgba(0,0,0,0.7)")
-                .attr("stroke", "white")
-                .attr("stroke-width", 1)
-                .attr("width", message.length * 7)       // largeur en fonction du texte
-                .attr("height", 20);
+  g.append("rect")
+    .attr("x", node.x - message.length * 3) // centré environ
+    .attr("y", node.y - 30) // un peu au-dessus du nœud
+    .attr("rx", 6)
+    .attr("ry", 6)
+    .attr("fill", "rgba(0,0,0,0.7)")
+    .attr("stroke", "white")
+    .attr("stroke-width", 1)
+    .attr("width", message.length * 7) // largeur en fonction du texte
+    .attr("height", 20);
 
-            g.append("text")
-                .attr("x", node.x)
-                .attr("y", node.y - 15)
-                .attr("text-anchor", "middle")
-                .attr("fill", "white")
-                .attr("font-size", "12px")
-                .text(message);
+  g.append("text")
+    .attr("x", node.x)
+    .attr("y", node.y - 15)
+    .attr("text-anchor", "middle")
+    .attr("fill", "white")
+    .attr("font-size", "12px")
+    .text(message);
 
-            // Disparition auto après 2s
-            setTimeout(() => {
-                g.transition().duration(500).style("opacity", 0).remove();
-            }, 2000);
-        }
+  // Disparition auto après 2s
+  setTimeout(() => {
+    g.transition().duration(500).style("opacity", 0).remove();
+  }, 2000);
+}
 
 onMounted(async () => {
   //await fetchPredicats();
@@ -1016,8 +905,6 @@ onMounted(async () => {
     console.log("click");
     graphCtx.value.simulation.stop();
 
-    const user = document.getElementById("user").value;
-
     // Récupère la transformation appliquée par le zoom
     const transform = d3.zoomTransform(graphCtx.value.svg.node());
     console.log(transform);
@@ -1038,143 +925,173 @@ onMounted(async () => {
 
     if (!nodeId) return;
     if (!liste_node_click.includes(nodeId)) {
-		 // Si node jamais cliqué :
-		fetch(`${API_URL}/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
-                        .then(res => {
-                            if (!res.ok) throw new Error("HTTP error " + res.status);
-                            return res.json();
-                        })
-                        .then(predicats => {
-                            if (predicats.error) {
-                                checklist.append("p").text("No predicates found.");
-                                return;
-                            }
+      // Si node jamais cliqué :
+      fetch(`${API_URL}/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("HTTP error " + res.status);
+          return res.json();
+        })
+        .then((predicats) => {
+          if (predicats.error) {
+            checklist.append("p").text("No predicates found.");
+            return;
+          }
 
-                            if (!predicats || predicats.length === 0) { // Si aucun prédicat sortant
-                                //showToast("⚠️ Ce nœud n’a aucun voisin sortant.");
-                                showNodeMessage(graphCtx.value.svg, clickedNode, "⚠️ No outgoing neighbors");
-                                return;
-                            }
+          if (!predicats || predicats.length === 0) {
+            // Si aucun prédicat sortant
+            //showToast("⚠️ Ce nœud n’a aucun voisin sortant.");
+            showNodeMessage(
+              graphCtx.value.svg,
+              clickedNode,
+              "⚠️ No outgoing neighbors"
+            );
+            return;
+          }
 
-                            // Supprimer modal existant et création nouveau
-                            d3.selectAll(".modal-overlay").remove();
+          // Supprimer modal existant et création nouveau
+          d3.selectAll(".modal-overlay").remove();
 
-                            const overlay = d3.select("body").append("div")
-                                .attr("class", "modal-overlay");
+          const overlay = d3
+            .select("body")
+            .append("div")
+            .attr("class", "modal-overlay");
 
-                            const modal = overlay.append("div")
-                                .attr("class", "predicat-modal");
+          const modal = overlay.append("div").attr("class", "predicat-modal");
 
-                            modal.append("h4").text("Outgoing predicates of the node : " + clickedNode.label);
-                            modal.append("p").text("Choose what predicates to show in the node's neighborhood :");
+          modal
+            .append("h4")
+            .text("Outgoing predicates of the node : " + clickedNode.label);
+          modal
+            .append("p")
+            .text(
+              "Choose what predicates to show in the node's neighborhood :"
+            );
 
-                            const checklist = modal.append("div");
-                            predicats.forEach(p => {
-                                const label = checklist.append("label").style("display", "block");
-                                label.append("input")
-                                    .attr("type", "checkbox")
-                                    .attr("class", "myCheckbox")
-                                    .attr("value", p.split("/").pop())
-                                    .property("checked", false);
-                                label.append("span").text(" " + p.split("/").pop());
-                            });
+          const checklist = modal.append("div");
+          predicats.forEach((p) => {
+            const label = checklist.append("label").style("display", "block");
+            label
+              .append("input")
+              .attr("type", "checkbox")
+              .attr("class", "myCheckbox")
+              .attr("value", p.split("/").pop())
+              .property("checked", false);
+            label.append("span").text(" " + p.split("/").pop());
+          });
 
+          const btns = modal.append("div").attr("class", "buttons");
 
-                            const btns = modal.append("div").attr("class", "buttons");
+          btns
+            .append("button")
+            .attr("class", "button")
+            .text("Select all")
+            .on("click", () => {
+              checklist.selectAll("input").property("checked", true);
+            });
 
-                            btns.append("button")
-                                .attr("class", "button")
-                                .text("Select all").on("click", () => {
-                                    checklist.selectAll("input").property("checked", true);
-                                });
+          btns
+            .append("button")
+            .attr("class", "button")
+            .text("Unselect all")
+            .on("click", () => {
+              checklist.selectAll("input").property("checked", false);
+            });
 
-                            btns.append("button")
-                                .attr("class", "button")
-                                .text("Unselect all").on("click", () => {
-                                    checklist.selectAll("input").property("checked", false);
-                                });
+          btns
+            .append("button")
+            .attr("class", "button")
+            .text("Confirm")
+            .on("click", () => {
+              liste_node_click.push(nodeId); // ajouter dans liste
+              const checkboxes = document.querySelectorAll(
+                ".myCheckbox:checked"
+              );
+              const cb_predicates = Array.from(checkboxes).map(
+                (cb) => cb.value
+              );
 
-                            btns.append("button")
-                                .attr("class", "button")
-                                .text("Confirm").on("click", () => {
-                                    liste_node_click.push(nodeId) // ajouter dans liste
-                                    const checkboxes = document.querySelectorAll('.myCheckbox:checked');
-                                    const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
+              console.log("Prédicats sélectionnés :", cb_predicates);
 
-                                    console.log("Prédicats sélectionnés :", cb_predicates);
+              const encodedNodeId = encodeURIComponent(nodeId); // On récupère l'URI du noeud
+              fetch(
+                `${API_URL}/api/pathETvoisins?start=${user.value}&end=${course.value}&voisin=${encodedNodeId}&choix=false`,
+                {
+                  // Récuperer les voisins sortants de nodeId et les arêtes les atteignant
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ predicates: cb_predicates }),
+                }
+              )
+                .then((res) => res.json())
+                .then((data2) => {
+                  // Exclure les doublons de nœuds
+                  const existingNodeIds = new Set(data.nodes.map((n) => n.id));
+                  console.log("data nodes : ", data2.nodes);
+                  console.log("data edges : ", data2.edges);
+                  console.log("already existing nodes : ", existingNodeIds);
+                  console.log("path et voisins de ", nodeId, " : ", data2);
+                  const newNodes = data2.nodes.filter(
+                    (n) => !existingNodeIds.has(n.id)
+                  );
+                  console.log("new nodes not in data actu :", newNodes);
 
-                                    const encodedNodeId = encodeURIComponent(nodeId); // On récupère l'URI du noeud
-									fetch(`${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=false`, { // Récuperer les voisins sortants de nodeId et les arêtes les atteignant
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: JSON.stringify({ predicates: cb_predicates })
-                                    })
-                                        .then(res => res.json())
-                                        .then(data2 => {
-                                            // Exclure les doublons de nœuds
-                                            const existingNodeIds = new Set(data.nodes.map(n => n.id));
-                                            console.log("data nodes : ", data2.nodes);
-                                            console.log("data edges : ", data2.edges);
-                                            console.log("already existing nodes : ", existingNodeIds);
-                                            console.log("path et voisins de ", nodeId, " : ", data2);
-                                            const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
-                                            console.log("new nodes not in data actu :", newNodes);
+                  // Mise à jour dict parent
+                  for (const n in newNodes) {
+                    console.log("new nodes : ", newNodes[n].id);
+                    parent[newNodes[n].id] = nodeId;
+                  }
+                  console.log("dico parent apres ajout enfant", parent);
 
-                                            // Mise à jour dict parent
-                                            for (const n in newNodes) {
-                                                console.log("new nodes : ", newNodes[n].id);
-                                                parent[newNodes[n].id] = nodeId;
+                  // Exclure les doublons d'arêtes (selon from/to ou id si défini)
+                  const existingEdgeKeys = new Set(
+                    data.edges.map((e) => `${e.from}->${e.to}`)
+                  );
+                  const newEdges = data2.edges.filter(
+                    (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
+                  );
+                  console.log("new edges not in data actu :", newEdges);
 
-                                            }
-                                            console.log("dico parent apres ajout enfant", parent);
+                  // Fusionner les données
+                  newNodes.forEach((n) => {
+                    n.x = Math.random() * +600;
+                    n.y = Math.random() * +600;
+                  });
+                  data = {
+                    nodes: [...data.nodes, ...newNodes],
+                    edges: [...data.edges, ...newEdges],
+                  };
 
-                                            // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-                                            const existingEdgeKeys = new Set(data.edges.map(e => `${e.from}->${e.to}`));
-                                            const newEdges = data2.edges.filter(e => !existingEdgeKeys.has(`${e.from}->${e.to}`));
-                                            console.log("new edges not in data actu :", newEdges);
+                  if (data2.nodes.length == 0) {
+                    //alert("Pas de voisins ! ");
+                    liste_node_click.splice(
+                      liste_node_click.indexOf(nodeId),
+                      1
+                    ); // Retirer nodeId de la liste des nodes cliqués
+                  } else {
+                    console.log("liste click :", liste_node_click);
 
-                                            // Fusionner les données
-                                            newNodes.forEach(n => {
-                                                n.x = Math.random() * +600;
-                                                n.y = Math.random() * +600;
-                                            });
-                                            data = {
-                                                nodes: [...data.nodes, ...newNodes],
-                                                edges: [...data.edges, ...newEdges]
-                                            };
+                    // Mettre à jour le graphe
+                    console.log("data avant update:", data);
+                    console.log("data['nodes']:", data["nodes"]);
 
+                    updateGraph(data.nodes, data.edges, graphCtx.value);
+                  }
+                });
 
-                                            if (data2.nodes.length == 0) {
-                                                //alert("Pas de voisins ! ");
-                                                liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer nodeId de la liste des nodes cliqués
-                                            } else {
-                                                console.log("liste click :", liste_node_click);
+              overlay.remove();
+            });
 
-                                                // Mettre à jour le graphe
-                                                console.log("data avant update:", data);
-                                                console.log("data['nodes']:", data["nodes"]);
-
-                                                updateGraph(data.nodes, data.edges, graphCtx.value);
-                                            }
-
-
-                                        });
-
-                                    overlay.remove();
-                                });
-
-                            btns.append("button")
-                                .attr("class", "button")
-                                .text("Cancel").on("click", () => {
-                                    overlay.remove();
-                                });
-
-							
-
-                        });
-		 } else {
+          btns
+            .append("button")
+            .attr("class", "button")
+            .text("Cancel")
+            .on("click", () => {
+              overlay.remove();
+            });
+        });
+    } else {
       // Sinon, si node cliqué une seconde fois
       console.log("liste click :", liste_node_click);
       console.log("dico parents :", parent);
@@ -1280,123 +1197,136 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div id="main-layout">
-    <div id="nav-bar">
-      <div><h1>ExplainGraph</h1></div>
-      <div style="display: flex; flex: 1; overflow: hidden; padding-left: 20px">
-        <img src="../assets/liris.png" alt="LIRIS" height="50" />
-      </div>
-      <div class="nav-links">
-        <a href="http://localhost:8000/page3.html">Home</a>
-        <a href="https://liris.cnrs.fr/equipe/tweak">About</a>
-        <a href="http://localhost:8000">Settings</a>
-      </div>
-    </div>
+	<div id="main-layout">
+		<div id="nav-bar">
+			<div>
+				<h1>ExplainGraph</h1>
+			</div>
+			<div style="display: flex; flex: 1; overflow: hidden; padding-left: 20px">
+				<img src="../assets/liris.png" alt="LIRIS" height="50" />
+			</div>
+			<div class="nav-links">
+				<a @click="afficher_page_principale = false; afficher_questions_generales = false">Home</a>
+				<a href="https://liris.cnrs.fr/equipe/tweak">About</a>
+				<a href="http://localhost:8000">Settings</a>
+			</div>
+		</div>
+		<div v-if="!afficher_page_principale" id="content-area1" style="display: flex; flex: 1; overflow: hidden">
+			<div class="div_authentification">
+				<h3>Control panel</h3>
+				<p>Enter a User id to generate a recommendation and its explanation.</p>
 
-    <div id="content-area" style="display: flex; flex: 1; overflow: hidden">
-      <div
-        id="left-panel"
-        style="
-          flex: 0 0 300px;
-          padding: 20px;
-          overflow-y: auto;
-          border-right: 1px solid #ccc;
-        "
-      >
-        <h3>Control panel</h3>
-        <p>Enter a User id to generate a recommendation and its explanation.</p>
+				<label for="user">User</label>
+				<input type="text" id="user" v-model="user" placeholder="user_xx" />
 
-        <label for="user">User</label>
-        <input type="text" id="user" v-model="user" placeholder="user_xx" />
+				<button class="button" @click="loadPath"
+					title="Click here to generate a recommendation and its explanation">
+					Show Recommendation
+				</button>
 
-        <button
-          class="button"
-          @click="loadPath"
-          title="Click here to generate a recommendation and its explanation"
-        >
-          Show Recommendation
-        </button>
-        <button
-          class="button"
-          @click="resetPredicats"
-          title="Click here to delete the explanation"
-        >
-          Reset
-        </button>
-      </div>
+			</div>
+		</div>
 
-      <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto">
-        <div id="affichage-cours"></div>
-        <h3>Path From A Weighted Graph</h3>
+		<div id="content-area2" :style="
+        afficher_page_principale
+          ? { display: 'flex', flex: 1, overflow: 'hidden' }
+          : { display: 'none' }
+      ">
+			<div id="center2" class="center-panel" :style="
+        afficher_page_principale && !afficher_questions_generales
+          ? { display: 'flex', flex: 1, padding: '20px', overflowY: 'auto' }
+          : { display: 'none' }
+      ">
+				<div id="affichage-cours"></div>
+				<h3>Path From A Weighted Graph</h3>
 
-        <div class="graph-controls">
-          <button
-            class="button"
-            @click="resetView"
-            title="Click here to recenter the graph and adjust the zoom"
-          >
-            Recenter The Graph
-          </button>
-          <button
-            class="button"
-            @click="resetPath"
-            title="Click here to come back to the initial path explanation"
-          >
-            Reset Path
-          </button>
-          <input
-            type="text"
-            v-model="searchNode"
-            placeholder="course_xx, user_xx,..."
-          />
-          <button
-            class="button"
-            @click="chercherNode"
-            title="Enter a node's name and click here to show its position in the graph"
-          >
-            Find A Node
-          </button>
-        </div>
+				<div class="graph-controls">
+					<button class="button" @click="resetView"
+						title="Click here to recenter the graph and adjust the zoom">
+						Recenter The Graph
+					</button>
+					<button class="button" @click="resetPath"
+						title="Click here to come back to the initial path explanation">
+						Reset Path
+					</button>
+					<input type="text" v-model="searchNode" placeholder="course_xx, user_xx,..." />
+					<button class="button" @click="chercherNode"
+						title="Enter a node's name and click here to show its position in the graph">
+						Find A Node
+					</button>
+				</div>
 
-        <div>
-          Click on a node to extend the graph by showing its neighbors. You can
-          also select below the graph what type of neighbors you want to
-          display.
-        </div>
+				<div>
+					Click on a node to extend the graph by showing its neighbors. You can
+					also select below the graph what type of neighbors you want to
+					display.
+				</div>
 
-        <div id="graphs-container">
-          <div class="g" ref="graphEl" id="graph"></div>
-          <fieldset id="cochePredicats">
-            <legend>
-              Choose the predicates you want to display (Coming out of the
-              clicked node)
-            </legend>
+				<div class="graph-controls" id="graph-controls2">
+					<span>{{ indexPathAffiche + 1 }} / {{ dataPaths.length }}</span>
+				</div>
 
-            <!-- Container pour les checkboxes -->
-            <div id="cochePredicats">
-              <div v-for="(predicat, index) in predicats" :key="index">
-                <label>
-                  <input
-                    type="checkbox"
-                    class="myCheckbox"
-                    :id="predicat.name"
-                    :name="predicat.name"
-                    v-model="predicat.checked"
-                  />
-                  {{ predicat.name }}
-                </label>
-              </div>
-            </div>
-          </fieldset>
-        </div>
-        <!-- Bouton "Uncheck All" -->
-        <div class="button" id="uncheckAllBtn" @click="uncheckAll">
-          Uncheck All
-        </div>
+				<div class="g_petit-container">
+					<button class="predicat" @click="prevPath" :disabled="indexPathAffiche === 0" :style="{
+              visibility: indexPathAffiche === 0 ? 'hidden' : 'visible',
+            }">
+						< </button>
+							<div class="g" ref="graphEl" id="graph"></div>
 
-        <div
-          id="tooltip"
-          style="
+							<button class="predicat" @click="nextPath"
+								:disabled="indexPathAffiche === dataPaths.length - 1" :style="{
+              visibility:
+                indexPathAffiche === dataPaths.length - 1 ||
+                dataPaths.length === 0
+                  ? 'hidden'
+                  : 'visible',
+            }">
+								>
+							</button>
+				</div>
+
+				<div v-for="(p, i) in dataPaths" :key="i" v-show="i === indexPathAffiche"
+					class="div_chemin_info_button">
+					<div>
+						S_rw = {{ p.S_rw }}, S_jac = {{ p.S_jac }} → {{ p.S_final }}
+					</div>
+					<div>Longueur = {{ p.longueur }}</div>
+					<div>Pattern : {{ p.pattern }}</div>
+
+					<button :style="{ backgroundColor: p.repondu ? '#9EBC8A' : '' }" class="button"
+						@click="p.showQuestions = !p.showQuestions">
+						{{ p.showQuestions ? "Hide" : "Answer" }}
+					</button>
+
+					<div v-if="p.showQuestions" class="divQuestions">
+						<form>
+							<div v-for="(qtGroup, groupName) in liste_question_possible" :key="groupName">
+								<div>{{ groupName }}</div>
+								<div v-for="(qt, qIndex) in qtGroup" :key="qIndex">
+									<strong>{{ qt }}</strong>
+									<div>
+										<select v-model="p.answers['answer' + qIndex]">
+											<option disabled value="">-- Select an answer --</option>
+											<option v-for="opt in liste_answer_possible" :key="opt" :value="opt">
+												{{ opt }}
+											</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</form>
+						<button class="button" @click.prevent="validatePath(p)">
+							Validate
+						</button>
+					</div>
+
+
+				</div>
+				<button class="button" @click="afficher_questions_generales = true">
+					Continue
+				</button>
+
+				<div id="tooltip" style="
             position: absolute;
             background-color: white;
             border: 1px solid #ccc;
@@ -1407,288 +1337,223 @@ onMounted(async () => {
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             border-radius: 4px;
-          "
-        ></div>
+          "></div>
+			</div>
 
-        <div class="graph-controls" id="graph-controls2">
-          <h3 style="display: block; width: 100%">
-            Choose how to interact with the other paths :
-          </h3>
-          <button
-            class="button"
-            @click="ajouterGraph"
-            title="Add a path to the main one by clicking on it"
-						:style="{ backgroundColor: (mode == 'Mode Ajout Graphe Activé' ? '#4682a9' : '#749bc2') }"
-
-          >
-            Add The Path
-          </button>
-          <button
-            class="button"
-            @click="echangerGraph"
-            title="Click on a path to display it instead of the main path"
-						:style="{ backgroundColor: (mode != 'Mode Ajout Graphe Activé' ? '#4682a9' : '#749bc2') }"
-          >
-            Swap The Path
-          </button>
-          <h3>{{ mode }}</h3>
-          <span>{{ indexPathAffiche + 1 }} / {{ dataPaths.length }}</span>
-        </div>
-
-        <h3 id="titre2"></h3>
-        <div id="g_petit-container">
-          <button
-            class="predicat"
-            @click="prevPath"
-            :disabled="indexPathAffiche === 0"
-						:style="{ visibility: indexPathAffiche === 0 ? 'hidden' : 'visible' }"
-          >
-            <
-          </button>
-
-          <!-- Affichage des paths -->
-          <div
-            v-for="(p, i) in dataPaths"
-            :key="i"
-            v-show="i === indexPathAffiche"
-            class="div_chemin_info_button"
-          >
-            <div class="g_petit" :id="'g' + i"></div>
-            <div>
-              S_rw = {{ p.S_rw }}, S_jac = {{ p.S_jac }} → {{ p.S_final }}
-            </div>
-            <div>Longueur = {{ p.longueur }}</div>
-            <div>Pattern : {{ p.pattern }}</div>
-
-            <button
-              :style="{ backgroundColor: p.repondu ? '#9EBC8A' : '' }"
-              class="button"
-              @click="p.showQuestions = !p.showQuestions"
-            >
-              {{ p.showQuestions ? "Hide" : "Answer" }}
-            </button>
-
-            <div v-if="p.showQuestions" class="divQuestions">
-              <form>
-                <div
-                  v-for="(qtGroup, groupName) in liste_question_possible"
-                  :key="groupName"
-                >
-                  <div>{{ groupName }}</div>
-                  <div v-for="(qt, qIndex) in qtGroup" :key="qIndex">
-                    <strong>{{ qt }}</strong
-                    ><!--:style="{ color: !p.answers[qt] ? 'red' : '' }"-->
-                    <div>
-                      <select v-model="p.answers['answer'+qIndex]">
-                        <option disabled value="">
-                          -- Select an answer --
-                        </option>
-                        <option
-                          v-for="opt in liste_answer_possible"
-                          :key="opt"
-                          :value="opt"
-                        >
-                          {{ opt }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </form>
-              <button class="button" @click.prevent="validatePath(p)">
-                Validate
-              </button>
-            </div>
-          </div>
-          <button
-            class="predicat"
-            @click="nextPath"
-            :disabled="indexPathAffiche === dataPaths.length -1"
-						:style="{ visibility: (indexPathAffiche === dataPaths.length-1 || dataPaths.length ===0) ? 'hidden' : 'visible' }" 
-          >
-            >
-          </button>
-        </div>
-        <!-- Questions générales -->
-        <hr />
-        <h3>⬇️ General Feedback ⬇️</h3>
-        <div
-          v-for="(options, question, idx) in questions_reponses_generales"
-          :key="idx"
-          class="divQuestions"
-        >
-          <label>{{ question }}</label>
-          <div v-if="options.length > 0">
-            <select v-model="reponseUserStudy.general_feedback[question]">
-              <option disabled value="">-- Select an answer --</option>
-              <option v-for="opt in options" :key="opt" :value="opt">
-                {{ opt }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Bouton global -->
-        <button :style = "{visibility:(showButtonSave ? 'visible':'hidden')}" class="button" @click="saveAll">Save</button>
-      </div>
-
-      <div id="right-panel">
-        <h3>Explanation</h3>
-        <p id="Explication">{{ explanation }}</p>
-
-        <h4>Legend</h4>
-        <ul style="list-style: none; padding-left: 0">
-          <li v-for="(color, type) in legend" :key="type">
-            <span
-              :style="{ backgroundColor: color }"
-              class="legend-color"
-            ></span>
-            {{ type }}
-          </li>
-          <li>
-            <div style="display: flex; align-items: center; margin-bottom: 8px">
-              <div id="legendLiteral">Literal</div>
-              <span>Literal</span>
-            </div>
-          </li>
-        </ul>
-
-        <h4>Top 5 Semantic Attributes</h4>
-        <p>
-          This bar chart shows what percentage of the user's high interest
-          courses shares the same semantic attributes as the recommended course.
-          This chart only shows the top 5, non-zero percentages.
-        </p>
-        <div id="messageTop5">{{ top5Message }}</div>
-        <canvas id="top5chart" width="260" height="200"></canvas>
-
-				<div>
-				<!-- Bouton Help -->
-				<button @click="showHelp = true" class="help-btn">
-				<img src="../assets/ampoule.png" alt="ampoule" height = "35 px" />
-					
-				</button>
-				<!--<a href="https://www.flaticon.com/fr/icones-gratuites/idee" title="idée icônes">Idée icônes créées par Good Ware - Flaticon</a>-->
-
-				<!-- Modal -->
-				<div v-if="showHelp" id="modal-tuto">
-					<div class="modal-content">
-						<h2>Tutorial</h2>
-						<video width="560" height="315" controls>
-							<source :src="tuto" type="video/mp4" />
-						</video>
-
-						<br/>
-						<button @click="showHelp = false" class="return-btn">
-							Return
-						</button>
+			<div id="center3" class="center-panel" :style="
+            afficher_questions_generales
+              ? { display: 'flex', flex: 1, padding: '20px', overflowY: 'auto' }
+              : { display: 'none' }
+          ">
+				<hr />
+				<h3>⬇️ General Feedback ⬇️</h3>
+				<div v-for="(options, question, idx) in questions_reponses_generales" :key="idx" class="divQuestions">
+					<label>{{ question }}</label>
+					<div v-if="options.length > 0">
+						<select v-model="reponseUserStudy.general_feedback[question]">
+							<option disabled value="">-- Select an answer --</option>
+							<option v-for="opt in options" :key="opt" :value="opt">
+								{{ opt }}
+							</option>
+						</select>
 					</div>
 				</div>
+
+				<!-- Bouton global -->
+				<div class="graph-controls">
+					<button style=" width : 45%" class="button" @click="afficher_questions_generales = false">
+						Back
+					</button>
+					<button style=" width : 45%" :style="{ visibility: showButtonSave ? 'visible' : 'hidden'}"
+						class="button" @click="saveAll">
+						Save
+					</button>
+				</div>
 			</div>
-      </div>
-    </div>
+
+			<div class="right-panel">
+				<h3>Explanation</h3>
+				<p id="Explication">{{ explanation }}</p>
+
+				<h4 :style="!afficher_questions_generales ? { display: 'block'}: { display: 'none' }">Legend</h4>
+				<ul :style="!afficher_questions_generales
+              ? { display: 'block', listStyle: 'none', paddingLeft: '0' }
+              : { display: 'none' }">
+					<li v-for="(color, type) in legend" :key="type">
+						<span :style="{ backgroundColor: color }" class="legend-color"></span>
+						{{ type }}
+					</li>
+					<li>
+						<div style="display: flex; align-items: center; margin-bottom: 8px">
+							<div id="legendLiteral">Literal</div>
+							<span>Literal</span>
+						</div>
+					</li>
+				</ul>
+
+				<h4>Top 5 Semantic Attributes</h4>
+				<p>
+					This bar chart shows what percentage of the user's high interest
+					courses shares the same semantic attributes as the recommended course.
+					This chart only shows the top 5, non-zero percentages.
+				</p>
+				<div id="messageTop5">{{ top5Message }}</div>
+				<canvas id="top5chart" width="260" height="200"></canvas>
+
+				<div>
+					<!-- Bouton Help -->
+					<button @click="showHelp = true" class="help-btn" title="Show Tutorial">
+						<img src="../assets/ampoule.png" alt="ampoule" height="35 px" />
+					</button>
+					<!--<a href="https://www.flaticon.com/fr/icones-gratuites/idee" title="idée icônes">Idée icônes créées par Good Ware - Flaticon</a>-->
+
+					<!-- Modal -->
+					<div v-if="showHelp" id="modal-tuto">
+						<div class="modal-content">
+							<h2>Tutorial</h2>
+							<video width="560" height="315" controls>
+								<source :src="tuto" type="video/mp4" />
+							</video>
+
+							<br />
+							<button @click="showHelp = false" class="return-btn">
+								Return
+							</button>
+						</div>
+					</div>
+				</div>
+
+
+			</div>
+		</div>
+
+
 		<div id="toast-container"></div>
-  </div>
+
+	</div>
 </template>
-
 <style>
+/* ----------- page authentification ------ */
+.div_authentification {
+  background-color: white;
+  border-radius: 10px;
+  padding: 40px 30px;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.7);
+  width: 300px;
+  text-align: center;
+}
+
+.div_authentification input {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.div_authentification button {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+}
+
 /* modal predicats*/
-			.modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
 
-        .predicat-modal {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.4);
-            max-width: 350px;
-        }
+.predicat-modal {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.4);
+  max-width: 350px;
+}
 
-        .predicat-modal h4 {
-            margin-top: 0;
-        }
+.predicat-modal h4 {
+  margin-top: 0;
+}
 
-        .predicat-modal .buttons {
-            /* margin-top: 10px; */
-            flex-wrap: wrap;
-            display: flex;
-            justify-content: space-between;
-        }
+.predicat-modal .buttons {
+  /* margin-top: 10px; */
+  flex-wrap: wrap;
+  display: flex;
+  justify-content: space-between;
+}
 
-        .predicat-modal .button {
-            width: auto;/* taille selon contenu */
-            margin: 6px;/* petit espacement autour */
-            display: inline-block;/* pour qu'ils s’alignent */
-            min-width: 100px;/* (optionnel) éviter des boutons trop petits */
-        }
+.predicat-modal .button {
+  width: auto; /* taille selon contenu */
+  margin: 6px; /* petit espacement autour */
+  display: inline-block; /* pour qu'ils s’alignent */
+  min-width: 100px; /* (optionnel) éviter des boutons trop petits */
+}
 
+/* ---------------------Button help + tuto ---------------------*/
+#modal-tuto {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
 
-			/* ---------------------Button help + tuto ---------------------*/
-			#modal-tuto {
-				position: fixed;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				background: rgba(0,0,0,0.6);
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				z-index: 999;
-			}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 90%;
+  text-align: center;
+}
 
-			.modal-content {
-				background: white;
-				padding: 20px;
-				border-radius: 12px;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-				max-width: 90%;
-				text-align: center;
-			}
+.return-btn {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background: #4682a9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-			.return-btn {
-				margin-top: 15px;
-				padding: 8px 16px;
-				background: #4682a9;
-				color: white;
-				border: none;
-				border-radius: 8px;
-				cursor: pointer;
-			}
+.help-btn {
+  position: fixed; /* collé sur l’écran */
+  bottom: 20px; /* distance du bas */
+  right: 20px; /* distance de la droite */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* cercle */
+  background-color: #f8d4097e;
+  color: white;
+  font-size: 24px; /* taille de l’icône */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
 
-			.help-btn {
-				position: fixed;       /* collé sur l’écran */
-				bottom: 20px;          /* distance du bas */
-				right: 20px;           /* distance de la droite */
-				width: 60px;
-				height: 60px;
-				border-radius: 50%;    /* cercle */
-				background-color: #f8d4097e;
-				color: white;
-				font-size: 24px;       /* taille de l’icône */
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				border: none;
-				cursor: pointer;
-				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-				transition: transform 0.2s ease;
-			}
-
-			.help-btn:hover {
-				transform: scale(1.1);
-				background-color: #f8d409ff;
-			}
+.help-btn:hover {
+  transform: scale(1.1);
+  background-color: #f8d409ff;
+}
 
 /* ----------- RESET & BASE ----------- */
 * {
@@ -1736,13 +1601,21 @@ body {
 }
 
 /* ----------- LAYOUT PRINCIPAL ----------- */
-#content-area {
+#content-area1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 60px;
+  height: 100vh;
+}
+
+#content-area2, #content-area3 {
   display: flex;
   padding-top: 60px;
-  height: calc(100vh + 60 vh);
+  height: calc(100vh);
 }
 #left-panel,
-#right-panel {
+.right-panel {
   height: calc(100vh - 60px); /* tient compte du header */
   overflow-y: auto;
 }
@@ -1904,7 +1777,7 @@ body {
   border-radius: 8px;
 }
 
-#center-panel {
+.center-panel{
   height: calc(100vh - 60px); /* ou la hauteur que tu veux */
   overflow-y: auto; /* active le scroll vertical */
   //overflow-x: hidden; /* empêche le scroll horizontal si besoin */
@@ -1917,34 +1790,38 @@ body {
   margin: 0;
 }
 
-/* #g_petit-container {
-            display: flex;
-            flex-wrap: wrap;
-            padding : 24px;
-            gap: 20px;
-            margin-top: 20px;
-        } */
-
-#g_petit-container {
+.g_petit-container {
   display: flex;
   flex-direction: row; /* ← les enfants côte à côte */
   //flex-wrap: wrap;       /* permet le retour à la ligne si trop large */
   align-items: center;
   justify-content: center;
   gap: 40px;
-  padding: 24px;
+  padding: 10px;
   margin-top: 20px;
 }
 
 /* Pour chaque bouton et le div interne */
-#g_petit-container > .predicat {
+.g_petit-container > .predicat {
   flex: 1 1 auto; /* peut grandir ou rétrécir */
-  min-width: 5px; /* largeur minimale pour ne pas disparaître */
-  max-width: 300px; /* largeur maximale */
+  min-width: 5%; /* largeur minimale pour ne pas disparaître */
+  max-width: 8%; /* largeur maximale */
+}
+
+#graph {
+  width: 80%;
+  height: 80vh;
+  border: 1px solid #ccc;
 }
 
 .div_chemin_info_button {
-  width: 70%;
+  width: 75%;
+  background-color: white;
+  border-radius: 10px;
+  padding: 40px 30px;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.7);
+  //text-align: center;
+  margin: 0 auto;
 }
 
 #div_graphes_tous {
@@ -1971,8 +1848,8 @@ body {
 }
 
 /* ----------- DROITE - EXPLICATION ----------- */
-#right-panel {
-  flex: 0 0 500px;
+.right-panel {
+  flex: 0 0 300px;
   background-color: #ffffff;
   border-left: 1px solid #eee;
   padding: 24px;
@@ -1981,7 +1858,7 @@ body {
   text-align: left; /* ← aussi aligné à gauche */
 }
 
-#right-panel h3 {
+.right-panel h3 {
   font-size: 18px;
   margin-bottom: 10px;
   color: #444;
@@ -1990,7 +1867,7 @@ body {
   padding-left: 0;
 }
 
-#right-panel p {
+.right-panel p {
   font-size: 14px;
   margin-bottom: 24px;
   line-height: 1.6;
@@ -1999,7 +1876,7 @@ body {
   padding-left: 0;
 }
 
-#right-panel h4 {
+.right-panel h4 {
   font-size: 16px;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -2009,12 +1886,12 @@ body {
   padding-left: 0;
 }
 
-#right-panel ul {
+.right-panel ul {
   list-style: none;
   padding-left: 0;
 }
 
-#right-panel li {
+.right-panel li {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -2051,12 +1928,12 @@ body {
 
 /* ----------- RESPONSIVE ----------- */
 @media (max-width: 1024px) {
-  #content-area {
+  #content-area2 {
     flex-direction: column;
   }
 
   #left-panel,
-  #right-panel {
+  .right-panel {
     flex: none;
     width: 100%;
     border: none;
@@ -2067,52 +1944,45 @@ body {
   }
 }
 
-#graph {
-  width: 100%;
-  height: 800px;
-  border: 1px solid #ccc;
+/* -------- TOAST ----------- */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2000;
 }
 
+.toast {
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-size: 14px;
+  animation: fadein 0.3s, fadeout 0.3s 2.7s;
+}
 
-/* -------- TOAST ----------- */
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2000;
-        }
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-        .toast {
-            background: rgba(50, 50, 50, 0.9);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            margin-top: 8px;
-            font-size: 14px;
-            animation: fadein 0.3s, fadeout 0.3s 2.7s;
-        }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-        @keyframes fadein {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
+@keyframes fadeout {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeout {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-        }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
 </style>
