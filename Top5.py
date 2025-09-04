@@ -21,6 +21,8 @@ def normalize_label(val):
     - Remplace les tirets, underscores, et camelCase par des espaces
     - Supprime accents et ponctuations
     - Trim des espaces
+
+    Retourne un str.
     """
     val = str(val)
 
@@ -49,10 +51,12 @@ def normalize_label(val):
 
     return val
 
-#<https://coursera.graph.edu/user_619.0>
-#<https://coursera.graph.edu/course_209>
-
 def find_top5(G, user, course):
+  """
+  Permet de récupérer le top 5 des attributs sémantiques communs entre un cours recommandé et les cours HighInterest d'un utilisateur.
+  Retourne un dico où les clés sont les attributs sémantiques et les valeurs sont les taux de similarité de ceux-ci.
+  """
+  # On récupère le nombre de cours pour lequel l'utilisateur a un high Interest
   tot_query = f"""
   SELECT (COUNT(?coursOK) AS ?tot) WHERE {{
     {user} <https://coursera.graph.edu/HighInterest> ?coursOK .
@@ -61,7 +65,8 @@ def find_top5(G, user, course):
   res = g.query(tot_query)
   tot = None
   for row in res:
-      tot = float(row.tot)  # ou float si besoin
+      # On convertit le résultat en flottant
+      tot = float(row.tot)
       break
   if tot is None or tot == 0:
     print("Utilisateur sans cours préférés — division impossible.")
@@ -89,6 +94,7 @@ def find_top5(G, user, course):
     tres = g.query(top5_query)
     top5 ={}
     for row in tres:
+        # On normalise chaque label et on le simplifie pour certains attributs sémantiques
         label = normalize_label(row.p)
         if label == "has knowledge topic":
            label="knowledge topic"
@@ -98,5 +104,3 @@ def find_top5(G, user, course):
            label ="university"
         top5[label] = float(float(row.nbCommun)/tot)
     return top5
-
-#print(find_top5(G, '<https://coursera.graph.edu/user_619.0>', '<https://coursera.graph.edu/course_2758>' ))

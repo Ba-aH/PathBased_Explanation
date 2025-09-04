@@ -14,11 +14,11 @@ def is_valid_node(G, n):
 
 def random_walk(G, start_node):
     """
-    Permet de créer un chemain aléatoire de longueur supérieure ou égale à walk_length en partant d'un noeud quelconque et arrivant sur un cours.
-    Entrées : 
+    Génère une recommandation de cours aléatoire. Le cours recommandé n'a pas déjà été suivi par l'utilisateur
+    et doit être considéré comme valide, c'est à dire qu'il a au moins un topic.
+    Entrée : 
     - G : un DiGraph
     - start_node : le noeud à partir duquel on va partir.
-    - walk_length : la longueur minimale du chemin renvoyé.
     Sortie : 
     walk : La liste des noeuds formant le chemin trouvé, ordonnés.
     """
@@ -60,6 +60,7 @@ def random_walk(G, start_node):
     return walk
 
 
+# On importe le graphe et le convertit en DiGraph
 g = Graph()
 input_file = "combined_graph.ttl"
 g.parse(input_file, format="ttl")
@@ -74,10 +75,7 @@ WHERE {
     ?sub a <https://schema.org/Person>.
 }"""
 
-qres = g.query(knows_query)
-personnes=[]
-for row in qres:
-    personnes.append(str(row.sub))
+# Requête SPARQL pour trouver les mauvais cours, ceux qui n'ont pas de knowledge topic
 
 badlessons_query = """
 SELECT distinct ?s WHERE {
@@ -90,11 +88,5 @@ bad_cours=[]
 for row in lres:
     bad_cours.append(str(row.s))
 
-""" node_dep = random.choice(personnes)
-path = random_walk(G, start_node=node_dep)
-node_arr = path[-1]
-print("Noeud de départ : ", node_dep)
-print("Noeud d'arrivée : ", node_arr)
-print("Random walk:", path) """
 
 
