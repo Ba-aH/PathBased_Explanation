@@ -5,20 +5,216 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
 <html>
-  <head>
-    <title>ExplainGraph</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<head>
+    <title>Accueil</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-			/* modal predicats*/
-			.modal-overlay {
+        /* ----------- RESET & BASE ----------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 15px;
+        }
+
+        /* ----------- NAVIGATION ----------- */
+        #nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background-color: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 18px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        #nav-bar a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        #nav-bar a:hover {
+            color: #2f80ed;
+        }
+
+        /* ----------- Fenêtre connexion ----------- */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 5000;
+            /* au-dessus de tout */
+        }
+
+        #login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+
+        /* ----------- LAYOUT PRINCIPAL ----------- */
+        #content-area {
+            display: flex;
+            height: 100%;
+        }
+
+        /* ----------- PANNEAU DE CONTRÔLE (GAUCHE) ----------- */
+        /* #left-panel {
+            flex: 0 0 280px;
+            background-color: #ffffff;
+            border-right: 1px solid #eee;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: inset -1px 0 0 #eee;
+        }
+
+        #left-panel h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #444;
+        }
+
+        #left-panel label {
+            display: block;
+            margin-top: 16px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        #left-panel input[type="text"],
+        #left-panel select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            transition: border 0.3s;
+        }
+
+        #left-panel input:focus,
+        #left-panel select:focus {
+            border-color: #A0C878;
+            outline: none;
+        } */
+
+        /* ----------- BOUTONS ----------- */
+        .button {
+            background-color: #749BC2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            width: 100%;
+            margin-top: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.2s;
+        }
+
+        .button:hover {
+            background-color: #4682A9;
+            box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
+        }
+
+        button.navigation {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .navigation {
+            padding: 6px 10px;
+            background-color: #FFFBDE;
+            color: #333;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 2px solid #ada56a;
+            cursor: grab;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .navigation:hover {
+            background-color: #ada56a;
+        }
+
+        /* ----------- CENTRE : GRAPHE ----------- */
+        .divQuestions {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .divQuestions form>div {
+            margin-bottom: 20px;
+            /* espace entre les questions */
+        }
+
+        .mySelect {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 14px;
+            color: #333;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 12px;
+            appearance: none;
+            /* enlève le style natif du navigateur */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='70,100 100,40 40,40' fill='%23666'%3E%3C/polygon%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+        }
+
+        .mySelect:focus {
+            border-color: #91C8E4;
+            outline: none;
+            box-shadow: 0 0 3px rgba(145, 200, 228, 0.8);
+        }
+
+
+        .radioOption {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            gap: 8px;
+        }
+
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -44,1089 +240,690 @@ and open the template in the editor.
         }
 
         .predicat-modal .buttons {
-            /* margin-top: 10px; */
             flex-wrap: wrap;
             display: flex;
             justify-content: space-between;
         }
 
         .predicat-modal .button {
-            width: auto;/* taille selon contenu */
-            margin: 6px;/* petit espacement autour */
-            display: inline-block;/* pour qu'ils s’alignent */
-            min-width: 100px;/* (optionnel) éviter des boutons trop petits */
+            width: auto;
+            margin: 6px;
+            display: inline-block;
+            min-width: 100px;
+            /* (optionnel) éviter des boutons trop petits */
+        }
+
+        #graphs-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 80px auto;
+            max-width: 900px;
+        }
+
+        #graph-wrapper {
+            flex: 1 1 auto;
+            max-width: 800px;
+            height: 500px;
+            border: 1px solid #91C8E4;
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
 
-			/* ---------------------Button help + tuto ---------------------*/
-			#modal-tuto {
-				position: fixed;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				background: rgba(0,0,0,0.6);
-				display: none;
-				align-items: center;
-				justify-content: center;
-				z-index: 999;
-			}
-
-			.modal-content {
-				background: white;
-				padding: 20px;
-				border-radius: 12px;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-				max-width: 90%;
-				text-align: center;
-			}
-
-			.return-btn {
-				margin-top: 15px;
-				padding: 8px 16px;
-				background: #4682a9;
-				color: white;
-				border: none;
-				border-radius: 8px;
-				cursor: pointer;
-			}
-
-			.help-btn {
-				position: fixed;       /* collé sur l’écran */
-				bottom: 20px;          /* distance du bas */
-				right: 20px;           /* distance de la droite */
-				width: 60px;
-				height: 60px;
-				border-radius: 50%;    /* cercle */
-				background-color: #f8d4097e;
-				color: white;
-				font-size: 24px;       /* taille de l’icône */
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				border: none;
-				cursor: pointer;
-				box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-				transition: transform 0.2s ease;
-			}
-
-			.help-btn:hover {
-				transform: scale(1.1);
-				background-color: #f8d409ff;
-			}
-      /* ----------- RESET & BASE ----------- */
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: "Segoe UI", sans-serif;
-        background-color: #f7f9fc;
-        color: #333;
-        height: 100vh;
-        overflow: hidden;
-        font-size: 15px;
-      }
-
-      /* ----------- NAVIGATION ----------- */
-      #nav-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 28px;
-        background-color: #fff;
-        border-bottom: 1px solid #e5e5e5;
-        font-size: 18px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-      }
-
-      #nav-bar a {
-        text-decoration: none;
-        color: #333;
-        font-weight: 500;
-        transition: color 0.3s;
-      }
-
-      #nav-bar a:hover {
-        color: #2f80ed;
-      }
-
-      /* ----------- LAYOUT PRINCIPAL ----------- */
-      #content-area {
-        display: flex;
-        height: 100%;
-      }
-
-      /* ----------- PANNEAU DE CONTRÔLE (GAUCHE) ----------- */
-      #left-panel {
-        flex: 0 0 280px;
-        background-color: #ffffff;
-        border-right: 1px solid #eee;
-        padding: 24px;
-        overflow-y: auto;
-        box-shadow: inset -1px 0 0 #eee;
-      }
-
-      #left-panel h3 {
-        font-size: 18px;
-        margin-bottom: 16px;
-        color: #444;
-      }
-
-      #left-panel label {
-        display: block;
-        margin-top: 16px;
-        font-weight: 600;
-        color: #555;
-      }
-
-      #left-panel input[type="text"],
-      #left-panel select {
-        width: 100%;
-        padding: 10px 12px;
-        margin-top: 6px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background-color: #fdfdfd;
-        transition: border 0.3s;
-      }
-
-      #left-panel input:focus,
-      #left-panel select:focus {
-        border-color: #a0c878;
-        outline: none;
-      }
-
-      /* ----------- BOUTONS ----------- */
-      .button {
-        background-color: #749bc2;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 14px;
-        width: 100%;
-        margin-top: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s, box-shadow 0.2s;
-      }
-
-      .button:hover {
-        background-color: #4682a9;
-        box-shadow: 0 2px 8px rgba(47, 128, 237, 0.3);
-      }
-
-      /* ----------- PRÉDICATS ----------- */
-      
-      .predicat {
-        padding: 6px 10px;
-        background-color: #fffbde;
-        color: #333;
-        font-weight: bold;
-        border-radius: 6px;
-        border: 2px solid #ada56a;
-        cursor: grab;
-        font-size: 14px;
-        user-select: none;
-      }
-
-      .predicat:hover {
-        background-color: #ada56a;
-      }
-
-      /* ----------- CENTRE : GRAPHE ----------- */
-      .divQuestions {
-        width: 100%;
-        margin-top: 20px;
-      }
-
-      .divQuestions form > div {
-        margin-bottom: 20px;
-        /* espace entre les questions */
-      }
-
-      .mySelect {
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        background-color: #fff;
-        font-size: 14px;
-        color: #333;
-        width: 100%;
-        max-width: 400px;
-        margin-bottom: 12px;
-        appearance: none;
-        /* enlève le style natif du navigateur */
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='70,100 100,40 40,40' fill='%23666'%3E%3C/polygon%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        background-size: 12px;
-      }
-
-      .mySelect:focus {
-        border-color: #91c8e4;
-        outline: none;
-        box-shadow: 0 0 3px rgba(145, 200, 228, 0.8);
-      }
-
-      .graph-controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
-        align-items: center;
-      }
-
-      .graph-controls .button {
-        flex: 0 0 auto;
-        width: auto;
-        padding: 10px 16px;
-      }
-
-      .graph-controls input[type="text"] {
-        flex: 1;
-        min-width: 180px;
-        padding: 10px 12px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-      }
-
-      #center-panel {
-        flex: 1;
-        padding: 24px;
-        overflow-y: auto;
-        background-color: #f9f9fb;
-      }
-
-      /* #g_petit-container {
+        .graph-controls {
             display: flex;
             flex-wrap: wrap;
-            padding : 24px;
-            gap: 20px;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .graph-controls .button {
+            flex: 0 0 auto;
+            width: auto;
+            padding: 10px 16px;
+        }
+
+        .graph-controls input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #center-panel {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: #f9f9fb;
+        }
+
+        /* #g_petit-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 24px;
             margin-top: 20px;
         } */
 
-      #g_petit-container {
-        display: flex;
-        align-items: center;
-        /* Aligne verticalement les éléments */
-        justify-content: center;
-        /* Centre horizontalement l’ensemble */
-        gap: 40px;
-        /* Espace entre les flèches et le div central */
-        padding: 24px;
-        margin-top: 20px;
-      }
-
-      .div_chemin_info_button {
-        width: 100%;
-      }
-
-      #div_graphes_tous {
-        width: 75%;
-      }
-
-      .g {
-        width: 100%;
-        height: 600px;
-        border: 3px solid #91c8e4;
-        background-color: #fff;
-        border-radius: 20px;
-        box-shadow: 0 2px 10px #faf6e9;
-      }
-
-      .g_petit {
-        width: 100%;
-        height: 200px;
-
-        border: 3px solid #91c8e4;
-        background-color: #f1f0e9;
-        border-radius: 16px;
-        box-shadow: 0 1px 6px #faf6e9;
-      }
-
-      /* ----------- DROITE - EXPLICATION ----------- */
-      #right-panel {
-        flex: 0 0 300px;
-        background-color: #ffffff;
-        border-left: 1px solid #eee;
-        padding: 24px;
-        overflow-y: auto;
-        box-shadow: inset 1px 0 0 #eee;
-      }
-
-      #right-panel h3 {
-        font-size: 18px;
-        margin-bottom: 10px;
-        color: #444;
-      }
-
-      #right-panel p {
-        font-size: 14px;
-        margin-bottom: 24px;
-        line-height: 1.6;
-      }
-
-      #right-panel h4 {
-        font-size: 16px;
-        margin-top: 20px;
-        margin-bottom: 10px;
-        color: #555;
-      }
-
-      #right-panel ul {
-        list-style: none;
-        padding-left: 0;
-      }
-
-      #right-panel li {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        font-size: 14px;
-      }
-
-      .legend-color {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        margin-right: 8px;
-        border-radius: 50%;
-      }
-
-      .legend-color.blue {
-        background-color: #3b82f6;
-      }
-
-      .legend-color.gray {
-        background-color: #6c757d;
-      }
-
-      #legendLiteral {
-        background-color: #b6e69b;
-        border: 1px solid #88c977;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-family: sans-serif;
-        margin-right: 8px;
-        color: #333;
-        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      /* ----------- RESPONSIVE ----------- */
-      @media (max-width: 1024px) {
-        #content-area {
-          flex-direction: column;
-        }
-
-        #left-panel,
-        #right-panel {
-          flex: none;
-          width: 100%;
-          border: none;
-        }
-
         .g {
-          height: 400px;
-        }
-      }
-
-			 /* -------- TOAST ----------- */
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 2000;
+            width: 100%;
+            height: 600px;
+            border: 3px solid #91C8E4;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px #FAF6E9;
         }
 
-        .toast {
-            background: rgba(50, 50, 50, 0.9);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            margin-top: 8px;
+        /* ----------- DROITE - EXPLICATION ----------- */
+        #right-panel {
+            flex: 0 0 300px;
+            background-color: #ffffff;
+            border-left: 1px solid #eee;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: inset 1px 0 0 #eee;
+        }
+
+        #right-panel h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        #right-panel p {
             font-size: 14px;
-            animation: fadein 0.3s, fadeout 0.3s 2.7s;
+            margin-bottom: 24px;
+            line-height: 1.6;
         }
 
-        @keyframes fadein {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        #right-panel h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #555;
         }
 
-        @keyframes fadeout {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(20px);
-            }
+        #right-panel ul {
+            list-style: none;
+            padding-left: 0;
         }
 
+        #right-panel li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-color.blue {
+            background-color: #3b82f6;
+        }
+
+        .legend-color.gray {
+            background-color: #6c757d;
+        }
+
+        #legendLiteral {
+            background-color: #b6e69b;
+            border: 1px solid #88c977;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: sans-serif;
+            margin-right: 8px;
+            color: #333;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ----------- RESPONSIVE ----------- */
+        @media (max-width: 1024px) {
+            #content-area {
+                flex-direction: column;
+            }
+
+            #left-panel,
+            #right-panel {
+                flex: none;
+                width: 100%;
+                border: none;
+            }
+
+            .g {
+                height: 400px;
+            }
+        }
     </style>
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-      const API_URL =
-        "https://fuzzy-winner-x599rgwgjrgj3p7gx-5000.app.github.dev/";
-      let loadingPath = false;
-      var color = "gray";
-      var index_path_affiché = 0; // numero du petit chemin affiché
-      let liste_node_click = []; // liste nodes cliqués
-      let top5ChartInstance = null;
-      let reponse_user_study = {
-        general_feedback: {},
-        path_feedback: {},
-      }; // liste des réponses user study
-      let parent = {}; // dictionnaire {node: parent de node}
-      var len = undefined;
-      var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
-      var path = { nodes: [], edges: [] }; // chemin principal
-      var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
-      var data = { nodes: [], edges: [] }; // graphe
-      var course = ""; // cours recommandé
-      const container = document.getElementById("graph");
-      let svg, nodeGroup, linkGroup, labelGroup; //------------------------------------------------------------------------------------
-      const liste_answer_possible = [
-        "strongly agree",
-        "agree",
-        "neutre",
-        "disagree",
-        "strongly disagree",
-      ];
-      const questions_reponses_generales = {
-        "Do you think explanations, either graph, diagram or text-based, are useful ?":
-          liste_answer_possible,
-        "Which explanation format do you prefer ?": [
-          "graph-based",
-          "text-based",
-          "bar chart",
-        ],
-        "Adding context to the explanations (neighborhood of the path’s nodes) is useful":
-          liste_answer_possible,
-        "Interacting with the other paths by using the Swap Path mode helps me understand better why this course was recommended to me.":
-          liste_answer_possible,
-        "Interacting with the other paths by using the Add Path mode helps me understand better why this course was recommended to me.":
-          liste_answer_possible,
-        "Choosing which predicates to display when exploring the path’s neighborhood is useful.":
-          liste_answer_possible,
-        "Based on the share of semantic attributes between the recommended course and your interest in these semantic attributes (in the top 5 chart):":
-          [],
-        "This is a good recommandation.": liste_answer_possible,
-        "I will follow this course.": liste_answer_possible,
-        "I can determine how well I will like this course.":
-          liste_answer_possible,
-      };
-      const liste_question_possible = {
-        "": [
-          "This explanation path lets me judge when I should trust the recommendation system.",
-          "Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.",
-          "This explanation path has irrelevant details, which make it overwhelming/difficult to understand.",
-          "This explanation path seems generic.",
-          "This explanation path seems seems aligned with my personal interests.",
-        ],
-      };
-      var path2_en_cours = false;
-      var mode = "modeAjoutGraph";
 
-      // -----------------FONCTIONS SIMPLES---------------//
-
-		function openModal() {
-		document.getElementById('modal-tuto').style.display = 'flex';
-		}
-		function closeModal() {
-		document.getElementById('modal-tuto').style.display = 'none';
-		}
-
-      function getNodeColor(group) {
-        return group === 0
-          ? "orange"
-          : group === 1
-          ? "rgb(245, 221, 6)"
-          : group === 2
-          ? "rgb(236, 112, 90)"
-          : group === 3
-          ? "rgb(67, 143, 206)"
-          : "#bce98f";
-      }
-
-      function resetChemin(network) {
-        // utilisé dans : resetPath, ajouterGraph, echangerGraph
-        data = {
-          nodes: [...path.nodes],
-          edges: [...path.edges],
+        var index_path_affiché = 0; // numero du petit chemin affiché
+        let liste_node_click = [] // liste nodes cliqués
+        let top5ChartInstance = null; //Existance du graphe top 5
+        let reponse_user_study = {
+            general_feedback: {},
+            path_feedback: {}
+        } // Dictionnaire des réponses aux question du user study
+        var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
+        var path = { nodes: [], edges: [] }; // chemin principal
+        var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
+        var data = { nodes: [], edges: [] }; // graphe
+        var course = ""; // cours recommandé
+        let user = null;
+        const liste_answer_possible = ['strongly agree', 'agree', 'neutre', 'disagree', 'strongly disagree']; // Réponses possibles aux questions
+        // Questions portant sur l'explication de manière générale
+        const questions_reponses_generales = {
+            "Do you think explanations, either graph, diagram or text-based, are useful ?": liste_answer_possible,
+            "Which explanation format do you prefer ?": ["graph-based", "text-based", "bar chart"],
+            "Adding context to the explanations (neighborhood of the path’s nodes) is useful": liste_answer_possible,
+            "Choosing which predicates to display when exploring the path’s neighborhood is useful.": liste_answer_possible,
+            'Based on the share of semantic attributes between the recommended course and your interest in these semantic attributes (in the top 5 chart):': [],
+            "This is a good recommandation.": liste_answer_possible,
+            "I will follow this course.": liste_answer_possible,
+            "I can determine how well I will like this course.": liste_answer_possible
         };
-        network.setData(data);
-        for (k of Object.keys(parent)) {
-          parent[k] = null;
+        // Questions portant sur chacun des chemins proposés dans l'explication
+        const liste_question_possible = [
+            'Without adding paths or modifying the graph, the explanation path gives me enough information on why this course was recommended to me.',
+            'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
+            'The topics mentioned in this explanation path are familiar to me.',
+            'This explanation path seems aligned with my personal interests.'
+        ]
+
+        var path2_en_cours = false; // Vaut true si on modifie le chemin principal initial (en ajoutant ou échangeant avec un autre chemin) 
+        var mode = "modeAjoutGraph"; // Mode d'intéraction avec les autres chemins. Les deux modes sont :"modeAjoutGraph" et "modeEchangeGraph"
+
+        // -----------------FONCTIONS SIMPLES---------------//
+        function getNodeColor(group) {
+            // Permet d'attribuer une couleur différente à chaque groupe de noeud pour différencier leur type visuellement.
+            return group === 0 ? "orange" :
+                group === 1 ? "rgb(245, 221, 6)" :
+                    group === 2 ? "rgb(236, 112, 90)" :
+                        group === 3 ? "rgb(67, 143, 206)" : "#bce98f";
         }
-        liste_node_click = [];
-        // Recentrer après reset
-        network.fit({
-          animation: true,
-        });
-      }
 
-      function orderNodesByEdges(nodes, edges) {
-        // Permet d'afficher les petits chemins toujours dans le même ordre
-        // Trouve le premier noeud (celui qui n'est pas dans 'to' d'une arête)
-        const toNodes = new Set(edges.map((e) => e.to));
-        const fromNodes = new Set(edges.map((e) => e.from));
-
-        let startNode = nodes.find((n) => !toNodes.has(n.id));
-        if (!startNode) startNode = nodes[0]; // fallback
-
-        const orderedNodes = [];
-        let currentId = startNode.id;
-
-        while (currentId !== undefined) {
-          const currentNode = nodes.find((n) => n.id === currentId);
-          if (!currentNode) break;
-          orderedNodes.push(currentNode);
-
-          const nextEdge = edges.find((e) => e.from === currentId);
-          currentId = nextEdge ? nextEdge.to : undefined;
-        }
-        return orderedNodes;
-      }
-
-
-      function chercherNode() {
-        // button Chercher node
-        const node = document.getElementById("node").value;
-        console.log("node : ", node);
-        for (n of data.nodes) {
-          console.log("n :", n.label);
-          if (n.label == node) {
-            const graph = window.graphPrincipal;
-            const width = +graph.svg.attr("width");
-            const height = +graph.svg.attr("height");
-            focusOnNode(graph, n.id, width, height);
-            return;
-          }
-        }
-        alert("Node non trouvé");
-        return;
-      }
-
-      function updateGraphSize(width, height, simulation, svg) {
-        // Si modif taille de l'onglet
-        svg.attr("width", width).attr("height", height);
-
-        // Si tu as un `simulation` (force layout), réactualise aussi
-        simulation.force(
-          "center",
-          d3.forceCenter(width / 2, height / 2).strength(0.01)
-        );
-        simulation.alpha(1).restart();
-      }
-
-      function fitToGraph(svg, zoomfunction) {
-        // container: le groupe 'g' contenant les noeuds et liens
-        console.log("svg.node() =", svg.select("g.zoom-group").node());
-
-        const bounds = svg.select("g.zoom-group").node().getBBox();
-        const fullWidth = +svg.attr("width");
-        const fullHeight = +svg.attr("height");
-
-        const width = bounds.width;
-        const height = bounds.height;
-        const midX = bounds.x + width / 2;
-        const midY = bounds.y + height / 2;
-
-        const scale = 0.85 / Math.max(width / fullWidth, height / fullHeight); // 0.85 pour un peu de marge
-        const translate = [
-          fullWidth / 2 - scale * midX,
-          fullHeight / 2 - scale * midY,
-        ];
-
-        svg
-          .transition()
-          .duration(750)
-          .call(
-            zoomfunction.transform,
-            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-          );
-      }
-
-      function focusOnNode(graph, nodeId, width, height) {
-        const node = graph.simulation.nodes().find((n) => n.id === nodeId);
-        if (!node) return;
-
-        // Mise en évidence (changer la couleur)
-
-        graph.nodeGroup
-          .selectAll("circle")
-          .attr("stroke", (d) => (d.id === nodeId ? "black" : null))
-          .attr("stroke-width", (d) => (d.id === nodeId ? 4 : null))
-          .attr("fill", (d) =>
-            d.id === nodeId ? "limegreen" : getNodeColor(d.group)
-          );
-
-        // Zoom centré sur le nœud (vers le centre de l'écran)
-        const newZoom = d3.zoomIdentity
-          .translate(width / 2, height / 2)
-          .scale(1.5)
-          .translate(-node.x, -node.y);
-
-        graph.svg
-          .transition()
-          .duration(750)
-          .call(graph.zoom.transform, newZoom);
-      }
-
-      function collectGeneralFeedback() {
-        const feedback = {};
-        const selects = document.querySelectorAll("#questionsGenerales select");
-
-        selects.forEach((select) => {
-          const label =
-            select.previousElementSibling?.textContent?.trim() || select.name;
-          feedback[label] = select.value;
-        });
-
-        return feedback;
-      }
-
-      function drawGraph(container, nodesData, edgesData) {
-        if (!container) {
-          console.error("Élément #graph-container introuvable.");
-          return;
-        }
-        container.innerHTML = "";
-
-        var width = container.clientWidth;
-        var height = container.clientHeight;
-        console.log("container.style.display:", container.style.display);
-        if (container.parentElement.style.display == "none") {
-          const oldDisplay = container.parentElement.style.display;
-          container.parentElement.style.display = "block";
-
-          // Forcer le reflow en lisant une propriété
-          void container.parentElement.offsetWidth;
-
-          width = container.clientWidth || 600;
-          height = container.clientHeight || 400;
-          container.parentElement.style.display = oldDisplay;
-        }
-        console.log("container.clientWidth :", width);
-
-        const svg = d3
-          .select(container)
-          .append("svg")
-          .attr("width", width)
-          .attr("height", height);
-
-        const zoomGroup = svg.append("g").attr("class", "zoom-group");
-
-        const linkGroup = zoomGroup.append("g").attr("class", "links");
-        const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
-        const labelGroup = zoomGroup.append("g").attr("class", "labels");
-        const edgeLabelGroup = zoomGroup
-          .append("g")
-          .attr("class", "edge-labels");
-
-        // pour fleche :
-        // Définition de flèche
-		svg
-			.append("defs")
-			.append("marker")
-			.attr("id", "arrow")
-			.attr("viewBox", "0 -5 10 10")
-			.attr("refX", 25)
-			.attr("refY", 0)
-			.attr("markerWidth", 6)
-			.attr("markerHeight", 6)
-			.attr("orient", "auto")
-			.attr("markerUnits", "userSpaceOnUse")
-			.append("path")
-			.attr("d", "M0,-5L10,0L0,5")
-			.attr("fill", "#999");
-
-        d3.select("svg").style("pointer-events", "all");
-        d3.select("g.zoom-group").style("pointer-events", "all");
-        d3.selectAll(".nodes circle").style("pointer-events", "all");
-
-        const zoom = d3
-          .zoom()
-          .scaleExtent([0.1, 5])
-          .on("zoom", (event) => {
-            zoomGroup.attr("transform", event.transform);
-          });
-
-        svg.call(zoom);
-
-        // Simulation init
-        let simulation = d3
-          .forceSimulation()
-          .force(
-            "link",
-            d3
-              .forceLink()
-              .id((d) => d.id)
-              .distance(200)
-          )
-          .force("charge", d3.forceManyBody().strength(-300))
-          .force(
-            "center",
-            d3
-              .forceCenter(+svg.attr("width") / 2, +svg.attr("height") / 2)
-              .strength(0.01)
-          );
-
-        updateGraph(
-          nodesData,
-          edgesData,
-          svg,
-          linkGroup,
-          nodeGroup,
-          labelGroup,
-          edgeLabelGroup,
-          simulation,
-          zoomGroup
-        ); // première update
-        return {
-          svg,
-          linkGroup,
-          nodeGroup,
-          labelGroup,
-          edgeLabelGroup,
-          simulation,
-          zoomGroup,
-          zoom,
-        };
-      }
-
-      function updateGraph(
-        nodesData,
-        edgesData,
-        svg,
-        linkGroup,
-        nodeGroup,
-        labelGroup,
-        edgeLabelGroup,
-        simulation,
-        zoomGroup
-      ) {
-        const edgesD3 = edgesData.map((e) => ({
-          ...e,
-          source: e.from,
-          target: e.to,
-        }));
-
-        // Vérifier positions initiales
-        nodesData.forEach((n) => {
-          if (n.x == null) n.x = Math.random() * +svg.attr("width");
-          if (n.y == null) n.y = Math.random() * +svg.attr("height");
-        });
-
-        // Met à jour les données dans la simulation
-        console.log("update data edged3 :", edgesD3);
-        console.log("update data nodes :", nodesData);
-        simulation.nodes(nodesData);
-        simulation.force("link").links(edgesD3);
-        simulation.alpha(1).restart();
-
-        // Liens
-        const linkSelection = linkGroup
-          .selectAll("path")
-          .data(edgesD3, (d) => d.id || d.source.id + "-" + d.target.id);
-
-        linkSelection.exit().remove();
-        var color = "#aaa";
-
-        const linkEnter = linkSelection
-          .enter()
-          .append("path") //////////////////
-          .attr("fill", "none")
-          .attr("stroke-width", 1.5)
-			.attr("marker-end", "url(#arrow)") ///////////??????????????????????????????
-          .attr("stroke", (d) => {
-            // Trouver la couleur du nœud source
-            if (typeof d.source === "object") {
-              return getNodeColor(d.source.group);
-            }
-            // fallback
-            return "#aaa";
-          });
-        /*.attr("marker-end", d =>{
-                 // Trouver la couleur du nœud source
-                 if (typeof d.source === "object") {
-                    color =  getNodeColor(d.source.group);
+        function chercherNode() { // button Chercher node
+            // Permet de trouver le noeud rentré dans la barre de recherche et de zoomer le graphe pour le mettre en évidence.
+            const node = document.getElementById("node").value;
+            console.log('node : ', node);
+            const currentPath = allPaths[index_path_affiché];
+            data = {
+                nodes: [...currentPath.nodes],
+                edges: [...currentPath.edges]
+            };
+            for (n of data.nodes) {
+                console.log('n :', n.label);
+                if (n.label == node) {
+                    const graph = window.graphPrincipal;
+                    const width = +graph.svg.attr("width");
+                    const height = +graph.svg.attr("height");
+                    focusOnNode(graph, n.id, width, height);
+                    return
                 }
-                return "url(#arrowhead)".attr("fill", color)
-
-            });*/
-
-        const linkElements = linkEnter.merge(linkSelection);
-
-        // Noeuds
-        const nodeSelection = nodeGroup
-          .selectAll(".node")
-          .data(nodesData, (d) => d.id);
-
-        nodeSelection.exit().remove();
-
-        // Pour le popup title:
-        const attrs = {
-          onNodeHover: function (value) {
-            console.log("Hovered:", value);
-          },
-        };
-        const tooltip = d3.select("#tooltip");
-
-        const nodeEnter = nodeSelection
-          .enter()
-          .append((d) => {
-            if (d.label === d.id) {
-              // Créer un groupe <g> qui contiendra le rectangle et le texte
-              const g = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "g"
-              );
-
-              const rect = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "rect"
-              );
-              rect.setAttribute("rx", 5); // bords arrondis (optionnel)
-              rect.setAttribute("ry", 5);
-              rect.setAttribute("fill", "#eee");
-              rect.setAttribute("stroke", "#999");
-
-              const text = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "text"
-              );
-              text.textContent = d.label;
-              text.setAttribute("x", 0);
-              text.setAttribute("y", 0);
-              text.setAttribute("dominant-baseline", "middle");
-              text.setAttribute("text-anchor", "middle");
-
-              g.appendChild(rect);
-              g.appendChild(text);
-
-              return g;
-            } else {
-              return document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "circle"
-              );
             }
-          })
-          .classed("node", true)
-          .each(function (d) {
-            const isRect = d.label === d.id;
-            const node = d3.select(this);
-            if (isRect) {
-              const g = d3.select(this);
-              const text = g.select("text");
-              const rect = g.select("rect");
-
-              // On mesure le texte pour ajuster le rectangle autour
-              const bbox = text.node().getBBox();
-
-              rect
-                .attr("x", bbox.x - 6)
-                .attr("y", bbox.y - 4)
-                .attr("width", bbox.width + 12)
-                .attr("height", bbox.height + 8)
-                .attr("fill", getNodeColor(d.group));
-
-              // Position du texte (centré)
-              text.attr("x", 0).attr("y", 0).attr("font-size", "10px");
-
-              /*if (isRect) {
-                            node
-                                .attr("width", 16)
-                                .attr("height", 16)
-                                .attr("x", 100)  // pour centrer comme un cercle
-                                .attr("y", 100)
-                                .attr("fill", getNodeColor(d.group));
-                                */
-            } else {
-              node.attr("r", 8).attr("fill", getNodeColor(d.group));
-            }
-          })
-          .call(drag(simulation))
-          .on("mouseover", (event, d) => {
-            console.log("Node mouseover:", d.id);
-            if (d.label === d.id) {
-              d3.select(event.currentTarget)
-                .select("rect")
-                .attr("stroke", "black")
-                .attr("stroke-width", 3);
-            } else {
-              d3.select(event.currentTarget)
-                .attr("stroke", "black")
-                .attr("stroke-width", 3);
-            }
-            // popup title:
-            const value = d.title ?? "";
-            attrs.onNodeHover?.(d.title ?? "");
-            if (value != "") {
-              tooltip
-                .style("display", "block")
-                .html(value)
-                .style("left", event.pageX + 10 + "px")
-                .style("top", event.pageY + 10 + "px");
-            }
-          })
-          .on("mouseout", (event, d) => {
-            console.log("Node mouseout:", d.id);
-
-            tooltip.style("display", "none");
-
-            if (d.label === d.id) {
-              d3.select(event.currentTarget)
-                .select("rect")
-                .attr("stroke-width", 0);
-            } else {
-              d3.select(event.currentTarget).attr("stroke-width", 0);
-            }
-          });
-        const nodeElements = nodeEnter.merge(nodeSelection);
-
-        // Labels
-        const labelSelection = labelGroup
-          .selectAll("text")
-          .data(nodesData, (d) => d.id);
-
-        labelSelection.exit().remove();
-
-        const labelEnter = labelSelection
-          .enter()
-          .append("text")
-          .text((d) => {
-            if (d.label !== d.id) return d.label;
-          })
-          .attr("font-size", "10px")
-          .attr("text-anchor", "middle")
-          .attr("dy", 15);
-
-        const labelElements = labelEnter.merge(labelSelection);
-
-        // edge label
-
-        // Labels pour les arêtes
-        const edgeLabelSelection = edgeLabelGroup
-          .selectAll("text")
-          .data(edgesD3, (d) => d.id || d.source.id + "-" + d.target.id);
-
-        edgeLabelSelection.exit().remove();
-
-        const edgeLabelEnter = edgeLabelSelection
-          .enter()
-          .append("text")
-          .attr("font-size", "9px")
-          .attr("fill", "#555")
-          .attr("text-anchor", "middle")
-          .text((d) => d.label || ""); // ou une propriété d.label sur les arêtes
-
-        const edgeLabelElements = edgeLabelEnter.merge(edgeLabelSelection);
-
-        simulation.on("tick", () => {
-          linkElements.attr("d", (d) => {
-            const x1 = d.source.x;
-            const y1 = d.source.y;
-            const x2 = d.target.x;
-            const y2 = d.target.y;
-
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const cx = x1 + dx / 2 + dy * 0.1; // ← ajout d’un petit décalage
-            const cy = y1 + dy / 2 - dx * 0.1; // ← pour créer le "bend"
-            //const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // rayon de la courbure
-
-            //return `M${x1},${y1} A${dr},${dr} 0 0,1 ${x2},${y2}`;
-            return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
-          });
-
-          nodeElements.each(function (d) {
-            const node = d3.select(this);
-            if (d.label === d.id) {
-              // rectangle
-              node.attr("transform", `translate(${d.x}, ${d.y})`);
-            } else {
-              // cercle
-              node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
-            }
-          });
-
-          labelElements.attr("x", (d) => d.x || 0).attr("y", (d) => d.y || 0);
-
-          edgeLabelElements.attr("transform", (d) => {
-            const x = (d.source.x + d.target.x) / 2;
-            const y = (d.source.y + d.target.y) / 2;
-            const angle =
-              (Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) *
-                180) /
-              Math.PI;
-
-            // ne pas retourner le texte à l’envers
-            const correctedAngle =
-              angle > 90 || angle < -90 ? angle + 180 : angle;
-
-            //return `rotate(${correctedAngle}, ${x}, ${y})`;
-            return `translate(${x}, ${y}) rotate(${correctedAngle})`;
-          });
-        });
-      }
-
-      function drag(simulation) {
-        function dragstarted(event, d) {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
-          d.fx = d.x;
-          if (d.fy !== 100) d.fy = d.y;
+            alert("Node non trouvé");
+            return
         }
 
-        function dragged(event, d) {
-          d.fx = event.x;
-          if (d.fy !== 100) d.fy = event.y;
+        function updateGraphSize(width, height, simulation, svg) {
+            // Si modif taille de l'onglet, réajuste la taille du graphe.
+            svg
+                .attr("width", width)
+                .attr("height", height);
+
+            simulation.force("center", d3.forceCenter(width / 2, height / 2).strength(0.01));
+            simulation.alphaDecay(0.1); // converge plus vite
+
+            simulation.alpha(1).restart();
         }
 
-        function dragended(event, d) {
-          if (!event.active) simulation.alphaTarget(0);
-          d.fx = null;
-          if (d.fy !== 100) d.fy = null;
+        function fitToGraph(svg, zoomfunction) {
+            // Réajuste le zoom et le centrage du graphe pour qu'il soit centré et visible dans son intégralité.
+            console.log("svg.node() =", svg.select("g.zoom-group").node());
+
+            const bounds = svg.select("g.zoom-group").node().getBBox();
+            const fullWidth = +svg.attr("width");
+            const fullHeight = +svg.attr("height");
+
+            const width = bounds.width;
+            const height = bounds.height;
+            const midX = bounds.x + width / 2;
+            const midY = bounds.y + height / 2;
+
+            const scale = 0.85 / Math.max(width / fullWidth, height / fullHeight); // 0.85 pour un peu de marge
+            const translate = [
+                fullWidth / 2 - scale * midX,
+                fullHeight / 2 - scale * midY,
+            ];
+
+            svg
+                .transition()
+                .duration(750)
+                .call(
+                    zoomfunction.transform,
+                    d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+                );
         }
 
-        return d3
-          .drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended);
-      }
+        function focusOnNode(graph, nodeId, width, height) {
+            // Permet de mettre en évidence un noeud en zoomant dessus et en changeant sa couleur.
+            const node = graph.simulation.nodes().find(n => n.id === nodeId);
+            if (!node) return;
+
+            // Mise en évidence (changer la couleur)
+
+            graph.nodeGroup.selectAll("circle")
+                .attr("stroke", d => d.id === nodeId ? "black" : null)
+                .attr("stroke-width", d => d.id === nodeId ? 4 : null)
+                .attr("fill", d => d.id === nodeId ? "pink" : (getNodeColor(d.group)));
+
+            // Zoom centré sur le nœud (vers le centre de l'écran)
+            const newZoom = d3.zoomIdentity
+                .translate(width / 2, height / 2)
+                .scale(1.5)
+                .translate(-node.x, -node.y);
+
+            graph.svg.transition().duration(750)
+                .call(graph.zoom.transform, newZoom);
+
+        }
+
+        function collectGeneralFeedback() {
+            // Récupère les réponses aux questions générales sur l'explication.
+            const feedback = {};
+            const selects = document.querySelectorAll("#questionsGenerales select");
+
+            selects.forEach(select => {
+                const label = select.previousElementSibling?.textContent?.trim() || select.name;
+                feedback[label] = select.value;
+            });
+
+            return feedback;
+        }
 
 
-	function showToast(message) {
-            const container = document.getElementById("toast-container");
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.innerText = message;
 
-            container.appendChild(toast);
+        function drawGraph(container, nodesData, edgesData) {
+            // Permet de créer et d'afficher un nouveau graphe.
 
-            // Retirer après 3s
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            if (!container) {
+                console.error("Élément #graph-container introuvable.")
+                return
+            }
+            container.innerHTML = "";
+
+            var width = container.clientWidth;
+            var height = container.clientHeight;
+            console.log("container.style.display:", container.style.display);
+            if (container.parentElement.style.display == "none") {
+
+                const oldDisplay = container.parentElement.style.display;
+                container.parentElement.style.display = "block";
+
+                // Forcer le reflow en lisant une propriété
+                void container.parentElement.offsetWidth;
+
+                width = container.clientWidth || 600;
+                height = container.clientHeight || 400;
+                container.parentElement.style.display = oldDisplay;
+
+            }
+            console.log("container.clientWidth :", width);
+
+            // Création du graphe avec ses attributs
+            const svg = d3.select(container)
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+
+            const zoomGroup = svg.append("g").attr("class", "zoom-group");
+
+            const linkGroup = zoomGroup.append("g").attr("class", "links");
+            const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
+            const labelGroup = zoomGroup.append("g").attr("class", "labels");
+            const edgeLabelGroup = zoomGroup.append("g").attr("class", "edge-labels");
+
+
+            // pour fleche : 
+            // Ajouter une définition de flèche
+            svg.append("defs").append("marker")
+                .attr("id", "arrow")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 15)
+                .attr("refY", 0)
+                .attr("markerWidth", 15)
+                .attr("markerHeight", 15)
+                .attr("orient", "auto")
+                .attr("markerUnits", "userSpaceOnUse")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "currentColor");
+
+
+
+            d3.select("svg").style("pointer-events", "all");
+            d3.select("g.zoom-group").style("pointer-events", "all");
+            d3.selectAll(".nodes circle").style("pointer-events", "all");
+
+
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 5])
+                .on("zoom", (event) => {
+                    zoomGroup.attr("transform", event.transform);
+                });
+
+            svg.call(zoom);
+
+
+
+            // Simulation init
+            let simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(200))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(+svg.attr("width") / 2, +svg.attr("height") / 2).strength(0.01))
+                .alphaDecay(0.1); // <-- ajouté ici
+
+            updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup); // première update
+            return { svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup, zoom };
+        }
+
+        function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup) {
+            // Permet de mettre à jour le graphe
+            const edgesD3 = edgesData.map(e => ({
+                ...e,
+                source: e.from,
+                target: e.to
+            }));
+
+            // Vérifier positions initiales
+            nodesData.forEach(n => {
+                if (n.x == null) n.x = Math.random() * +svg.attr("width");
+                if (n.y == null) n.y = Math.random() * +svg.attr("height");
+            });
+
+            // Met à jour les données dans la simulation
+            console.log('update data edged3 :', edgesD3);
+            console.log('update data nodes :', nodesData);
+            simulation.nodes(nodesData);
+            simulation.force("link").links(edgesD3);
+            simulation.alpha(1).restart();
+
+
+            // Liens
+            const linkSelection = linkGroup.selectAll("path")
+                .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
+
+            linkSelection.exit().remove();
+            var color = "#aaa"
+
+            const linkEnter = linkSelection.enter()
+                .append("path")
+                .attr("fill", "none")
+                .attr("stroke-width", 1.5)
+                .attr("stroke", d => {
+                    // Trouver la couleur du nœud source
+                    if (typeof d.source === "object") {
+                        return getNodeColor(d.source.group);
+                    }
+                    // fallback
+                    return "#aaa";
+                })
+                .style("color", d => {
+                    if (typeof d.source === "object") return getNodeColor(d.source.group);
+                    return "#aaa";
+                })
+
+                .attr("marker-end", "url(#arrow)");
+
+            const linkElements = linkEnter.merge(linkSelection)
+                .attr("stroke", d => (typeof d.source === "object" ? getNodeColor(d.source.group) : "#aaa"))
+                .style("color", d => (typeof d.source === "object" ? getNodeColor(d.source.group) : "#aaa"))
+                .attr("marker-end", "url(#arrow)");
+
+            // Noeuds
+            const nodeSelection = nodeGroup.selectAll(".node")
+                .data(nodesData, d => d.id);
+
+            nodeSelection.exit().remove();
+
+            // Pour le popup title: 
+            const attrs = {
+                onNodeHover: function (value) {
+                    console.log("Hovered:", value);
+                }
+            };
+            const tooltip = d3.select("#tooltip");
+
+            const nodeEnter = nodeSelection.enter()
+                .append(d => {
+                    if (d.label === d.id) {
+                        // Créer un groupe <g> qui contiendra le rectangle et le texte
+                        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+                        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                        rect.setAttribute("rx", 5); // bords arrondis (optionnel)
+                        rect.setAttribute("ry", 5);
+                        rect.setAttribute("fill", "#eee");
+                        rect.setAttribute("stroke", "#999");
+
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.textContent = d.label;
+                        text.setAttribute("x", 0);
+                        text.setAttribute("y", 0);
+                        text.setAttribute("dominant-baseline", "middle");
+                        text.setAttribute("text-anchor", "middle");
+
+                        g.appendChild(rect);
+                        g.appendChild(text);
+
+                        return g;
+                    } else {
+                        return document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    }
+
+                })
+                .classed("node", true)
+                .each(function (d) {
+                    const isRect = d.label === d.id;
+                    const node = d3.select(this);
+                    if (isRect) {
+                        const g = d3.select(this);
+                        const text = g.select("text");
+                        const rect = g.select("rect");
+
+                        // On mesure le texte pour ajuster le rectangle autour
+                        const bbox = text.node().getBBox();
+
+                        rect
+                            .attr("x", bbox.x - 6)
+                            .attr("y", bbox.y - 4)
+                            .attr("width", bbox.width + 12)
+                            .attr("height", bbox.height + 8)
+                            .attr("fill", getNodeColor(d.group));
+
+                        // Position du texte (centré)
+                        text
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .attr("font-size", "10px");
+
+                    } else {
+                        node
+                            .attr("r", 8)
+                            .attr("fill", getNodeColor(d.group));
+                    }
+                })
+                .call(drag(simulation))
+                .on("mouseover", (event, d) => {
+                    console.log("Node mouseover:", d.id);
+                    if (d.label === d.id) {
+                        d3.select(event.currentTarget).select('rect')
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 3);
+                    } else {
+                        d3.select(event.currentTarget)
+                            .attr("stroke", "black")
+                            .attr("stroke-width", 3);
+                    }
+                    // popup title:
+                    const value = d.title ?? '';
+                    attrs.onNodeHover?.(d.title ?? '');
+                    if (value != '') {
+                        tooltip
+                            .style("display", "block")
+                            .html(value)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY + 10) + "px");
+                    }
+
+                })
+                .on("mouseout", (event, d) => {
+                    console.log("Node mouseout:", d.id);
+
+                    tooltip.style("display", "none");
+
+                    if (d.label === d.id) {
+                        d3.select(event.currentTarget).select('rect')
+                            .attr("stroke-width", 0);
+                    } else {
+                        d3.select(event.currentTarget)
+                            .attr("stroke-width", 0);
+                    }
+                });
+            const nodeElements = nodeEnter.merge(nodeSelection);
+
+            // Labels
+            const labelSelection = labelGroup.selectAll("text")
+                .data(nodesData, d => d.id);
+
+            labelSelection.exit().remove();
+
+            const labelEnter = labelSelection.enter()
+                .append("text")
+                .text(d => {
+                    if (d.label !== d.id)
+                        return d.label;
+                })
+                .attr("font-size", "10px")
+                .attr("text-anchor", "middle")
+                .attr("dy", 15);
+
+            const labelElements = labelEnter.merge(labelSelection);
+
+
+            // Labels pour les arêtes
+            const edgeLabelSelection = edgeLabelGroup.selectAll("text")
+                .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
+
+            edgeLabelSelection.exit().remove();
+
+            const edgeLabelEnter = edgeLabelSelection.enter()
+                .append("text")
+                .attr("font-size", "9px")
+                .attr("fill", "#555")
+                .attr("text-anchor", "middle")
+                .text(d => d.label || ""); // ou une propriété d.label sur les arêtes
+
+            const edgeLabelElements = edgeLabelEnter.merge(edgeLabelSelection);
+
+
+            simulation.on("tick", () => {
+                linkElements.attr("d", d => {
+                    const x1 = d.source.x;
+                    const y1 = d.source.y;
+                    const x2 = d.target.x;
+                    const y2 = d.target.y;
+
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const cx = x1 + dx / 2 + dy * 0.1; // ← ajout d’un petit décalage
+                    const cy = y1 + dy / 2 - dx * 0.1; // ← pour créer le "bend"
+                    return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
+                })
+
+                nodeElements.each(function (d) {
+                    const node = d3.select(this);
+                    if (d.label === d.id) {
+                        // rectangle
+                        node.attr("transform", `translate(${d.x}, ${d.y})`);
+                    } else {
+                        // cercle
+                        node.attr("cx", d => d.x || 0)
+                            .attr("cy", d => d.y || 0);
+                    }
+                })
+
+
+                labelElements
+                    .attr("x", d => d.x || 0)
+                    .attr("y", d => d.y || 0);
+
+                edgeLabelElements
+                    .attr("transform", d => {
+                        const x = (d.source.x + d.target.x) / 2;
+                        const y = (d.source.y + d.target.y) / 2;
+                        const angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) * 180 / Math.PI;
+
+                        // ne pas retourner le texte à l’envers
+                        const correctedAngle = (angle > 90 || angle < -90) ? angle + 180 : angle;
+
+                        return `translate(${x}, ${y}) rotate(${correctedAngle})`;
+                    });
+
+
+            });
+
+        }
+
+        function drag(simulation) {
+            // Pour gérer les déplaçements des noeuds dans la fenetre du graphe.
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                if (d.fy !== 100)
+                    d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                if (d.fy !== 100)
+                    d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                if (d.fy !== 100)
+                    d.fy = null;
+            }
+
+            return d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended);
         }
 
         function showNodeMessage(svg, node, message) {
+            //Permet d'afficher un message a coté d'un noeud du graphe
+
             // Supprimer messages précédents
             svg.selectAll(".node-message").remove();
 
@@ -1159,173 +956,117 @@ and open the template in the editor.
             }, 2000);
         }
 
+        function showToast(message) {
+            // Permet d'afficher un toast (message)
+            const toast = document.createElement("div");
+            toast.textContent = message;
+            toast.style.position = "fixed";
+            toast.style.top = "20px";
+            toast.style.right = "20px";
+            toast.style.background = "#4caf50";
+            toast.style.color = "white";
+            toast.style.padding = "10px 20px";
+            toast.style.borderRadius = "8px";
+            toast.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+            toast.style.zIndex = "1000";
+            //document.getElementById("formulaire-questions").appendChild(toast);
+            document.getElementById("button_valider").insertAdjacentElement("afterend", toast);
 
-      window.onload = function () {
-        const container = document.getElementById("graph");
+            // Auto-suppression après 3 secondes.
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-        const graphe_svg = d3.select("#graph");
-        console.log("graphe_svg", graphe_svg.node());
 
-        const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
-        window.graphPrincipal = graphCtx;
 
-        // Observer les changements de taille du conteneur
-        const resizeObserver = new ResizeObserver((entries) => {
-          for (let entry of entries) {
-            const width = entry.contentRect.width;
-            const height = entry.contentRect.height;
 
-            console.log("Nouvelle taille du graphe :", width, height);
+        window.onload = function () {
+            //On récupère la zone pour la fenêtre de visualisation du graphe
+            const container = document.getElementById("graph");
 
-            // Re-rendre le graphe D3 ici
-            updateGraphSize(
-              width,
-              height,
-              window.graphPrincipal.simulation,
-              window.graphPrincipal.svg
-            );
-          }
-        });
+            const graphe_svg = d3.select("#graph");
+            console.log("graphe_svg", graphe_svg.node());
 
-        resizeObserver.observe(container);
+            // On crée la fenêtre du graphe principal
+            const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
+            window.graphPrincipal = graphCtx;
 
-        document.getElementById("ajouterGraph").style.backgroundColor='#4682a9';
+            // Observer les changements de taille du conteneur
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const width = entry.contentRect.width;
+                    const height = entry.contentRect.height;
 
-        // -----------------EVENT LISTENER------------------- //
-        document.getElementById("resetView").addEventListener("click", () => {
-          fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-        });
+                    console.log("Nouvelle taille du graphe :", width, height);
 
-        document.getElementById("resetPath").addEventListener("click", () => {
-          data = {
-            nodes: [...path.nodes],
-            edges: [...path.edges],
-          };
+                    // Re-rendre le graphe D3 ici
+                    updateGraphSize(width, height, window.graphPrincipal.simulation, window.graphPrincipal.svg);
+                }
+            });
 
-          updateGraph(
-            data["nodes"],
-            data["edges"],
-            window.graphPrincipal.svg,
-            window.graphPrincipal.linkGroup,
-            window.graphPrincipal.nodeGroup,
-            window.graphPrincipal.labelGroup,
-            window.graphPrincipal.edgeLabelGroup,
-            window.graphPrincipal.simulation,
-            window.graphPrincipal.zoomGroup
-          );
+            resizeObserver.observe(container);
 
-          for (k of Object.keys(parent)) {
-            parent[k] = null;
-          }
-          liste_node_click = [];
-          // Recentrer après reset
-          fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-          path2_en_cours = false;
-        });
 
-        document
-          .getElementById("ajouterGraph")
-          .addEventListener("click", () => {
-            document.getElementById("modeAjoutGraph").innerHTML =
-              "Add Path Mode Activated";
-            mode = "modeAjoutGraph";
-			document.getElementById("ajouterGraph").style.backgroundColor='#4682a9';
-			document.getElementById("echangerGraph").style.backgroundColor='#749bc2';
-            path2_en_cours = false;
+            // -----------------EVENT LISTENER------------------- //    
+            document.getElementById("resetView").addEventListener("click", () => {
+                // Permet de réinitialiser la position et le zoom du graphe dans la fenêtre de visualisation
 
-            data = {
-              nodes: [...path.nodes],
-              edges: [...path.edges],
-            };
-            /*path2 = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };*/
-            updateGraph(
-              data["nodes"],
-              data["edges"],
-              window.graphPrincipal.svg,
-              window.graphPrincipal.linkGroup,
-              window.graphPrincipal.nodeGroup,
-              window.graphPrincipal.labelGroup,
-              window.graphPrincipal.edgeLabelGroup,
-              window.graphPrincipal.simulation,
-              window.graphPrincipal.zoomGroup
-            );
-            for (k of Object.keys(parent)) {
-              parent[k] = null;
-            }
-            liste_node_click = [];
-            // Recentrer après reset
-            fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-          });
+                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
 
-        document
-          .getElementById("echangerGraph")
-          .addEventListener("click", () => {
-            document.getElementById("modeAjoutGraph").innerHTML =
-              "Swap Path Mode Activated";
-            mode = "modeEchangeGraph";
-			document.getElementById("ajouterGraph").style.backgroundColor='#749bc2';
-			document.getElementById("echangerGraph").style.backgroundColor='#4682a9';
-            path2_en_cours = false;
+            });
 
-            data = {
-              nodes: [...path.nodes],
-              edges: [...path.edges],
-            };
-            /*path2 = {
-                    nodes: [...path.nodes],
-                    edges: [...path.edges]
-                };*/
+            document.getElementById("resetPath").addEventListener("click", () => {
+                //Permet de réafficher le chemin initial, présent avant de l'avoir étendu en affichant les voisins des noeuds.
 
-            updateGraph(
-              data["nodes"],
-              data["edges"],
-              window.graphPrincipal.svg,
-              window.graphPrincipal.linkGroup,
-              window.graphPrincipal.nodeGroup,
-              window.graphPrincipal.labelGroup,
-              window.graphPrincipal.edgeLabelGroup,
-              window.graphPrincipal.simulation,
-              window.graphPrincipal.zoomGroup
-            );
-            for (k of Object.keys(parent)) {
-              parent[k] = null;
-            }
-            liste_node_click = [];
-            // Recentrer après reset
-            fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
-          });
+                const currentPath = allPaths[index_path_affiché];
+                data = {
+                    nodes: [...currentPath.nodes],
+                    edges: [...currentPath.edges]
+                };
+                updateGraph(
+                    data.nodes,
+                    data.edges,
+                    window.graphPrincipal.svg,
+                    window.graphPrincipal.linkGroup,
+                    window.graphPrincipal.nodeGroup,
+                    window.graphPrincipal.labelGroup,
+                    window.graphPrincipal.edgeLabelGroup,
+                    window.graphPrincipal.simulation,
+                    window.graphPrincipal.zoomGroup
+                );
+                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+                liste_node_click = [];
+                parent = {};
+                path2_en_cours = false;
+            });
 
-        graphe_svg.on("click", function (properties) {
-          console.log("click");
-          window.graphPrincipal.simulation.stop();
+            // Lors d'un clique sur le graphe
+            graphe_svg.on('click', function (properties) {
+                console.log("click");
+                window.graphPrincipal.simulation.stop();
 
-          const user = document.getElementById("user").value;
+                // Récupère la transformation appliquée par le zoom
+                const transform = d3.zoomTransform(window.graphPrincipal.svg.node());
+                console.log(transform);
 
-          // Récupère la transformation appliquée par le zoom
-          const transform = d3.zoomTransform(window.graphPrincipal.svg.node());
-          console.log(transform);
+                // Coordonnées du clic dans le repère logique du graphe
+                const [mouseX, mouseY] = transform.invert(d3.pointer(event));
+                // Calculer distance par rapport à chaque nœud
+                const clickedNode = data["nodes"].find(d => {
+                    const dx = d.x - mouseX;
+                    const dy = d.y - mouseY;
+                    return Math.sqrt(dx * dx + dy * dy) < 10; // rayon toléré
+                });
+                console.log("Clicked node:", clickedNode);
+                if (clickedNode) {
+                    console.log("Clicked node:", clickedNode);
+                    var nodeId = clickedNode.id;
+                }
 
-          // Coordonnées du clic dans le repère logique du graphe
-          const [mouseX, mouseY] = transform.invert(d3.pointer(event));
-          // Calculer distance par rapport à chaque nœud
-          const clickedNode = data["nodes"].find((d) => {
-            const dx = d.x - mouseX;
-            const dy = d.y - mouseY;
-            return Math.sqrt(dx * dx + dy * dy) < 10; // rayon toléré
-          });
-          console.log("Clicked node:", clickedNode);
-          if (clickedNode) {
-            console.log("Clicked node:", clickedNode);
-            var nodeId = clickedNode.id;
-          }
 
-          if (!nodeId) return;
-          if (!liste_node_click.includes(nodeId)) {
-            // Si node jamais cliqué :
-			fetch(`${API_URL}/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
+                if (!nodeId) return
+                if (!liste_node_click.includes(nodeId)) { // Si node jamais cliqué :
+
+                    fetch(`http://localhost:5000/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
                         .then(res => {
                             if (!res.ok) throw new Error("HTTP error " + res.status);
                             return res.json();
@@ -1337,7 +1078,6 @@ and open the template in the editor.
                             }
 
                             if (!predicats || predicats.length === 0) { // Si aucun prédicat sortant
-                                //showToast("⚠️ Ce nœud n’a aucun voisin sortant.");
                                 showNodeMessage(window.graphPrincipal.svg, clickedNode, "⚠️ No outgoing neighbors");
                                 return;
                             }
@@ -1354,6 +1094,7 @@ and open the template in the editor.
                             modal.append("h4").text("Outgoing predicates of the node : " + clickedNode.label);
                             modal.append("p").text("Choose what predicates to show in the node's neighborhood :");
 
+                            // Création checklist avec tous les prédicats sortants du noeud cliqué.
                             const checklist = modal.append("div");
                             predicats.forEach(p => {
                                 const label = checklist.append("label").style("display", "block");
@@ -1368,18 +1109,21 @@ and open the template in the editor.
 
                             const btns = modal.append("div").attr("class", "buttons");
 
+                            // Bouton pour tout séléctionner
                             btns.append("button")
                                 .attr("class", "button")
                                 .text("Select all").on("click", () => {
                                     checklist.selectAll("input").property("checked", true);
                                 });
 
+                            // Bouton pour tout décocher
                             btns.append("button")
                                 .attr("class", "button")
                                 .text("Unselect all").on("click", () => {
                                     checklist.selectAll("input").property("checked", false);
                                 });
 
+                            // Bouton pour confirmer la séléction des prédicats
                             btns.append("button")
                                 .attr("class", "button")
                                 .text("Confirm").on("click", () => {
@@ -1390,7 +1134,7 @@ and open the template in the editor.
                                     console.log("Prédicats sélectionnés :", cb_predicates);
 
                                     const encodedNodeId = encodeURIComponent(nodeId); // On récupère l'URI du noeud
-									fetch(`${API_URL}/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId et les arêtes les atteignant
+                                    fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, { // Récuperer les voisins sortants de nodeId et les arêtes les atteignant
                                         method: "POST",
                                         headers: {
                                             "Content-Type": "application/json"
@@ -1452,1208 +1196,766 @@ and open the template in the editor.
                                                     window.graphPrincipal.zoomGroup);
                                             }
 
-                                            //fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoomGroup);
-
                                         });
 
                                     overlay.remove();
                                 });
 
+                            // Bouton pour annuler l'action et revenir à la visualisation du graphe.
                             btns.append("button")
                                 .attr("class", "button")
                                 .text("Cancel").on("click", () => {
                                     overlay.remove();
                                 });
 
-							
-
                         });
-		 } else {
-            // Sinon, si node cliqué une seconde fois
-            console.log("liste click :", liste_node_click);
-            console.log("dico parents :", parent);
-            console.log("enfant : ", Object.keys(parent));
-            console.log("parent: ", Object.values(parent));
 
-            // Vérifier si ses noeuds voisins ont des noeuds sortants
-            var grandparent = 0;
+                } else { // Sinon, si node cliqué une seconde fois
+                    console.log("liste click :", liste_node_click);
+                    console.log("dico parents :", parent);
+                    console.log("enfant : ", Object.keys(parent));
+                    console.log("parent: ", Object.values(parent));
 
-            for (k of Object.keys(parent)) {
-              //console.log("key : " + k);
-              if (parent[k] == nodeId && Object.values(parent).includes(k)) {
-                grandparent = 1;
-              }
+                    // Vérifier si ses noeuds voisins ont des noeuds sortants
+                    var grandparent = 0;
+
+                    for (k of Object.keys(parent)) {
+                        //console.log("key : " + k);
+                        if (parent[k] == nodeId && Object.values(parent).includes(k)) {
+                            grandparent = 1; // Si son parent a un parent, il a un grand-parent
+                        }
+                    }
+
+                    if (grandparent == 0) { // Si il n'a pas de grand parent
+
+                        liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
+                        const encodedNodeId = encodeURIComponent(nodeId);
+                        fetch(`http://localhost:5000/api/voisins?voisin=${encodedNodeId}&choix=${choix}`) // Récuperer ses voisins pour ensuite les retirer
+                            .then(res => res.json())
+                            .then(data2 => {
+                                console.log("retirer voisins de ", nodeId, " !");
+
+                                // Récupérer les ids des voisins à retirer
+                                const idsToRemove = new Set(data2.nodes.map(n => n.id));
+                                const edgesToRemove = new Set(data2.edges.map(e => `${e.from}->${e.to}`));
+
+                                // Construire un set des ids du chemin initial (path)
+                                var pathNodeIds = new Set(path.nodes.map(n => n.id));
+                                var pathEdge = new Set(path.edges.map(e => `${e.from}->${e.to}`));
+
+                                if (path2_en_cours) { // Si on a ajouté au chemin initial d'autres chemins (mode ajout ou échange), prendre en consideration le total des chemins
+                                    pathNodeIds = new Set(path2.nodes.map(n => n.id));
+                                    pathEdge = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
+                                }
+
+                                console.log("path 2 en cours : ", path2_en_cours);
+                                console.log("path nodes : ", pathNodeIds);
+                                console.log("path edges : ", pathEdge);
+                                console.log("voisins : ", data2);
+                                console.log("nodes à enlever : ", idsToRemove);
+
+                                // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
+                                data.nodes = data.nodes.filter(n => {
+                                    // Retirer uniquement si le noeud est un voisin ET pas dans le chemin initial
+                                    p = 0;
+                                    for (k of Object.keys(parent)) {
+                                        //console.log("key : " + k);
+                                        if (parent[k] == n.id) {
+                                            p = 1;
+                                        }
+                                    }
+                                    if (idsToRemove.has(n.id) && !pathNodeIds.has(n.id) && p == 0) {
+                                        parent[n.id] = null; // mettre à jour dict parent
+                                        if (n.id in liste_node_click) {
+                                            liste_node_click.splice(liste_node_click.indexOf(n.id), 1);
+                                        }
+                                        return false; // retirer
+                                    }
+                                    return true; // garder
+                                });
+                                const validNodeIds = new Set(data.nodes.map(n => n.id));
+
+                                data.edges = data.edges.filter(e =>
+                                    validNodeIds.has(e.from) && validNodeIds.has(e.to) && !(edgesToRemove.has(`${e.from}->${e.to}`) && !pathEdge.has(`${e.from}->${e.to}`))
+                                );
+
+
+                                console.log("data finale : ", data);
+
+                                //si un element est dans liste node click mais n'est pas parent, le retirer : 
+                                p = 0
+                                for (n of liste_node_click) {
+                                    for (k of Object.keys(parent)) {
+
+                                        if (parent[k] == n) {
+                                            p = 1;
+                                        }
+                                    }
+                                    console.log("node check : " + n, " p= " + p);
+                                }
+                                if (p == 0) {
+                                    liste_node_click.splice(liste_node_click.indexOf(n), 1);
+                                }
+
+                                // Mettre à jour le graphe
+                                updateGraph(
+                                    data["nodes"],
+                                    data["edges"],
+                                    window.graphPrincipal.svg,
+                                    window.graphPrincipal.linkGroup,
+                                    window.graphPrincipal.nodeGroup,
+                                    window.graphPrincipal.labelGroup,
+                                    window.graphPrincipal.edgeLabelGroup,
+                                    window.graphPrincipal.simulation,
+                                    window.graphPrincipal.zoomGroup
+                                );
+                            });
+                    } else {
+                        alert("Clique d'abord sur les nodes enfants de celui-là !");
+
+                    }
+                }
+            }
+            )
+
+        }
+
+
+        // ------------------FONCTIONS COMPLEXES------------------- //
+
+        function validateLogin() {
+            // Permet de vérifier si le user id rentré est correct et procéder à la présentation de la page suivante si oui.
+            const userID = document.getElementById("userId").value.trim();
+            if (userID === "") {
+                alert("Merci de saisir un ID utilisateur.");
+                return;
             }
 
-            if (grandparent == 0) {
-              liste_node_click.splice(liste_node_click.indexOf(nodeId), 1); // Retirer noeud de la liste des nodes cliqué
-              const encodedNodeId = encodeURIComponent(nodeId);
-              fetch(
-                `${API_URL}/api/voisins?voisin=${encodedNodeId}&choix=${choix}`
-              ) // Récuperer ses voisins pour les retirer
-                .then((res) => res.json())
-                .then((data2) => {
-                  console.log("retirer voisins de ", nodeId, " !");
+            // Vérifier côté backend s'il y a bien une recommandation
+            fetch(`http://localhost:5000/api/random_course?start=${userID}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error || !data.course) { // Aucun cours recommandable : Demande de réessayer.
+                        alert("ID invalide ou aucun cours recommandé. Veuillez réessayer avec un autre identifiant.");
+                    } else { // Cours trouvé.
+                        //On cache la fenêtre pour s'identifier.
+                        document.getElementById("login-overlay").style.display = "none";
 
-                  // Récupérer les ids des voisins à retirer
-                  const idsToRemove = new Set(data2.nodes.map((n) => n.id));
-                  const edgesToRemove = new Set(
-                    data2.edges.map((e) => `${e.from}->${e.to}`)
-                  );
-
-                  // Construire un set des ids du chemin initial (path)
-                  var pathNodeIds = new Set(path.nodes.map((n) => n.id));
-                  var pathEdge = new Set(
-                    path.edges.map((e) => `${e.from}->${e.to}`)
-                  );
-
-                  if (path2_en_cours) {
-                    // Si on a ajouté au chemin initial d'autres chemins (mode ajout ou échange), prendre en consideration le total des chemins
-                    pathNodeIds = new Set(path2.nodes.map((n) => n.id));
-                    pathEdge = new Set(
-                      path2.edges.map((e) => `${e.from}->${e.to}`)
-                    );
-                  }
-
-                  console.log("path 2 en cours : ", path2_en_cours);
-                  console.log("path nodes : ", pathNodeIds);
-                  console.log("path edges : ", pathEdge);
-                  console.log("voisins : ", data2);
-                  console.log("nodes à enlever : ", idsToRemove);
-
-                  // Ne retirer que les noeuds qui sont dans idsToRemove mais PAS dans pathNodeIds
-                  data.nodes = data.nodes.filter((n) => {
-                    // Retirer uniquement si le noeud est un voisin ET pas dans le chemin initial
-                    p = 0;
-                    for (k of Object.keys(parent)) {
-                      //console.log("key : " + k);
-                      if (parent[k] == n.id) {
-                        p = 1;
-                      }
+                        // On met à jour l'utilisateur connecté et on affiche l'explication.
+                        user = userID;
+                        loadPath();
                     }
-                    if (
-                      idsToRemove.has(n.id) &&
-                      !pathNodeIds.has(n.id) &&
-                      p == 0
-                    ) {
-                      parent[n.id] = null; // mettre à jour dict parent
-                      if (n.id in liste_node_click) {
-                        liste_node_click.splice(
-                          liste_node_click.indexOf(n.id),
-                          1
-                        );
-                      }
-                      return false; // retirer
-                    }
-                    return true; // garder
-                  });
-                  const validNodeIds = new Set(data.nodes.map((n) => n.id));
-
-                  data.edges = data.edges.filter(
-                    (e) =>
-                      validNodeIds.has(e.from) &&
-                      validNodeIds.has(e.to) &&
-                      !(
-                        edgesToRemove.has(`${e.from}->${e.to}`) &&
-                        !pathEdge.has(`${e.from}->${e.to}`)
-                      )
-                  );
-
-                  console.log("data finale : ", data);
-
-                  //si un element est dans liste node click mais n'est pas parent, le retirer :
-                  p = 0;
-                  for (n of liste_node_click) {
-                    for (k of Object.keys(parent)) {
-                      if (parent[k] == n) {
-                        p = 1;
-                      }
-                    }
-                    console.log("node check : " + n, " p= " + p);
-                    if (p == 0) {
-                      liste_node_click.splice(liste_node_click.indexOf(n), 1); ///////////////////////////////////////////////////retirer aussi les edges ???????????????????????????????????????????????????????????????!!!!!!!!!!!!!!! A FAIRE
-                    }
-                  }
-
-                  // Mettre à jour le graphe
-                  updateGraph(
-                    data["nodes"],
-                    data["edges"],
-                    window.graphPrincipal.svg,
-                    window.graphPrincipal.linkGroup,
-                    window.graphPrincipal.nodeGroup,
-                    window.graphPrincipal.labelGroup,
-                    window.graphPrincipal.edgeLabelGroup,
-                    window.graphPrincipal.simulation,
-                    window.graphPrincipal.zoomGroup
-                  );
+                })
+                .catch(err => {
+                    console.error("Erreur lors de la vérification :", err);
+                    alert("Impossible de vérifier l'ID (serveur indisponible ?)");
                 });
-            } else {
-              alert("Clique d'abord sur les nodes enfants de celui-là !");
-            }
-          }
-        });
-
-        // --------------RECUPERATION DES PREDICATS AU DEBUT------------------ //
-        /*fetch(`${API_URL}/api/predicats`)
-          .then((res) => res.json())
-          .then((data2) => {
-            //const container = document.getElementById("listPredicats");
-            const container2 = document.getElementById("cochePredicats");
-
-            console.log("all predicats : ", data2);
-
-            data2.forEach((p, i) => {
-              liste = p.split("/");
-              // // Creation div predicat (à gauche en jaune, drag&drop)
-              // const div = document.createElement("div");
-              // div.className = "predicat";
-
-              // div.innerHTML = liste[liste.length - 1];
-              // div.id = liste[liste.length - 1];
-              // div.draggable = "true";
-              // div.ondragstart = dragstartHandler;
-              // container.appendChild(div);
-
-              // Creation checkbox predicat en dessous du grand graph
-              const div2 = document.createElement("div");
-
-              const input = document.createElement("input");
-              input.type = "checkbox";
-              input.id = liste[liste.length - 1];
-              input.name = liste[liste.length - 1];
-              input.className = "myCheckbox";
-              input.value = liste[liste.length - 1];
-
-              const label = document.createElement("label");
-              label.for = liste[liste.length - 1];
-              label.appendChild(input);
-              label.innerHTML += liste[liste.length - 1];
-
-              div2.appendChild(label);
-              container2.appendChild(div2);
-
-              i += 1;
-            });
-            const buttonDecocher = document.createElement("div");
-            buttonDecocher.className = "button";
-            buttonDecocher.id = "uncheckAllBtn";
-            buttonDecocher.innerHTML = "Uncheck All";
-            document
-              .getElementById("graphs-container")
-              .appendChild(buttonDecocher);
-            buttonDecocher.addEventListener("click", () => {
-              const checkboxes = document.querySelectorAll(
-                "#cochePredicats .myCheckbox"
-              );
-              checkboxes.forEach((cb) => (cb.checked = false));
-            });
-          });
-			*/
-		const video = document.getElementById('tutoVideo');
-  		video.load();
-      };
-
-      // ------------------FONCTIONS COMPLEXES------------------- //
-
-      function resetPredicats() {
-        // Mettre à jour les prédicats (les enlever de la zone drop), mais aussi tout le reste (BUTTON REINITIALISER)
-
-        // Vider le conteneur de prédicats dropés
-        //const dropZone = document.getElementById("div_drop_predicat");
-        //dropZone.innerHTML = "";
-        if (document.getElementById("pagination")) {
-          document.getElementById("pagination").remove();
-        }
-        document.getElementById("titre2").innerHTML = "";
-        const element = document.getElementById("validerQuestions");
-        if (element) {
-          element.remove(); // Supprime l'élément du DOM
         }
 
-        // Réinitialiser les variables globales
-        choix = "false";
-        index_path_affiché = 0;
-        path = { nodes: [], edges: [] };
-        data = { nodes: [], edges: [] };
-        parent = {};
-        liste_node_click = [];
+        function afficherCheminCourant() {
+            // Permet d'afficher sur la fenêtre de visualisation le bon chemin.
 
-        // Nettoyer les graphes affichés
-        updateGraph(
-          data["nodes"],
-          data["edges"],
-          window.graphPrincipal.svg,
-          window.graphPrincipal.linkGroup,
-          window.graphPrincipal.nodeGroup,
-          window.graphPrincipal.labelGroup,
-          window.graphPrincipal.edgeLabelGroup,
-          window.graphPrincipal.simulation,
-          window.graphPrincipal.zoomGroup
-        );
+            // Réinitialisation des variables
+            liste_node_click = [];
+            parent = {};
+            path2_en_cours = false;
 
-        document.getElementById("g_petit-container").innerHTML = "";
-        document.getElementById("affichage-cours").innerHTML = "";
-        document.getElementById("top5chart").innerHTML = "";
-        top5ChartInstance.destroy();
-        document.getElementById("titre2").innerHTML = "";
-
-        // Vider et recharger les prédicats disponibles
-        // const predContainer = document.getElementById("listPredicats");
-        // predContainer.innerHTML = "";
-
-        // fetch(`http://localhost:5000/api/predicats`)
-        //     .then(res => res.json())
-        //     .then(preds => {
-        //         preds.forEach(p => {
-        //             const div = document.createElement("div");
-        //             const id = p.split("/").pop();
-        //             div.className = "predicat";
-        //             div.id = id;
-        //             div.draggable = true;
-        //             div.ondragstart = dragstartHandler;
-        //             div.innerHTML = id;
-        //             predContainer.appendChild(div);
-        //         });
-        //     });
-
-        //alert("Réinitialisation effectuée.");
-      }
-
-      function loadPath() {
-        // Charger les chemins (BUTTON AFFICHER CHEMIN)
-        if (loadingPath) return; // 🚫 Ne pas lancer si déjà en cours
-        loadingPath = true;
-        if (document.getElementById("pagination")) {
-          document.getElementById("pagination").remove();
-        }
-
-        const user = document.getElementById("user").value;
-        path2_en_cours = false;
-        parent = {};
-        path = { nodes: [], edges: [] };
-        data = { nodes: [], edges: [] };
-
-        if (document.getElementById("pagination"))
-          document.getElementById("pagination").remove();
-        //Nettoyer les graphes affichés
-        updateGraph(
-          data["nodes"],
-          data["edges"],
-          window.graphPrincipal.svg,
-          window.graphPrincipal.linkGroup,
-          window.graphPrincipal.nodeGroup,
-          window.graphPrincipal.labelGroup,
-          window.graphPrincipal.edgeLabelGroup,
-          window.graphPrincipal.simulation,
-          window.graphPrincipal.zoomGroup
-        );
-
-        setTimeout(() => {
-          window.graphPrincipal.svg
-            .transition()
-            .duration(750)
-            .call(window.graphPrincipal.zoom.transform, d3.zoomIdentity);
-        }, 300); // attendre que D3 ait posé les positions
-
-        document.getElementById("g_petit-container").innerHTML = "";
-        index_path_affiché = 0;
-
-        fetch(`${API_URL}/api/random_course?start=${user}`)
-          .then((res) => res.json())
-          .then((data4) => {
-            if (data4.error) {
-              alert(data4.error);
-              return;
-            }
-            course = data4.course;
-
-            const affichageDiv = document.getElementById("affichage-cours");
-            affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
-
-            const pagination = document.createElement("div");
-            pagination.id = "pagination";
-            const page_actuelle = document.createElement("span");
-            page_actuelle.id = "page_actuelle";
-            page_actuelle.innerHTML = index_path_affiché + 1;
-            pagination.appendChild(page_actuelle);
-            document.getElementById("graph-controls2").appendChild(pagination);
-            return fetch(
-              `${API_URL}/api/path?start=${user}&end=${course}&w=true&choix=${choix}`
-            );
-          })
-          .then((res) => res.json())
-          .then((data2) => {
-            // Mise à jour du graphe, du chemin principal et de l'explication textuelle
-            data = data2.path;
-            console.log("data :", data);
-            var texte = data2.texte;
-            document.getElementById("Explication").innerHTML = texte;
-            console.log("Path : ", data2);
+            // Récupération du chemin actuel et de ses données
+            const currentPath = allPaths[index_path_affiché];
+            data = { nodes: [...currentPath.nodes], edges: [...currentPath.edges] };
             path = {
-              nodes: [...data.nodes],
-              edges: [...data.edges],
+                nodes: [...currentPath.nodes],
+                edges: [...currentPath.edges]
             };
-            console.log("chargement du path :", path);
-            //network.setData(data);
-            //----------------------------------------------------------------------------------------------------
+            // Mise à jour du graphe
             updateGraph(
-              data.nodes,
-              data.edges,
-              window.graphPrincipal.svg,
-              window.graphPrincipal.linkGroup,
-              window.graphPrincipal.nodeGroup,
-              window.graphPrincipal.labelGroup,
-              window.graphPrincipal.edgeLabelGroup,
-              window.graphPrincipal.simulation,
-              window.graphPrincipal.zoomGroup
+                data.nodes,
+                data.edges,
+                window.graphPrincipal.svg,
+                window.graphPrincipal.linkGroup,
+                window.graphPrincipal.nodeGroup,
+                window.graphPrincipal.labelGroup,
+                window.graphPrincipal.edgeLabelGroup,
+                window.graphPrincipal.simulation,
+                window.graphPrincipal.zoomGroup
             );
-            // Ne lancer all_path que quand path a fini et retourné une réponse
-            const container = document.getElementById("g_petit-container");
-            container.innerHTML = ""; // Nettoyer l'ancien contenu
-            return fetch(
-              `${API_URL}/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`
-            );
-          })
-          .then((res) => res.json())
-          .then((data2) => {
-            const container = document.getElementById("g_petit-container");
-            pagination.innerHTML += " / " + data2.length;
+            // Renseignement des informations du chemin sous le graphe.
+            const container = document.getElementById("ligne-info-chemin");
+            container.innerHTML = "";
+            // Affichage numéro du graphe.
+            document.getElementById("num-chemin").innerHTML = "<strong>Path " + (index_path_affiché + 1) + ' / ' + allPaths.length + "</strong>";
 
-            console.log("all paths from ", user, " to ", course, " : ", data2);
-            document.getElementById("titre2").innerHTML =
-              "Other possible paths";
+            // Scores
+            const line = document.createElement("div");
+            line.innerHTML = "";
+            //line.innerHTML = "S_rw = " + currentPath['S_rw'] + ", S_jac = " + currentPath['S_jac'] + " --> " + currentPath['S_final'];
+            line.innerHTML = "S_sim = " + currentPath['S_sim'] + ", S_pop = " + currentPath['S_pop'] + ", S_div = " + currentPath['S_div'] + " --> " + currentPath['Score'];
+            container.appendChild(line);
 
-            ////// bouton predecent [<]
-            const precedent = document.createElement("button");
-            //precedent.className = 'button';
-            precedent.className = "predicat";
-            precedent.id = "buttonPrecedent";
-            precedent.innerHTML = "<";
-            precedent.style.visibility = "hidden";
-            container.appendChild(precedent);
+            // Longueur
+            const line2 = document.createElement("div");
+            line2.innerHTML = "";
+            line2.innerHTML = "Length = " + currentPath['longueur'];
+            container.appendChild(line2);
 
-            const div_graphes_tous = document.createElement("div");
-            div_graphes_tous.id = "div_graphes_tous";
+            // Pattern (des arêtes)
+            const line3 = document.createElement("div");
+            line3.innerHTML = "";
+            line3.innerHTML = "Pattern : " + currentPath['pattern'];
+            container.appendChild(line3);
 
-            data2.forEach((p, i) => {
-              // Création div où se trouvera le chemin + infos
-              const div_chemin_info_button = document.createElement("div");
-              div_chemin_info_button.id = "div" + i;
-              div_chemin_info_button.className = "div_chemin_info_button";
+            // Recentrer le graphe après délai pour plus de stabilité
+            setTimeout(() => {
+                fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
+            }, 200);
 
-              const div = document.createElement("div");
-              div.className = "g_petit";
-              div.id = "g" + i;
-              console.log(" g i =", i);
+            // Affichage des questions pour ce chemin.
+            afficherQuestionsPourChemin(currentPath);
+        }
 
-              if (i !== 0) {
-                div_chemin_info_button.style.display = "none";
-              }
+        function afficherQuestionsPourChemin(path) {
+            // Affiche les questions pour chaque chemin.
+            const container = document.getElementById("formulaire-questions");
+            container.innerHTML = "";
 
-              div_chemin_info_button.appendChild(div);
-              const orderedNodes = orderNodesByEdges(p.nodes, p.edges);
+            const form = document.createElement("form");
 
-              const line = document.createElement("div");
-              line.innerHTML =
-                "S_rw = " +
-                p["S_rw"] +
-                ", S_jac = " +
-                p["S_jac"] +
-                " --> " +
-                p["S_final"];
-              div_chemin_info_button.appendChild(line);
-              const line2 = document.createElement("div");
-              line2.innerHTML = "Longueur = " + p["longueur"];
-              div_chemin_info_button.appendChild(line2);
-              const line3 = document.createElement("div");
-              line3.innerHTML = "Pattern : " + p["pattern"];
-              div_chemin_info_button.appendChild(line3);
+            let i_qt = 0;
+            for (const qt of liste_question_possible) {
+                // Affichage question
+                const question = document.createElement("div");
+                question.innerHTML = `<strong>${qt}</strong>`;
+                form.appendChild(question);
 
-              // Création block de questions
-              const button_answer = document.createElement("button");
-              button_answer.className = "button";
-              button_answer.id = "buttonAnswer" + i;
-              button_answer.innerHTML = "Answer";
-              div_chemin_info_button.appendChild(button_answer);
+                // Création checklist
+                const select = document.createElement("select");
+                select.name = "answer" + i_qt;
+                select.className = "mySelect";
 
-              const div_questions = document.createElement("div");
-              div_questions.className = "divQuestions";
-              div_questions.id = "Questions" + i;
-              div_questions.style.display = "none";
-              div_questions.repondu = "false";
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = "-- Select an answer --";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                select.appendChild(defaultOption);
 
-              var i_qt = 0;
-              const form = document.createElement("form");
-              for (elt of Object.keys(liste_question_possible)) {
-                const div = document.createElement("div");
-                div.innerHTML = elt;
-                form.appendChild(div);
-
-                for (qt of liste_question_possible[elt]) {
-                  var i_answer = 0;
-                  const question = document.createElement("div");
-                  question.innerHTML = "<strong>" + qt + "</strong>";
-                  form.appendChild(question);
-
-                  const select = document.createElement("select");
-                  select.name = "answer" + i_qt;
-                  select.className = "mySelect";
-                  select.style.margin = "6px 0";
-                  select.style.padding = "6px 12px";
-                  select.style.borderRadius = "6px";
-                  select.style.border = "1px solid #ccc";
-                  select.style.backgroundColor = "#fff";
-
-                  // Option vide par défaut
-                  const defaultOption = document.createElement("option");
-                  defaultOption.value = "";
-                  defaultOption.textContent = "-- Select an answer --";
-                  defaultOption.disabled = true;
-                  defaultOption.selected = true;
-                  select.appendChild(defaultOption);
-
-                  // Ajoute les 5 réponses possibles
-                  for (const reponse of liste_answer_possible) {
+                for (const reponse of liste_answer_possible) {
                     const option = document.createElement("option");
                     option.value = reponse;
                     option.textContent = reponse;
                     select.appendChild(option);
-                  }
-
-                  form.appendChild(select);
-                  ++i_qt;
                 }
-              }
-              div_questions.appendChild(form);
 
-              const button_valider = document.createElement("button");
-              button_valider.className = "button";
-              button_valider.id = "buttonValider" + i;
-              button_valider.innerHTML = "Validate";
-              div_questions.appendChild(button_valider);
+                const pathKey = "path_" + index_path_affiché;
 
-              div_chemin_info_button.appendChild(div_questions);
-              div_graphes_tous.appendChild(div_chemin_info_button);
-              container.appendChild(div_graphes_tous);
-
-              // Event listener des boutons :
-
-              button_answer.addEventListener("click", () => {
-                if (div_questions.style.display === "block") {
-                  div_questions.style.display = "none";
-                } else {
-                  div_questions.style.display = "block"; // Afficher les questions
+                if (reponse_user_study.path_feedback &&
+                    reponse_user_study.path_feedback[pathKey] &&
+                    reponse_user_study.path_feedback[pathKey][select.name]) {
+                    select.value = reponse_user_study.path_feedback[pathKey][select.name];
                 }
-              });
 
-              button_valider.addEventListener("click", () => {
-                const questions = form.querySelectorAll("div > strong");
+                form.appendChild(select);
+                i_qt++;
+            }
+
+            // Bouton Validate
+            const button_valider = document.createElement("button");
+            button_valider.id = "button_valider";
+            button_valider.className = "button";
+            button_valider.innerHTML = "Validate";
+            form.appendChild(button_valider);
+
+            button_valider.addEventListener("click", (e) => {
+                e.preventDefault();
                 let allAnswered = true;
                 const responses = {};
-
-                questions.forEach((qEl, index) => {
-                  const questionWrapper = qEl.parentElement;
-                  const select = form.querySelector(
-                    `select[name="answer${index}"]`
-                  );
-
-                  // Supprimer la coloration rouge précédente
-                  qEl.style.color = "";
-
-                  if (!select || !select.value) {
-                    allAnswered = false;
-                    qEl.style.color = "red"; // surligne la question
-                  } else {
-                    responses[select.name] = select.value;
-                  }
+                form.querySelectorAll("select").forEach((select) => {
+                    if (!select.value) {
+                        allAnswered = false;
+                        select.previousSibling.style.color = "red";
+                    } else {
+                        responses[select.name] = select.value;
+                        select.previousSibling.style.color = "";
+                    }
                 });
 
                 if (allAnswered) {
-                  div_questions.style.display = "none"; // cacher les questions
-                  button_answer.style.backgroundColor = "#9EBC8A";
-                  div_questions.repondu = "true";
-                  // Ajout indices jaccard, random walk
-                  responses["longueur"] = p["longueur"];
-                  responses["S_jac"] = p["S_jac"];
-                  responses["S_rw"] = p["S_rw"];
-                  responses["S_tot"] = p["S_final"];
-                  responses["path"] = p["path"];
+                    responses["longueur"] = path["longueur"];
+                    responses["S_sim"] = path["S_sim"];
+                    responses["S_pop"] = path["S_pop"];
+                    responses["S_div"] = path["S_div"];
+                    responses["Score"] = path["Score"];
+                    responses["path"] = path["path"];
 
-                  console.log("Réponses enregistrées :", responses);
-                  if (!reponse_user_study.path_feedback) {
-                    reponse_user_study.path_feedback = {};
-                  }
-                  reponse_user_study.path_feedback[p["pattern"]] = responses;
+                    if (!reponse_user_study.path_feedback) {
+                        reponse_user_study.path_feedback = {};
+                    }
 
-                  console.log(
-                    "Réponses totales :",
-                    reponse_user_study,
-                    " keys:",
-                    Object.keys(reponse_user_study)
-                  );
+                    // Enregistrement des réponses
+                    const pathKey = "path_" + index_path_affiché;
+                    reponse_user_study.path_feedback[pathKey] = responses;
+
+                    // Affichage toast confirmant la validation des réponses
+                    showToast("Votre réponse a bien été enregistrée !");
+                    console.log("Réponses enregistrées :", responses);
                 } else {
-                  alert("Merci de répondre à toutes les questions.");
+                    alert("Merci de répondre à toutes les questions.");
                 }
-              });
-
-              // position des nodes horizontalement selon cet ordre
-              const spacedNodes = orderedNodes.map((node, i) => ({
-                ...node,
-                x: i * 150, // espacement horizontal
-                y: 0,
-                fy: 100,
-              }));
-
-              var petitgraphCtx = drawGraph(div, spacedNodes, p.edges);
-
-              // Observer les changements de taille du conteneur
-              const resizeObserverSmallGraph = new ResizeObserver((entries) => {
-                for (let entry of entries) {
-                  const width = entry.contentRect.width;
-                  const height = entry.contentRect.height;
-
-                  console.log("Nouvelle taille du graphe :", width, height);
-
-                  // Re-rendre le graphe D3 ici
-                  updateGraphSize(
-                    width,
-                    height,
-                    petitgraphCtx.simulation,
-                    petitgraphCtx.svg
-                  );
-                }
-              });
-
-              resizeObserverSmallGraph.observe(div);
-
-              petitgraphCtx.svg.on("click", function (properties) {
-                console.log("click path");
-                fitToGraph(petitgraphCtx.svg, petitgraphCtx.zoom);
-                pathNew = {
-                  nodes: [...orderedNodes],
-                  edges: [...p.edges],
-                };
-
-                if (mode == "modeAjoutGraph") {
-                  // Exclure les doublons de nœuds
-                  const existingNodeIds = new Set(data.nodes.map((n) => n.id));
-                  const newNodes = pathNew.nodes.filter(
-                    (n) => !existingNodeIds.has(n.id)
-                  );
-
-                  var existingNodeIdsInPath = new Set(
-                    path.nodes.map((n) => n.id)
-                  );
-                  var newNodesPath = pathNew.nodes.filter(
-                    (n) => !existingNodeIdsInPath.has(n.id)
-                  );
-                  if (path2_en_cours) {
-                    existingNodeIdsInPath = new Set(
-                      path2.nodes.map((n) => n.id)
-                    );
-                    newNodesPath = pathNew.nodes.filter(
-                      (n) => !existingNodeIdsInPath.has(n.id)
-                    );
-                  }
-
-                  // Exclure les doublons d'arêtes (selon from/to ou id si défini)
-                  const existingEdgeKeys = new Set(
-                    data.edges.map((e) => `${e.from}->${e.to}`)
-                  );
-                  const newEdges = pathNew.edges.filter(
-                    (e) => !existingEdgeKeys.has(`${e.from}->${e.to}`)
-                  );
-
-                  var existingEdgeKeysInPath = new Set(
-                    path.edges.map((e) => `${e.from}->${e.to}`)
-                  );
-                  var newEdgesPath = pathNew.edges.filter(
-                    (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
-                  );
-                  if (path2_en_cours) {
-                    existingEdgeKeysInPath = new Set(
-                      path2.edges.map((e) => `${e.from}->${e.to}`)
-                    );
-                    newEdgesPath = pathNew.edges.filter(
-                      (e) => !existingEdgeKeysInPath.has(`${e.from}->${e.to}`)
-                    );
-                  }
-
-                  console.log("existing nodes  u:", existingNodeIds);
-                  console.log("existin edges u:", existingEdgeKeys);
-                  console.log("pathNew:", pathNew);
-                  console.log("new nodes :", newNodesPath);
-                  console.log("new edges :", newEdgesPath);
-                  console.log("new nodes utilisé :", newNodes);
-                  console.log("new edges utilisé:", newEdges);
-                  console.log("data : ", data);
-
-                  // Fusionner les données
-                  data = {
-                    nodes: [...data.nodes, ...newNodes],
-                    edges: [...data.edges, ...newEdges],
-                  };
-
-                  if (path2_en_cours) {
-                    path2 = {
-                      nodes: [...path2.nodes, ...newNodesPath],
-                      edges: [...path2.edges, ...newEdgesPath],
-                    };
-                  } else {
-                    path2 = {
-                      nodes: [...path.nodes, ...newNodesPath],
-                      edges: [...path.edges, ...newEdgesPath],
-                    };
-                  }
-                  console.log("path total :", path2);
-                } else {
-                  // Remplacer
-                  data = {
-                    nodes: [...pathNew.nodes],
-                    edges: [...pathNew.edges],
-                  };
-                  path2 = {
-                    nodes: [...pathNew.nodes],
-                    edges: [...pathNew.edges],
-                  };
-                  console.log("path2 swap:", path2);
-                }
-                path2_en_cours = true;
-
-                //network.setData(data);
-                updateGraph(
-                  data.nodes,
-                  data.edges,
-                  window.graphPrincipal.svg,
-                  window.graphPrincipal.linkGroup,
-                  window.graphPrincipal.nodeGroup,
-                  window.graphPrincipal.labelGroup,
-                  window.graphPrincipal.edgeLabelGroup,
-                  window.graphPrincipal.simulation,
-                  window.graphPrincipal.zoomGroup
-                );
-              });
-              // Si click sur un path --> l'ajouter dans le grand graphe si Mode ajout, sinon echanger path general par celui-ci
             });
-            container.appendChild(div_graphes_tous);
 
-            ////// bouton suivant [>]
-            const suivant = document.createElement("button");
-            //suivant.className = 'button';
-            suivant.className = "predicat";
-            suivant.id = "buttonSuivant";
-            suivant.innerHTML = ">";
-            container.appendChild(suivant);
+            container.appendChild(form);
+        }
 
-            if (!document.getElementById("validerQuestions")) {
-              const validerQuestions = document.createElement("button");
-              validerQuestions.className = "button";
-              validerQuestions.id = "validerQuestions";
-              validerQuestions.innerHTML = "Save";
-              document
-                .getElementById("center-panel")
-                .appendChild(validerQuestions);
+
+
+
+        function loadPath() { // Charger les chemins (BUTTON SHOW PATH)
+            // Génère la recommandation et toutes les explications.
+
+            // Réinitialisation des variables.
+            path2_en_cours = false;
+            parent = {}
+            path = { nodes: [], edges: [] };
+            data = { nodes: [], edges: [] };
+            allPaths = [];
+            reponse_user_study.path_feedback = {};
+            const element = document.getElementById("validerQuestions");
+            if (element) {
+                element.remove(); // Supprime l'élément du DOM
             }
+            //Nettoyer les graphes affichés
+            updateGraph(data["nodes"], data["edges"],
+                window.graphPrincipal.svg,
+                window.graphPrincipal.linkGroup,
+                window.graphPrincipal.nodeGroup,
+                window.graphPrincipal.labelGroup,
+                window.graphPrincipal.edgeLabelGroup,
+                window.graphPrincipal.simulation,
+                window.graphPrincipal.zoomGroup);
 
-            ////// ZONE POUR QUESTIONS GENERALES
-            const separator = document.getElementById("separateurGeneral");
-            separator.innerHTML = `
+            setTimeout(() => {
+                window.graphPrincipal.svg.transition().duration(750).call(
+                    window.graphPrincipal.zoom.transform,
+                    d3.zoomIdentity
+                );
+            }, 300); // attendre que D3 ait posé les positions
+
+            index_path_affiché = 0;
+
+            fetch(`http://localhost:5000/api/random_course?start=${user}`) // On cherche une recommandation aléatoire pour cet utilisateur
+                .then(res => res.json())
+                .then(data4 => {
+                    if (data4.error) {
+                        alert(data4.error);
+                        return;
+                    }
+                    course = data4.course; // Mise à jour du cours recommandé
+
+                    const affichageDiv = document.getElementById("affichage-cours");
+                    affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
+
+
+                    fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`)
+                        .then(res => res.json())
+                        .then(data2 => {
+                            // Explication textuelle
+                            var texte = data2.texte;
+                            document.getElementById('Explication').innerHTML = texte;
+                            const container = document.getElementById("graphs-container");
+                            console.log("all paths from ", user, " to ", course, " : ", data2);
+
+                            ////// bouton predecent [<]
+                            const precedent = document.getElementById("buttonPrecedent");
+                            precedent.innerHTML = '<';
+
+                            allPaths = data2.all_paths;
+                            afficherCheminCourant();
+
+                            // Séparation zone questions chemins
+                            const separatorPath = document.getElementById("separateurChemin");
+                            separatorPath.innerHTML = `
+                                <hr style="margin: 40px 0; border-top: 2px solid #ccc;">
+                                <h3 style="text-align: center; margin-bottom: 10px;">
+                                ⬇️Questions about this path⬇️
+                                </h3>
+                                <p style="text-align: center; margin-bottom: 20px;">For each path, please answer these questions and validate your answers.</p>
+                            `;
+
+
+                            ////// bouton suivant [>]
+                            const suivant = document.getElementById("buttonSuivant");
+                            suivant.innerHTML = '>';
+                            suivant.style.visibility = 'visible';
+
+                            ////// ZONE POUR QUESTIONS GENERALES
+                            const separator = document.getElementById("separateurGeneral");
+                            separator.innerHTML = `
                                 <hr style="margin: 40px 0; border-top: 2px solid #ccc;">
                                 <h3 style="text-align: center; margin-bottom: 20px;">
                                 ⬇️General Feedback on the Explanation Interface⬇️
                                 </h3>
                             `;
 
-            const containerQuG = document.getElementById("questionsGenerales");
-            containerQuG.innerHTML = "";
+                            const containerQuG = document.getElementById("questionsGenerales");
+                            containerQuG.innerHTML = '';
 
-            // Génère chaque question + select
-            Object.entries(questions_reponses_generales).forEach(
-              ([questionText, options], index) => {
-                const wrapper = document.createElement("div");
-                wrapper.style.marginBottom = "20px";
+                            // Génère chaque question + select
+                            Object.entries(questions_reponses_generales).forEach(([questionText, options], index) => {
+                                const wrapper = document.createElement("div");
+                                wrapper.style.marginBottom = "20px";
 
-                // Question
-                const label = document.createElement("label");
-                label.htmlFor = `generalQuestion${index}`;
-                label.textContent = questionText;
-                label.style.display = "block";
-                label.style.fontWeight = "bold";
-                label.style.marginBottom = "8px";
-                wrapper.appendChild(label);
+                                // Question
+                                const label = document.createElement("label");
+                                label.htmlFor = `generalQuestion${index}`;
+                                label.textContent = questionText;
+                                label.style.display = "block";
+                                label.style.fontWeight = "bold";
+                                label.style.marginBottom = "8px";
+                                wrapper.appendChild(label);
 
-                if (options.length > 0) {
-                  // Liste déroulante
-                  const select = document.createElement("select");
-                  select.id = `generalQuestion${index}`;
-                  select.name = `generalQuestion${index}`;
-                  select.style.padding = "8px 12px";
-                  select.style.borderRadius = "6px";
-                  select.style.border = "1px solid #ccc";
-                  select.style.width = "100%";
-                  select.style.maxWidth = "400px";
+                                if (options.length > 0) {
+                                    // Liste déroulante
+                                    const select = document.createElement("select");
+                                    select.id = `generalQuestion${index}`;
+                                    select.name = `generalQuestion${index}`;
+                                    select.style.padding = "8px 12px";
+                                    select.style.borderRadius = "6px";
+                                    select.style.border = "1px solid #ccc";
+                                    select.style.width = "100%";
+                                    select.style.maxWidth = "400px";
 
-                  // Option vide par défaut
-                  const defaultOption = document.createElement("option");
-                  defaultOption.text = "-- Select an answer --";
-                  defaultOption.disabled = true;
-                  defaultOption.selected = true;
-                  select.appendChild(defaultOption);
+                                    // Option vide par défaut
+                                    const defaultOption = document.createElement("option");
+                                    defaultOption.text = "-- Select an answer --";
+                                    defaultOption.disabled = true;
+                                    defaultOption.selected = true;
+                                    select.appendChild(defaultOption);
 
-                  // Ajouter les options
-                  options.forEach((opt) => {
-                    const option = document.createElement("option");
-                    option.value = opt;
-                    option.textContent = opt;
-                    select.appendChild(option);
-                  });
+                                    // Ajouter les options
+                                    options.forEach(opt => {
+                                        const option = document.createElement("option");
+                                        option.value = opt;
+                                        option.textContent = opt;
+                                        select.appendChild(option);
+                                    });
 
-                  wrapper.appendChild(select);
-                }
-                containerQuG.appendChild(wrapper);
-              }
-            );
 
-            precedent.addEventListener("click", () => {
-              if (index_path_affiché - 1 > -1) {
-                //suivant.style.display = 'block';
-                suivant.style.visibility = "visible";
-                document.getElementById(
-                  "div" + index_path_affiché
-                ).style.display = "none";
-                index_path_affiché -= 1;
-                console.log("window i = ", index_path_affiché);
-                document.getElementById(
-                  "div" + index_path_affiché
-                ).style.display = "block";
-                document.getElementById("page_actuelle").innerHTML =
-                  index_path_affiché + 1;
-                if (index_path_affiché == 0) {
-                  //precedent.style.display = 'none';
-                  precedent.style.visibility = "hidden";
-                }
-              }
-            });
-            suivant.addEventListener("click", () => {
-              //precedent.style.display = 'block';
-              precedent.style.visibility = "visible";
-              if (index_path_affiché + 1 < data2.length) {
-                document.getElementById(
-                  "div" + index_path_affiché
-                ).style.display = "none"; //
-                index_path_affiché += 1;
-                console.log("window i = ", index_path_affiché);
-                document.getElementById(
-                  "div" + index_path_affiché
-                ).style.display = "block"; //Afficher
-                document.getElementById("page_actuelle").innerHTML =
-                  index_path_affiché + 1;
-                if (index_path_affiché + 1 == data2.length) {
-                  //suivant.style.display = 'none';
-                  suivant.style.visibility = "hidden";
-                }
-              }
-            });
-            validerQuestions.addEventListener("click", () => {
-              const questionsDivs =
-                document.querySelectorAll("div.divQuestions");
+                                    wrapper.appendChild(select);
+                                }
+                                containerQuG.appendChild(wrapper);
 
-              let allPathAnswered = true;
+                            });
 
-              questionsDivs.forEach((qEl, index) => {
-                if (qEl.repondu == "false") {
-                  allPathAnswered = false;
-                }
-              });
 
-              const generalSelects = document.querySelectorAll(
-                "#questionsGenerales select"
-              );
-              let allGeneralAnswered = true;
+                            // Bouton Save
+                            const validerQuestions = document.createElement('button');
+                            validerQuestions.className = 'button';
+                            validerQuestions.id = 'validerQuestions';
+                            validerQuestions.innerHTML = 'Save';
+                            document.getElementById("center-panel").appendChild(validerQuestions);
 
-              generalSelects.forEach((select) => {
-                const questionWrapper = select.parentElement;
-                questionWrapper.style.color = "";
+                            // Nettoyer les anciens handlers pour éviter les doublons
+                            precedent.onclick = null;
+                            suivant.onclick = null;
 
-                if (
-                  !select.value ||
-                  select.value === "-- Select an answer --"
-                ) {
-                  allGeneralAnswered = false;
-                  questionWrapper.style.color = "red";
-                }
-              });
+                            precedent.onclick = () => {
 
-              if (allPathAnswered && allGeneralAnswered) {
-                reponse_user_study.general_feedback = collectGeneralFeedback();
+                                // Si on est sur le premier sous-chemin, on cache le bouton "précédent"
+                                if (index_path_affiché - 1 > -1) {
+                                    suivant.style.visibility = 'visible';
+                                    index_path_affiché -= 1;
+                                    console.log('window i = ', index_path_affiché);
+                                    if (index_path_affiché == 0) {
+                                        precedent.style.visibility = 'hidden';
+                                    }
+                                }
+                                afficherCheminCourant();
+                            };
+                            suivant.onclick = () => {
+                                // Si on est sur le dernier sous-chemin on cahce le bouton "suivant"
+                                precedent.style.visibility = 'visible';
+                                if (index_path_affiché + 1 < allPaths.length) {
+                                    index_path_affiché += 1;
+                                    console.log('window i = ', index_path_affiché);
+                                    if (index_path_affiché + 1 == allPaths.length) {
+                                        suivant.style.visibility = 'hidden';
+                                    }
+                                }
+                                afficherCheminCourant();
+                            };
 
-                fetch(`${API_URL}/api/user_study`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    user_study: reponse_user_study,
-                    user_id: user,
-                  }),
+                            /// BOUTON SAVE
+                            validerQuestions.addEventListener("click", () => {
+
+                                let allPathAnswered = true;
+
+                                // On vérifie si les questions de tous les chemins ont été répondues
+                                allPaths.forEach((_, idx) => {
+                                    const pathKey = "path_" + idx;
+                                    const answers = reponse_user_study.path_feedback[pathKey];
+
+                                    if (!answers) {
+                                        allPathAnswered = false;
+                                        console.warn(`Chemin ${pathKey} n’a pas de réponses`);
+                                        return;
+                                    }
+
+                                    // Vérifie que toutes les questions de ce chemin sont répondues
+                                    liste_question_possible.forEach((_, qIndex) => {
+                                        const qName = "answer" + qIndex;
+                                        if (!answers[qName] || answers[qName] === "-- Select an answer --") {
+                                            allPathAnswered = false;
+                                            console.warn(`Chemin ${pathKey}, question ${qName} non répondue`);
+                                        }
+                                    });
+                                });
+
+                                const generalSelects = document.querySelectorAll("#questionsGenerales select");
+                                let allGeneralAnswered = true;
+
+                                // On vérifie si toutes les questions générales ont été répondues
+                                generalSelects.forEach(select => {
+                                    const questionWrapper = select.parentElement;
+                                    questionWrapper.style.color = "";
+
+                                    if (!select.value || select.value === "-- Select an answer --") {
+                                        allGeneralAnswered = false;
+                                        questionWrapper.style.color = "red";
+                                    }
+                                });
+
+                                if (allPathAnswered && allGeneralAnswered) {
+                                    // Si toutes les question sont répondues on envoie les réponses du user study au back-end pour en faire un fichier json
+                                    reponse_user_study.general_feedback = collectGeneralFeedback();
+
+                                    fetch("http://localhost:5000/api/user_study", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({ user_study: reponse_user_study, user_id: user })
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            console.log("Réponse du serveur :", data);
+                                            alert("Réponses envoyées avec succès !");
+
+                                        })
+                                        .catch(error => {
+                                            console.error("Erreur lors de l’envoi :", error);
+                                            alert("Erreur lors de l’envoi des réponses.");
+                                        });
+
+
+
+                                    console.log("Réponses totales :", reponse_user_study);
+                                } else {
+                                    alert("Merci de répondre à toutes les questions.");
+                                }
+                            });
+
+                        })
+                    //.catch(err => alert("Erreur dans le chargement des chemins : " + err));
+
+                    fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`) // Afficher le diagramme top 5 des attributs sémantiques similaires
+                        .then(response => response.json())
+                        .then(data => {
+
+                            document.getElementById("messageTop5").innerText = "";
+                            console.log("DEBUG top5 raw data:", data);
+
+                            if (Object.keys(data).length == 0) { // Si aucun attribut en commun trouvé
+                                console.log("Aucun attribut en commun");
+                                document.getElementById("top5chart").style.display = "none";
+                                document.getElementById("messageTop5").innerText = "Aucun attribut en commun";
+                                return;
+                            }
+                            const labels = Object.keys(data).map(uri => uri.split("/").pop()); // simplifier les noms
+                            const values = Object.values(data).map(Number);
+                            console.log("top5 : ", data);
+                            const ctx = document.getElementById('top5chart').getContext('2d');
+                            if (top5ChartInstance !== null) {
+                                top5ChartInstance.destroy();
+                            }
+
+                            // On crée le diagramme
+                            top5ChartInstance = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Similarity percentage',
+                                        data: values,
+                                        backgroundColor: 'rgba(255, 251, 222, 0.7)',
+                                        borderColor: '#ada56a',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 1
+                                        }
+                                    }
+                                }
+                            });
+                            document.getElementById("top5chart").style.display = "block";  // réaffiche si caché
+                            document.getElementById("messageTop5").innerText = "";
+                        })
+                        .catch(error => {
+                            console.error("Erreur lors du chargement du top 5 :", error);
+                        });
+
                 })
-                  .then((response) => response.json())
-                  .then((data) => {
-                    console.log("Réponse du serveur :", data);
-                    alert("réponses envoyées avec succès !");
-                  })
-                  .catch((error) => {
-                    console.error("Erreur lors de l’envoi :", error);
-                    alert("Erreur lors de l’envoi des réponses.");
-                  });
+                .catch(err => alert("Erreur lors de la récupération du cours aléatoire."));
+        }
 
-                console.log("Réponses totales :", reponse_user_study);
-              } else {
-                alert("Merci de répondre à toutes les questions.");
-              }
-            });
-            return fetch(`${API_URL}/api/top5?user=${user}&course=${course}`);
-          })
 
-          .then((response) => response.json())
-          .then((data) => {
-            document.getElementById("messageTop5").innerText = "";
-            console.log("DEBUG top5 raw data:", data);
-            if (Object.keys(data).length == 0) {
-              console.log("No common attribute");
-              document.getElementById("top5chart").style.display = "none";
-              document.getElementById("messageTop5").innerText =
-                "No common attribute";
-              return;
-            }
-            const labels = Object.keys(data).map((uri) => uri.split("/").pop()); // simplifier les noms
-            const values = Object.values(data).map(Number);
-            console.log("top5 : ", data);
-            const ctx = document.getElementById("top5chart").getContext("2d");
-            if (top5ChartInstance !== null) {
-              top5ChartInstance.destroy();
-            }
-            top5ChartInstance = new Chart(ctx, {
-              type: "bar",
-              data: {
-                labels: labels,
-                datasets: [
-                  {
-                    label: "Similarity percentage",
-                    data: values,
-                    backgroundColor: "rgba(255, 251, 222, 0.7)",
-                    borderColor: "#ada56a",
-                    borderWidth: 1,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 1,
-                  },
-                },
-              },
-            });
-            document.getElementById("top5chart").style.display = "block"; // réaffiche si caché
-            document.getElementById("messageTop5").innerText = "";
-
-            loadingPath = false; // ✅ Libérer le verrou
-          })
-          .catch((error) => {
-            console.error("Erreur lors du chargement du top 5 :", error);
-          })
-
-          .finally(() => {
-            loadingPath = false;
-          });
-      }
     </script>
-  </head>
+</head>
 
-  <body>
+<body>
     <!-- Conteneur principal à 3 colonnes -->
-    <div
-      id="main-layout"
-      style="display: flex; flex-direction: column; height: 100vh"
-    >
-      <!-- Barre de navigation (optionnelle selon ta capture) -->
-      <div
-        id="nav-bar"
-        style="
-          display: flex;
-          justify-content: space-between;
-          padding: 10px;
-          border-bottom: 1px solid #ccc;
-        "
-      >
-        <div>
-          <h1>ExplainGraph</h1>
-        </div>
-        <div
-          style="display: flex; flex: 1; overflow: hidden; padding-left: 20px"
-        >
-          <img src="./liris.png" alt="Description de l'image" height="50" />
-        </div>
-        <div style="display: flex; gap: 15px">
-          <a href="http://localhost:8000/page3.html">Home</a>
-          <a href="https://liris.cnrs.fr/equipe/tweak">About</a>
-          <a href="#">Export</a>
-          <a href="http://localhost:8000">Settings</a>
-        </div>
-      </div>
+    <div id="main-layout" style="display: flex; flex-direction: column; height: 100vh;">
 
-      <!-- Zone de contenu principale -->
-      <div id="content-area" style="display: flex; flex: 1; overflow: hidden">
-        <!-- Colonne de gauche : panneau de contrôle -->
-        <div
-          id="left-panel"
-          style="
-            flex: 0 0 300px;
-            padding: 20px;
-            overflow-y: auto;
-            border-right: 1px solid #ccc;
-          "
-        >
-          <h3>Control panel</h3>
-          <p>
-            Enter a User id to generate a recommendation and its explanation.
-          </p>
-
-          <label for="user">User</label>
-          <input type="text" id="user" placeholder="user_xx" />
-
-          <button
-            class="button"
-            onclick="loadPath()"
-            title="Click here to generate a recommendation and its explanation"
-          >
-            Show Recommendation
-          </button>
-          <!--<button class="button" onclick="sendPredicatesToServer()">Appliquer prédicats</button>-->
-          <button
-            class="button"
-            onclick="resetPredicats()"
-            title="Click here to delete the explanation"
-          >
-            Reset
-          </button>
-
-          <!--<div style="margin-top: 10px;">Drag & drop les prédicats les plus importants ci-dessous :</div>
-                <div id="div_drop_predicat" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"
-                    style="min-height: 60px; border: 1px dashed #999; margin: 10px 0;"></div>
-                <div id="listPredicats" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>-->
+        <!-- Barre de navigation -->
+        <div id="nav-bar"
+            style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ccc;">
+            <div>
+                <h1>ExplainGraph </h1>
+            </div>
+            <div style="display: flex; flex: 1; overflow: hidden; padding-left: 20px;"><img src="./liris.png"
+                    alt="Description de l'image" height="50"></div>
+            <div style="display: flex; gap: 15px;">
+                <a href="https://liris.cnrs.fr/equipe/tweak">About</a>
+            </div>
         </div>
 
-        <!-- Colonne centrale : graphe et contrôles -->
-        <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto">
-          <div id="affichage-cours"></div>
-          <!--<h3>Path From A Weighted Graph</h3>-->
-
-          <div class="graph-controls">
-            <button
-              class="button"
-              id="resetView"
-              title="Click here to recenter the graph and adjust the zoom"
-            >
-              Recenter The Graph
-            </button>
-            <button
-              class="button"
-              id="resetPath"
-              title="Click here to come back to the initial path explanation"
-            >
-              Reset Path
-            </button>
-            <input type="text" id="node" placeholder="course_xx, user_xx,..." />
-            <button
-              class="button"
-              onclick="chercherNode()"
-              title="Enter a node's name and click here to show its position in the graph"
-            >
-              Find A Node
-            </button>
-          </div>
-
-          <div>
-            Click on a node to extend the graph by showing its neighbors. You
-            can also select below the graph what type of neighbors you want to
-            display.
-          </div>
-
-          <div id="graphs-container">
-            <div class="g" id="graph"></div>
-
-            <!--<fieldset id="cochePredicats">
-              <legend>
-                Choose the predicates you want to display (Coming out of the
-                clicked node)
-              </legend>
-            </fieldset>-->
-          </div>
-
-          <!-- Test popup hover node-->
-          <div
-            id="tooltip"
-            style="
-              position: absolute;
-              background-color: white;
-              border: 1px solid #ccc;
-              padding: 6px 10px;
-              font-size: 12px;
-              pointer-events: none;
-              display: none;
-              z-index: 1000;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-              border-radius: 4px;
-            "
-          ></div>
-
-          <div class="graph-controls" id="graph-controls2">
-            <h3
-              id="titre2"
-              style="display: block; width: 100%; margin-bottom: 20px"
-            ></h3>
-            <h3 style="display: block; width: 100%">
-              Choose how to interact with the other paths :
-            </h3>
-            <button
-              class="button"
-              id="ajouterGraph"
-              title="Add a path to the main one by clicking on it"
-            >
-              Add The Path
-            </button>
-            <button
-              class="button"
-              id="echangerGraph"
-              title="Click on a path to display it instead of the main path"
-            >
-              Swap The Path
-            </button>
-            <h3 id="modeAjoutGraph">Add Path Mode Activated</h3>
-          </div>
-
-          <div id="g_petit-container"></div>
-
-          <div id="separateurGeneral"></div>
-
-          <div id="questionsGenerales"></div>
+        <!-- Fenêtre de connexion -->
+        <div id="login-overlay">
+            <div id="login-box">
+                <h2>Welcome to ExplainGraph !</h2>
+                <label for="userId">Enter a user_id to generate a course recommendation and its explanation :</label>
+                <input type="text" id="userId" placeholder="user_X.0" />
+                <button class="button" onclick="validateLogin()">Confirm</button>
+            </div>
         </div>
 
-        <!--  Colonne de droite : explication + légende -->
-        <div
-          id="right-panel"
-          style="
-            flex: 0 0 500px;
-            padding: 20px;
-            overflow-y: auto;
-            border-left: 1px solid #ccc;
-          "
-        >
-          <h3>Explanation</h3>
-          <p id="Explication"></p>
 
-          <h4>Legend</h4>
-          <ul style="list-style: none; padding-left: 0">
-            <li>
-              <span
-                style="
-                  display: inline-block;
-                  width: 12px;
-                  height: 12px;
-                  background: rgb(236, 112, 90);
-                  border-radius: 50%;
-                  margin-right: 5px;
-                "
-              ></span>
-              Topic
-            </li>
-            <li>
-              <span
-                style="
-                  display: inline-block;
-                  width: 12px;
-                  height: 12px;
-                  background: rgb(67, 143, 206);
-                  border-radius: 50%;
-                  margin-right: 5px;
-                "
-              ></span>
-              User and recommended course
-            </li>
-            <li>
-              <span
-                style="
-                  display: inline-block;
-                  width: 12px;
-                  height: 12px;
-                  background: rgb(245, 221, 6);
-                  border-radius: 50%;
-                  margin-right: 5px;
-                "
-              ></span>
-              Course
-            </li>
-            <li>
-              <span
-                style="
-                  display: inline-block;
-                  width: 12px;
-                  height: 12px;
-                  background: #bce98f;
-                  border-radius: 50%;
-                  margin-right: 5px;
-                "
-              ></span>
-              Type
-            </li>
-            <li>
-              <div
-                style="display: flex; align-items: center; margin-bottom: 8px"
-              >
-                <div id="legendLiteral">Literal</div>
-                <span>Literal</span>
-              </div>
-            </li>
-          </ul>
+        <!-- Zone de contenu principale -->
+        <div id="content-area" style="display: flex; flex: 1; overflow: hidden;">
 
-          <h4>Top 5 Semantic Attributes</h4>
-          <p>
-            This bar chart shows what percentage of the user's high interest
-            courses shares the same semantic attributes as the recommended
-            course. This chart only shows the top 5, non-zero percentages.
-          </p>
-          <div id="messageTop5"></div>
-          <canvas id="top5chart" width="260" height="200"></canvas>
+            <!-- Colonne centrale : graphe et contrôles -->
+            <div id="center-panel" style="flex: 1; padding: 20px; overflow-y: auto;">
+                <div id="affichage-cours"></div>
+                <h3>Path From A Weighted Graph</h3>
+
+                <!-- Controle du graphe -->
+                <div class="graph-controls">
+                    <button class="button" id="resetView"
+                        title="Click here to recenter the graph and adjust the zoom">Recenter The Graph</button>
+                    <button class="button" id="resetPath"
+                        title="Click here to come back to the initial path explanation">Reset Path</button>
+                    <input type="text" id="node" placeholder="course_xx, user_xx,..." />
+                    <button class="button" onclick="chercherNode()"
+                        title="Enter a node's name and click here to show its position in the graph">Find A
+                        Node</button>
+                </div>
+
+                <div>Click on a node to extend the graph by showing its neighbors. You can explore the neighborhood of
+                    nodes more precisely by selecting which predicates to display.</div>
+
+                <!-- Graphe et boutons navigation -->
+                <div id="graphs-container">
+                    <button id="buttonPrecedent" class="navigation" style="visibility:hidden">
+                    </button>
+                    <div id="graph-wrapper">
+                        <div id="graph" class="g"></div>
+                    </div>
+                    <button id="buttonSuivant" class="navigation" style="visibility:hidden"></button>
+                </div>
+
+                <!-- Informations sous le graphe -->
+                <h3><u>Information about this path : </u></h3>
+                <div id="num-chemin"></div>
+                <div id="ligne-info-chemin">
+                </div>
+
+                <!-- Questions pour chaque chemin -->
+                <div id="separateurChemin"></div>
+                <div id="formulaire-questions"></div>
 
 
-		 <!-- Bouton Help -->
-			<button class="help-btn" onclick="openModal()" title="Watch the tutorial">
-				<img src="./ampoule.png" alt="ampoule" height = "35 px" />
-			</button>
+                <!-- Popup hover node-->
+                <div id="tooltip" style="
+                position: absolute;
+                background-color: white;
+                border: 1px solid #ccc;
+                padding: 6px 10px;
+                font-size: 12px;
+                pointer-events: none;
+                display: none;
+                z-index: 1000;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                border-radius: 4px;">
+                </div>
 
-			<!-- Modal -->
-			<div id="modal-tuto">
-				<div class="modal-content">
-				<h2>Tutorial</h2>
-				<video id="tutoVideo" width="560" height="315" controls preload="none">
-					<source src="tuto.mp4" type="video/mp4">
-					Votre navigateur ne supporte pas la vidéo.
-				</video>
-				<!-- Bouton Return -->
-				 <br/>
-				<button class="return-btn" onclick="closeModal()">Return</button>
-				</div>
 
-				
-			</div>
+
+                <!-- Espace pour les questions générales -->
+                <div id="separateurGeneral"></div>
+
+                <div id="questionsGenerales"></div>
+            </div>
+
+            <!--  Colonne de droite : explication + légende -->
+            <div id="right-panel"
+                style="flex: 0 0 400px; padding: 20px; overflow-y: auto; border-left: 1px solid #ccc;">
+                <!-- Explication textuelle -->
+                <h3>Explanation</h3>
+                <p id="Explication"></p>
+
+                <!-- Legende des graphes -->
+                <h4>Legend</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><span
+                            style="display: inline-block; width: 12px; height: 12px; background: rgb(236, 112, 90); border-radius: 50%; margin-right: 5px;"></span>
+                        Topic</li>
+                    <li><span
+                            style="display: inline-block; width: 12px; height: 12px; background: rgb(67, 143, 206); border-radius: 50%; margin-right: 5px;"></span>
+                        User and recommended course</li>
+                    <li><span
+                            style="display: inline-block; width: 12px; height: 12px; background: rgb(245, 221, 6); border-radius: 50%; margin-right: 5px;"></span>
+                        Course</li>
+                    <li><span
+                            style="display: inline-block; width: 12px; height: 12px; background: #bce98f; border-radius: 50%; margin-right: 5px;"></span>
+                        Type</li>
+                    <li>
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <div id="legendLiteral">
+                                Literal
+                            </div>
+                            <span>Literal</span>
+                        </div>
+
+                    </li>
+                </ul>
+
+                <!-- Diagramme top 5 attributs sémantiques -->
+                <h4>Top 5 Semantic Attributes</h4>
+                <p>This bar chart shows what percentage of the user's high interest courses shares the same semantic
+                    attributes as the recommended course. This chart only shows the top 5, non-zero percentages.</p>
+
+                <div id="messageTop5"></div>
+
+                <canvas id="top5chart" width="260" height="200"></canvas>
+            </div>
         </div>
-      </div>
     </div>
-	<div id="toast-container"></div>
-  </body>
+
+</body>
+
+
 </html>
