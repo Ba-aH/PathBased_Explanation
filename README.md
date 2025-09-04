@@ -1,3 +1,5 @@
+# ExplainGraph (html Version)
+
 **Instructions :**
 - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :
   * python -m http.server 8000
@@ -31,11 +33,9 @@
 - Des explications supplémentaires se trouvent dans la colonne de droite. Après avoir observé ces explications, vous devez répondre aux questions générales, situées sous les questions portant sur chaque chemin. Une fois l'ensemble des questions répondues (générales mais aussi pour chaque chemin), appuyez sur le bouton "Save" pour enregistrer l'ensemble de vos réponses. 
   * Si la page vous indique que les réponses ont bien été envoyées alors l'étude utilisateur est finie.
 
+ 
 
-
-ENGLISH VERSION : 
-
-# ExplainGraph - User Study Instructions
+# ExplainGraph (html Version) - English Version
 
 **Instructions :**
 - Open two separate terminals and run the following commands:
