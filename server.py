@@ -7,16 +7,18 @@ from Top5 import find_top5
 import rdflib
 import sys,csv,os
 from urllib.parse import quote
+import itertools
+import time
 
-""" liste_question_possible = {'answer0':'This explanation lets me judge when I should trust the recommendation system.','answer1':
-                'This explanation of how the recommendation system works has sufficient detail.','answer2':
-                'This explanation of how the recommendation system works has irrelevant detail.','answer3':
-            'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : This is a good recommendation',
-                   'answer4': 'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : I will follow this course',
-                   'answer5': 'Based on the share of semantic attributes between the recommended movie and your interest in these semantic attributes : I can determine how well I will like this course'
-        } """
 
 def generer_texte(path):
+    """Permet de générer l'explication textuelle.
+    Entrée : 
+    - path : dico représentant le chemin avec ses noeuds et ses arêtes.
+    Sortie : 
+    - texte : str, l'explication sous forme textuelle.
+    """
+    #Dictionnaire permettant de convertir les arêtes en texte
     dico_txt={'SmallInterest':" has a small interest in ",
     'MediumInterest':" has a medium interest in ",
     'HighInterest':" has a high interest in ",
@@ -26,8 +28,12 @@ def generer_texte(path):
     'cso#contributesTo':', that contributes to the topic ',
     'cso#superTopicOf' : ', that is a super topic of ',
     'isKnowledgeTopicOf':', that is a knowledge topic of the course '}
+
     texte = ''
+    # Début du texte
     n_from = "user_"
+
+    #On génère le texte à partir des arêtes du chemin
     for i in range(len(path['edges'])):
         for edge in path['edges']:
             if n_from in edge['from']:
@@ -41,6 +47,11 @@ def generer_texte(path):
 
 
 def generer_graphe_pondere():
+  """
+  Permet de générer un graphe on pondérant les arêtes xxxInterest en fonction de leur importance afin de favoriser les intérets plus élevés
+  Sortie : 
+  - G : DiGraph
+  """
 
   # Attribution weight aux prédicats
   d= {"https://coursera.graph.edu/SmallInterest":4,
@@ -63,188 +74,81 @@ def generer_graphe_pondere():
       G.add_edge(str(s), str(o), weight = 1, label=str(p))
   return G
 
+def compute_all_paths_data_index(G, user, course, a = 0.4, b=0.3, c=0.3, w=True):
+    """
+    Retourne nodes + edges pour les chemins entre deux sommets après les avoir traités et calculé leur scores random walk et Jaccard.
+    Entrée : 
+    - G : DiGraph
+    - user : str, l'utilisateur
+    - course : str, le cours recommandé
+    - a : float, coefficient pour pondérer l'indice de simplicité des chemins
+    - b : float, coefficient pour pondérer l'indice de popularité des chemins
+    - c : float, coefficient pour pondérer l'indice de diversité des chemins
+    - w : bool
+    Sortie : 
+    - dictionnaire indiquant le chemin principal ainsi que l'ensemble des chemins conservés, y compris le chemin principal
+    """
 
-def generer_graphe_pondere_choix(listePredicats):
 
-  # Créer un graphe dirigé (ou non dirigé selon le besoin)
-  G = nx.DiGraph()  # ou nx.Graph() si non orienté
+    # On récupère tous les chemins simples et on les convertit en une liste que l'on trie par poids.
+    debut_recherche = time.time()
+
+    # Version recherche tous les chemins
+    # Extraction des chemins
+    raw_paths = extract_paths_with_simplified_relations(G, user, course, max_length=5)
+    print(f"{len(raw_paths)} raw paths")
+    #Filtrer uniquement chemins sufisamment divers.
+    l_path = filter_dissimilar_paths(raw_paths, max_paths=20, similarity_threshold=0.8)
+    print(f"{len(l_path)} filtered paths : {l_path}")
+
+    # Convertir en simple liste de nœuds pour garder la compatibilité avec le reste
+    l_path = [[node for node, _ in path] for path in l_path]
+
+    
+    # Version avec recherche limitée de chemins.
+    """ l_path = bounded_simple_paths_top_patterns(G, user, course, cutoff=5, max_patterns=5)
+    l_path = list(l_path) """
 
 
-  # Ajouter les arêtes au graphe à partir des triplets RDF
-  for s, p, o in g:
-    if str(p).split("/")[-1] in listePredicats : 
-        G.add_edge(str(s), str(o), weight = 0.1, label=str(p))
-        
-    else:
-        G.add_edge(str(s), str(o), weight = 25*len(data), label=str(p))
-  print("G_choix generé")
-  return G
-
-def compute_path_data(graph, user, course,w=True):
-    """Retourne nodes + edges pour un chemin entre deux sommets"""
-    if w==True:
-
-        path = find_path(graph, user, course)
-    else:
-        path = find_path_shortest(graph,user,course)
-    if not path:
+    if not l_path:
         return None
 
-    nodes = []
-    for n in path:
-        t = ""
-        for _, v, edge_data in graph.out_edges(n, data=True):  # arêtes sortantes de n
-            if "title" in edge_data.get("label", ""):
-                t = v 
-                break
-        if t=="":
-            nodes.append({
-                "id": n,
-                "label": n.split('/')[-1],
-                "group": (
-                    3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n  else 2 if "topics" in n else 4
-                ),
-            })
-        else:
-            nodes.append({
-                "id": n,
-                "label": n.split('/')[-1],
-                "group": (
-                    3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n  else 2 if "topics" in n else 4
-                ),
-                "title":"Title : "+t,
-            })
+    print(f"Durée recherche des chemins : {time.time()-debut_recherche} secondes.")
 
-    edges = []
-    for i in range(len(path) - 1):
-        u, v = path[i], path[i + 1]
-        label = graph[u][v].get("label", "").split('/')[-1]
-        weight = graph[u][v].get("weight", 1.0)  # default weight is 1.0 if not specified
-        edges.append({"from": u, "to": v, "label": label, 'length':500, "weight" : weight})
-
-    return {"nodes": nodes, "edges": edges}
-
-
-def compute_all_paths_data(G, user, course,w=True):
-    """Retourne nodes + edges pour un chemin entre deux sommets"""
-
-
-    #l_path = find_all_path_shortest(G, user, course)
-    l_path = test_compute_all_paths_data_len(G, user, course)
-    l_path = list(l_path)
     l_path.sort(key=lambda path: sum(G[path[i]][path[i+1]]["weight"] for i in range(len(path)-1)))
     
 
     global path_general
 
-   
-    if not l_path:
-        return None
-
-    liste_patterns = []
-    nbr_pattern = 0
+    # Initialisation des variables
     liste_res=[]
-    nbr_paths =0
+
+    # On traite chaque chemin de la liste
     for path in l_path:
         pattern = []
-        if nbr_pattern > 10 or nbr_paths >50:
-            print("break")
-            print(len(liste_res))
-            return liste_res
-        nbr_paths += 1
 
         edges = []
+        # On extrait et traite chaque arêtes du chemin
         for i in range(len(path) - 1):
             u, v = path[i], path[i + 1]
+            if not isinstance(u, (str, int, tuple)) or not isinstance(v, (str, int, tuple)):
+                print(f"nœud non hashable : {u}, {v}")
+                continue
             label = G[u][v].get("label", "").split('/')[-1]
             pattern.append(label)
             edges.append({"from": u, "to": v, "label": label, 'length':500})
-
-        if pattern in liste_patterns :
-            continue
         
 
         nodes = []
+        # On traite tous les noeuds du chemin
         for n in path:
             t = ""
             for _, v, edge_data in G.out_edges(n, data=True):  # arêtes sortantes de n
                 if "title" in edge_data.get("label", ""):
                     t = v 
                     break
-            if t=="":
-                nodes.append({
-                    "id": n,
-                    "label": n.split('/')[-1],
-                    "group": (
-                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n  else 2 if "topics" in n else 4
-                    ),
-                })
-            else:
-                nodes.append({
-                    "id": n,
-                    "label": n.split('/')[-1],
-                    "group": (
-                        3 if user ==n.split('/')[-1] or course ==n.split('/')[-1] else 0 if "user" in n else 1 if "course" in n  else 2 if "topics" in n else 4
-                    ),
-                    "title":"Title : "+t,
-                })
             
-
-        
-        if path_general['nodes'] != nodes:
-            liste_patterns.append(pattern)
-            nbr_pattern += 1
-            liste_res.append({"nodes": nodes, "edges": edges})
-        print("nodes :",nodes)
-    print(len(liste_res))
-    return liste_res
-
-def compute_all_paths_data_index(G, user, course,a,b,w=True):
-    """Retourne nodes + edges pour un chemin entre deux sommets"""
-
-
-    # Récuperer les premiers chemins les plus légers (différents patterns)
-    l_path = test_compute_all_paths_data_len(G, user, course)
-    l_path = list(l_path)
-    l_path.sort(key=lambda path: sum(G[path[i]][path[i+1]]["weight"] for i in range(len(path)-1)))
-    
-
-    global path_general
-
-   
-    if not l_path:
-        return None
-
-    liste_patterns = []
-    nbr_pattern = 0
-    liste_res=[]
-    nbr_paths =0
-    for path in l_path:
-        pattern = []
-        if nbr_pattern > 20 or nbr_paths >300:
-            print("break")
-            print(len(liste_res))
-            break
-        nbr_paths += 1
-
-        edges = []
-        for i in range(len(path) - 1):
-            u, v = path[i], path[i + 1]
-            label = G[u][v].get("label", "").split('/')[-1]
-            pattern.append(label)
-            edges.append({"from": u, "to": v, "label": label, 'length':500})
-
-        if pattern in liste_patterns :
-            continue
-        
-
-        nodes = []
-        for n in path:
-            t = ""
-            for _, v, edge_data in G.out_edges(n, data=True):  # arêtes sortantes de n
-                if "title" in edge_data.get("label", ""):
-                    t = v 
-                    break
+            # On attribue à chaque noeud un id, un label et un groupe pour les classer par type.
             if t=="":
                 nodes.append({
                     "id": n,
@@ -276,99 +180,134 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
                     n_from = edge['to']
                     break
         
-        
-        
-        liste_patterns.append(pattern)
-        nbr_pattern += 1
-        liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern, 'path':texte}) ###################################################Ajout longueur chemin
+        liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern, 'path':texte})
         print("nodes :",nodes)
     
 
-    # Appliquer à ces chemins sélectionnés les indexs Jaccard et Random Walk based
-    ## Random walk based :
-    liste_S_rw = []
-    min_S_rw = sys.maxsize
-    max_S_rw = 0
-    poidsMax = 25*len(data)
-    for p in liste_res:
-        S_rw = 1
-        l_nodes = p['nodes']
-        for i_node in range(1,len(l_nodes)):
-            S_rw *= 0.5*poidsMax/(G.out_degree(l_nodes[i_node - 1]['id'])*G[l_nodes[i_node - 1]['id']][l_nodes[i_node]['id']]["weight"])
-            #if G[l_nodes[i_node - 1]['id']][l_nodes[i_node]['id']]["weight"] == poidsMax:
-            #    S_rw *= 0.1/G.out_degree(l_nodes[i_node - 1]['id'])
-            #else:
-            #    S_rw *= poidsMax/G.out_degree(l_nodes[i_node - 1]['id'])##??????????????????????????????????!!!!! Reflechir à la valeur de weight !!!!
-        # puissance 1/L
-        S_rw = S_rw**(1/(len(l_nodes)-1))
-        if S_rw < min_S_rw:
-            min_S_rw = S_rw
-        if S_rw > max_S_rw:
-            max_S_rw = S_rw
 
-        p['S_rw']=S_rw
-        liste_S_rw.append(S_rw)
+# Indice simplicity, popularity, diversity    
     
-    # Normalisation
-    for i in range(len(liste_S_rw)):
-        S_RW = (liste_S_rw[i]-min_S_rw)/(max_S_rw - min_S_rw)
-        liste_S_rw [i] = S_RW
-        liste_res[i]['S_rw'] = S_RW
-        liste_res[i]['S_final'] = a*S_RW
-
+    ## Simplicity
+    liste_S_simplicity = []
+    min_S_sim = sys.maxsize
+    max_S_sim = 0
     
-    print(liste_S_rw)
-    print(len(liste_res))
-    print(liste_res)
-
-    # Sort en fonction de l'index :
-    # Associe les indices aux valeurs
-    #indices_tries = sorted(range(len(liste_S_rw)), key=lambda i: liste_S_rw[i], reverse=True)
-
-    # Trie liste_res selon ces indices
-    #liste_res_triee = [liste_res[i] for i in indices_tries]
-
+    ## Popularity
+    debut = time.time()
+    page_rank_allnodes = nx.pagerank(G, alpha=0.85, weight='weight')
+    print(f"Durée du pagerank : {time.time()-debut} secondes")
+    liste_S_popularity = []
+    min_S_pop = sys.maxsize
+    max_S_pop = 0
     
-
-    # Jaccard :
-    liste_S_jac = []
-    min_S_jac = sys.maxsize
-    max_S_jac = 0
+    ## Diversity
+    liste_S_diversity = []
+    liste_max_j = []
+    liste_avg_j = []
+    min_maxS_jac = sys.maxsize
+    max_maxS_jac = 0
+    
     for i in range(len(liste_res)):
+
+        #Simplicity
+        S_sim = 1/(len(liste_res[i]['edges']))
+        liste_S_simplicity.append(S_sim)
+        if S_sim < min_S_sim:
+            min_S_sim = S_sim
+        if S_sim > max_S_sim:
+            max_S_sim = S_sim
+
+        #Popularity
+        S_pop = (1/len(liste_res[i]['nodes']))
+        sum_pagerank = 0
+        for node in liste_res[i]['nodes']:
+            sum_pagerank += page_rank_allnodes[node['id']]
+        S_pop *= sum_pagerank
+        liste_S_popularity.append(S_pop)
+        if S_pop < min_S_pop:
+            min_S_pop = S_pop
+        if S_pop > max_S_pop:
+            max_S_pop = S_pop
+            
+        #Diversity
         S_jac = 0
+        max_S_j = 0
+        liste_jaccard=[]
         for j in range(len(liste_res)):
             if i != j :
-                S_jac += (len(list((set(node['id'] for node in liste_res[i]['nodes']) & set(node['id'] for node in liste_res[j]['nodes'])
-                | (set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[i]['edges']) &
-                    set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[j]['edges']))))))/ (len(list(set(node['id'] for node in liste_res[i]['nodes']) |
-                                                                                                set(node['id'] for node in liste_res[j]['nodes']) |
-                                                                                                set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[i]['edges']) |
-                                                                                                set("from"+ edge['from'] + "to" + edge['to'] + "label"+edge['label'] for edge in liste_res[j]['edges']))))
-        S_jac /= (len(liste_res)-1)
-        print(S_jac)
+                S_jac = (len(list((set(node['id'] for node in liste_res[i]['nodes']) & set(node['id'] for node in liste_res[j]['nodes'])))))/ (len(list(set(node['id'] for node in liste_res[i]['nodes']) |
+                                                                                                set(node['id'] for node in liste_res[j]['nodes']) )))
+                liste_jaccard.append(S_jac)
+        
+            if S_jac > max_S_j:
+                max_S_j = S_jac
+            
+        if max_S_j < min_maxS_jac:
+            min_maxS_jac = max_S_j
+        if max_S_j > max_maxS_jac:
+            max_maxS_jac = max_S_j
+        
+        avg_Sj = sum(liste_jaccard)/len(liste_jaccard) if liste_jaccard else 0
+        S_div = 1-avg_Sj
+        liste_avg_j.append(avg_Sj)
+        liste_S_diversity.append(S_div)
 
-        if S_jac < min_S_jac:
-            min_S_jac = S_jac
-        if S_jac > max_S_jac:
-            max_S_jac = S_jac
-
-        p['S_jac']=S_jac
-        liste_S_jac.append(S_jac)
-
-    print('liste s_jac : ',liste_S_jac)
-    ## Normalisation
-    for i in range(len(liste_S_jac)):
-        if max_S_jac != min_S_jac:
-            S_JAC = (liste_S_jac[i]-min_S_jac)/(max_S_jac - min_S_jac)
+        liste_max_j.append(max_S_j)
+            
+    # Normalisation
+    """ for i in range(len(liste_res)):
+        #S
+        if max_S_sim == min_S_sim:
+            S_SIM= 1
         else:
-            S_JAC = 0
-        liste_S_jac[i] = S_JAC
-        liste_res[i]['S_jac'] = S_JAC
-        liste_res[i]['S_final'] += b*S_JAC
+            S_SIM = (liste_S_simplicity[i]-min_S_sim)/(max_S_sim - min_S_sim)
+        
+       
+        liste_res[i]['S_sim'] = S_SIM
+        liste_res[i]['Score'] = a*S_SIM
+        
+        #P
+        if max_S_pop == min_S_pop:
+            S_POP= 1
+        else:
+            S_POP = (liste_S_popularity[i]-min_S_pop)/(max_S_pop - min_S_pop)
+        
+       
+        liste_res[i]['S_pop'] = S_POP
+        liste_res[i]['Score'] += b*S_POP
+        
+        #D
+        if max_maxS_jac == min_maxS_jac:
+            MAX_J= 1
+        else:
+            MAX_J = (liste_max_j[i]-min_maxS_jac)/(max_maxS_jac - min_maxS_jac)
+        
+        S_D = 1.0 - MAX_J
+        liste_res[i]['S_div'] = S_D
+        liste_res[i]['Score'] += c*S_D """
+        
+    
+        
+        
+        
 
-   
-    # Trier liste_res en fct de S_final
-    ##liste_res.sort(key=lambda path: path['S_final'] , reverse = True)
+        
+    print(f"min : {min_maxS_jac}, max: {max_maxS_jac}")
+
+    
+    
+       
+    # Enregistrer les valeurs BRUTES dans liste_res
+    for i in range(len(liste_res)):
+        liste_res[i]['S_sim'] = round(liste_S_simplicity[i],4)
+        liste_res[i]['S_pop'] = round(liste_S_popularity[i],4)
+        liste_res[i]['S_div'] = round(liste_S_diversity[i], 4)
+        liste_res[i]['Score'] = round(a*liste_S_simplicity[i] + b*liste_S_popularity[i] + c*liste_S_diversity[i], 4)
+        print(f"Chemin {i} : Score simplicite : {liste_res[i]['S_sim']}, Score popularite : {liste_res[i]['S_pop']}, Score diversite : {liste_res[i]['S_div']}, Score total : {liste_res[i]['Score']}")
+
+    # On récupère les 5 chemins avec les scores les plus élevés
+    liste_res.sort(key=lambda path: path['Score'], reverse=True)
+    liste_res = liste_res[:5]
 
     # Trier liste_res en fct de la longueur
     liste_res.sort(key=lambda path: path['longueur'])
@@ -378,7 +317,18 @@ def compute_all_paths_data_index(G, user, course,a,b,w=True):
 
 
 
-def test_compute_all_paths_data_len(G, user, course,max=6):
+def compute_all_paths_data_len(G, user, course,max=6):
+    """
+    Permet de récupérer tous les chemins simples de longuer inférieure à max dans le graphe entre l'utilisateur et le cours qui lui est recommandé.
+    Entrée : 
+    - G : un DiGraph
+    - user : str, l'utilisateur
+    - course : str, le cours recommandé
+    - max : int, la longueure maximale des chemins à trouver
+    Sortie : 
+    - paths : generator
+    """
+    
     try:
         user = "https://coursera.graph.edu/"+user
         course = "https://coursera.graph.edu/" + course
@@ -387,8 +337,174 @@ def test_compute_all_paths_data_len(G, user, course,max=6):
     except nx.NetworkXNoPath:
         return None
 
+def bounded_simple_paths(G, user, course, cutoff=None, max_paths=400):
+    """
+    Générateur de chemins simples entre source et target avec arrêt anticipé.
+    """    
+    user = "https://coursera.graph.edu/"+user
+    course = "https://coursera.graph.edu/"+course
+    
+    if cutoff is None:
+        cutoff = len(G) - 1
+
+    visited = [user]
+    stack = [(iter(G[user]), 0)]  # (iterator des voisins, profondeur)
+    found_paths = 0
+
+    while stack:
+        children, depth = stack[-1]
+        try:
+            child = next(children)
+            if child in visited:
+                continue
+
+            visited.append(child)
+            if child == course:
+                # chemin trouvé
+                path = list(visited)  # <- liste simple de nœuds
+                # pattern = tuple de labels ou prédicats, à définir après
+                yield path
+                found_paths += 1
+
+                if found_paths >= max_paths:
+                    return
+
+            elif depth + 1 < cutoff:
+                stack.append((iter(G[child]), depth + 1))
+                continue
+
+            visited.pop()
+        except StopIteration:
+            stack.pop()
+            visited.pop()
+
+def bounded_simple_paths_top_patterns(G, user, course, cutoff=None, max_patterns=10):
+    """
+    Générateur de chemins simples entre `user` et `course`,
+    s'arrêtant quand on a trouvé `max_patterns` patterns différents.
+    Le pattern est défini comme la séquence ordonnée des labels des arêtes.
+    """
+    user = "https://coursera.graph.edu/" + user
+    course = "https://coursera.graph.edu/" + course
+    
+    if cutoff is None:
+        cutoff = len(G) - 1
+
+    visited = [user]
+    stack = [(iter(G[user]), 0)]  # (iterator des voisins, profondeur)
+    found_patterns = set()
+
+    while stack:
+        children, depth = stack[-1]
+        try:
+            child = next(children)
+            if child in visited:
+                continue
+
+            visited.append(child)
+            if child == course:
+                # chemin trouvé
+                path = list(visited)
+
+                # reconstruire la séquence de labels des arêtes
+                labels = []
+                for u, v in zip(path[:-1], path[1:]):
+                    edge_data = G[u][v]
+                    if isinstance(edge_data, dict) and "label" in edge_data:
+                        labels.append(edge_data["label"])
+                    elif isinstance(edge_data, dict):
+                        first_key = next(iter(edge_data))
+                        labels.append(edge_data[first_key].get("label"))
+                    else:
+                        raise ValueError(f"Pas de label trouvé pour arête {u}→{v}")
+
+                pattern = tuple(labels)
+
+                if pattern not in found_patterns:
+                    found_patterns.add(pattern)
+                    yield path
+
+                if len(found_patterns) >= max_patterns:
+                    return
+
+            elif depth + 1 < cutoff:
+                stack.append((iter(G[child]), depth + 1))
+                continue
+
+            visited.pop()
+        except StopIteration:
+            stack.pop()
+            visited.pop()
+
+def extract_paths_with_simplified_relations(subgraph, user_node, recommended_course_node, max_length=5):
+    """
+    Extract all simple paths from user_node to recommended_course_node with simplified edge relations.
+    """
+    user_node = "https://coursera.graph.edu/" + user_node
+    recommended_course_node = "https://coursera.graph.edu/" + recommended_course_node
+
+    all_paths = list(nx.all_simple_paths(
+        subgraph,
+        source=user_node,
+        target=recommended_course_node,
+        cutoff=max_length
+    ))
+
+    detailed_paths = []
+
+    for path in all_paths:
+        path_with_relations = []
+        for i in range(len(path) - 1):
+            source = path[i]
+            target = path[i + 1]
+            # Extract and simplify the predicate
+            predicate_uri = subgraph[source][target].get('label', 'UNKNOWN')
+            predicate_label = predicate_uri.split('/')[-1]  # Simplify the relation URI
+            # Append (node, predicate) pair
+            path_with_relations.append((source, predicate_label))
+        # Append the final target node
+        path_with_relations.append((path[-1], None))
+        detailed_paths.append(path_with_relations)
+
+    return detailed_paths
+
+def filter_dissimilar_paths(detailed_paths, max_paths=10, similarity_threshold=0.8):
+    """
+    Keep at most `max_paths` paths that are dissimilar based on Jaccard similarity of their node sets.
+    """
+    selected_paths = []
+    selected_node_sets = []
+
+    for path in detailed_paths:
+        node_set = set(node for node, _ in path)
+        is_similar = False
+
+        for existing_set in selected_node_sets:
+            intersection = len(node_set & existing_set)
+            union = len(node_set | existing_set)
+            jaccard = intersection / union if union != 0 else 1.0
+            if jaccard >= similarity_threshold:
+                is_similar = True
+                break
+
+        if not is_similar:
+            selected_paths.append(path)
+            selected_node_sets.append(node_set)
+
+        if len(selected_paths) >= max_paths:
+            break
+
+    return selected_paths
+
+
 
 def predicats(G):
+    """
+    Permet de récupérer le label de l'ensemble des arrêtes du graphe
+    Entrée : 
+    - G : DiGraph
+    Sortie : 
+    - liste : list, la liste comportant l'ensemble des labels des arêtes."""
     liste = []
     for u,v,e in G.edges(data=True):
         l=e.get("label","")
@@ -397,7 +513,21 @@ def predicats(G):
     return liste
 
 
-
+def predicats_node(G, node):
+    """
+    Permet de récupérer le label de l'ensemble des arrêtes du graphe
+    Entrée : 
+    - G : DiGraph
+    - node : str, noeud dont on cherche les prédicats sortants.
+    Sortie : 
+    - liste : list, la liste comportant l'ensemble des labels des arêtes."""
+    liste = []
+    for u,v,e in G.edges(data=True):
+        if u==node:
+            l=e.get("label","")
+            if l not in liste:
+                liste.append(l)
+    return liste
 
 
 
@@ -423,6 +553,11 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 
 @app.route('/api/pathETvoisins', methods=['POST'])
 def receive_predicates_pathETvoisins():
+    """
+    Permet lors d'un clique sur un noeud du graphe d'afficher tous les voisins sortants de celui-ci ou seulement ceux correspondant aux prédicats séléctionnés.
+    """
+    
+    # On récupère les paramètres de la requête
     data = request.get_json()
     predicates = data.get('predicates', [])
     print("Liste reçue :", predicates)
@@ -436,45 +571,39 @@ def receive_predicates_pathETvoisins():
 
     print("node_id avant :",node_id)
     
-
+    # Si le noeud cliqué n'existe pas dans le graphe
     if node_id not in G:
         node_id = quote(node_id, safe=":/")
         print("node_id après :",node_id)
         if node_id not in G:
             return jsonify({"error": f"No such node: {node_id}"}), 404
-    if choix== "true":
-        graph = G_choix
-        print("choix = true")
-    else:
-        graph = G
 
-    
+    graph = G
 
-
-
-    #json_chemin = compute_path_data(graph, user, course)
     json_chemin = {"nodes":[],"edges":[]}
     liste_voisins= list(graph.successors(node_id))
     print("liste voisins : ",liste_voisins)
     
+    # Pour chaque voisin sortant, on crée le noeud dans le graphe
     for n in liste_voisins:
         label = graph[node_id][n].get("label", "").split('/')[-1]
         print("label : ",label, label in predicates)
-        if len(predicates)==0:
-            ignorer = True
-        else:
-            ignorer = False
+
+        # Si le label est une URL on le conserve, sinon on le simplifie
         if 'url' in label:
             nom_label = n
         else:
             nom_label = n.split('/')[-1]
-        #if (label in predicates or ignorer) and not any(node["id"] == n for node in json_chemin["nodes"]) :
-        if (label in predicates or ignorer):
+
+        if (label in predicates):
+            # Chercher le titre
             t = ""
             for _, v, edge_data in graph.out_edges(n, data=True):  # arêtes sortantes de n
                 if "title" in edge_data.get("label", ""):
                     t = v 
-                    break
+                    break # Si titre trouvé : on sort de la boucle
+
+            # Si pas de titre trouvé
             if t=="":
                 json_chemin["nodes"].append({
                     "id": n,
@@ -494,25 +623,27 @@ def receive_predicates_pathETvoisins():
                 })
             print(label)
             print()
-            json_chemin["edges"].append({"from": node_id, "to": n, "label": label}) # modif !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 11/07/2025
+
+            # On ajoute l'arête dans le graphe
+            json_chemin["edges"].append({"from": node_id, "to": n, "label": label})
 
 
     return jsonify(json_chemin)
 
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/voisins")
 def api_voisins():
+    """
+    Permet de récupérer tous les voisins d'un noeud, sans les afficher sur la graphe.
+    """
+    
+    #On récupère le noeud cliqué
     node_id = request.args.get("voisin")
     choix = request.args.get("choix")
     if not node_id:
         return jsonify({"error": "Missing parameters"}), 400
 
-    if choix== "true":
-        print("choix = true")
-        graph = G_choix
-    else:
-        graph = G
+    graph = G
 
     print("node_id avant :",node_id)
    
@@ -522,6 +653,7 @@ def api_voisins():
         if node_id not in G:
             return jsonify({"error": f"No such node: {node_id}"}), 404
 
+    # On cherche tous les voisins sortants du noeud cliqué
     liste_voisins= list(graph.successors(node_id))
     json_chemin = {"nodes":[],"edges":[]}
     for v in liste_voisins:
@@ -554,26 +686,26 @@ def api_voisins():
 
     return jsonify(json_chemin)
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/path")
 def api_path():
+    """
+    Permet de trouver et d'envoyer au front les chemins simples trouvés.
+    """
+    
+    # Récupérer les paramètres
     user = request.args.get("start")
     course = request.args.get("end")
     w = request.args.get("w")
     choix = request.args.get("choix")
-    a = 0.5
-    b = 1 - a
+    a = 0.4
+    b = 0.3
+    c= 0.3
 
     if not user or not course:
         return jsonify({"error": "start and end required"}), 400
-
-
-    if choix == "true":
-        print("choix = true")
-        data = compute_all_paths_data_index(G_choix, user, course,a,b)
-        
-    else : 
-        data = compute_all_paths_data_index(G, user, course,a,b)
+    
+    # On trouve les chemins simples
+    data = compute_all_paths_data_index(G, user, course,a,b, c)
 
 
     global all_paths_res
@@ -587,15 +719,21 @@ def api_path():
     txt = generer_texte(data['path'])
     return jsonify({'path':data['path'],'texte':txt})
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/all_path")
 def api_all_path():
-    a = 0.5
-    b = 1 - a
+    """
+    Récupère tous les sous chemins trouvés par la fonction compute_all_paths_data_index et les envoie au front-end.
+    """
+    
+    a = 0.4
+    b = 0.3
+    c= 0.3
     user = request.args.get("start")
     course = request.args.get("end")
     choix = request.args.get("choix")
     print("choix : ", choix)
+
+    all_paths_res = compute_all_paths_data_index(G, user, course, a, b, c)
 
     if not user or not course:
         return jsonify({"error": "start and end required"}), 400
@@ -604,13 +742,16 @@ def api_all_path():
     if not all_paths_res:
         return jsonify({"error": "no path found"}), 404
 
+    txt = generer_texte(all_paths_res['path'])
 
-    return jsonify(all_paths_res['all_paths'])
+    return jsonify({'all_paths':all_paths_res['all_paths'], 'texte' : txt})
 
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/predicats")
 def api_predicats():
+    """
+    Permet de récupérer l'ensemble des labels des prédicats du graphe.
+    """
 
     global data 
     data = predicats(G)
@@ -621,23 +762,26 @@ def api_predicats():
 
     return jsonify(data)
 
+@app.route("/api/predicats_node")
+def api_predicats_node():
+    """
+    Permet de récupérer l'ensemble des labels des prédicats du noeud donné en paramètre.
+    """
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
-@app.route('/api/predicats_ordonnés', methods=['POST'])
-def receive_ordered_predicates():
-    data = request.get_json()
-    ordered_predicates = data.get('predicates', [])
-    print("Liste reçue :", ordered_predicates)
-    global G_choix
-    G_choix = generer_graphe_pondere_choix(ordered_predicates)
-    # TODO : traitement, enregistrement, etc.
+    node = request.args.get('node')
+    print(">> API predicats_node appelé avec :", node)
+    data_node = predicats_node(G, node)
+    data_node.sort()
 
-    return jsonify({"message": "Prédicats bien reçus", "nb": len(ordered_predicates)})
+    # Retourne toujours une liste
+    return jsonify(data_node)
 
-
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/random_course")
 def api_random_course():
+    """
+    Permet de générer une recommandation de cours aléatoirement.
+    """
+    
     user = request.args.get("start")
 
     if not user:
@@ -654,9 +798,12 @@ def api_random_course():
     course_id = course.split('/')[-1]
     return jsonify({"course": course_id})
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 @app.route("/api/top5")
 def api_find_top5():
+    """
+    Permet de récupérer le top 5 des attributs sémantiques par similarité.
+    """
+    
     user = request.args.get("user")
     course = request.args.get("course")
 
@@ -675,44 +822,8 @@ def api_find_top5():
 
     return jsonify(top5)
 
-
-
-# CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
-# @app.route('/api/user_study', methods=['POST'])
-# def receive_user_study():
-#     data = request.get_json()
-#     user_study = data.get('user_study', [])
-#     user_id = data.get('user_id', [])
-#     print("User study reçue :", user_study,", user id :", user_id)
-#     import csv
-
-   
-#     # Nom du fichier
-#     filename = "reponses_user_study.csv"
-
-#     # Création du fichier CSV
-#     with open(filename, mode='w', newline='', encoding='utf-8') as file:
-#         writer = csv.writer(file)
-
-#         # Écriture de l'entête
-#         headers = ['pattern']+ [liste_question_possible['answer'+str(i)] for i in range(6)]+['longueur']+['S_jac']+['S_rw']+['S_tot']+['path']
-#         writer.writerow(headers)
-
-#         # Écriture des lignes
-#         for question, answers in user_study.items():
-#             row = [question] + [answers.get(f'answer{i}', '') for i in range(6)]+ [answers.get('longueur','')]+ [answers.get('S_jac','')]+ [answers.get('S_rw','')]+ [answers.get('S_tot','')]+ [answers.get('path','')]
-#             writer.writerow(row)
-
-#     print(f"Fichier CSV '{filename}' créé avec succès.")
-
-
-#     return jsonify({"message": "User study bien reçue"})
-
-
-
 ### Version CSV
-""" CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
-
+"""
 @app.route('/api/user_study', methods=['POST'])
 def receive_user_study():
     data = request.get_json()
@@ -760,57 +871,76 @@ def receive_user_study():
 
     return jsonify({"message": "User study bien reçue et enregistrée"}) """
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8000"}})
 
 @app.route('/api/user_study', methods=['POST'])
 def receive_user_study():
+    """
+    Permet de recevoir les réponses des questions de l'étude utilisateur et de créer un fichier json stockant ces réponses.
+    """
+    
     import json
     data = request.get_json()
-    user_study = data.get('user_study', {})
-    user_id = data.get('user_id', '')
+    
+    user_study = data.get('user_study', [])
+    user_id = data.get('user_id', "")
+    print("User study reçue :", user_study,", user id :", user_id)
 
-    print("User study reçue :", user_study, ", user id :", user_id)
+    # Nom du fichier JSON de sortie
+    filename = f"{user_id}_study_answers.json"
 
-    formatted_feedback = {
+    # Correspondance question
+    liste_question_possible = {'answer0':'This explanation path lets me judge when I should trust the recommendation system.',
+                               'answer1':'Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.',
+                               'answer2':'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
+                               'answer3':'This explanation path seems generic.',
+                               'answer4': 'This explanation path seems seems aligned with my personal interests.'
+                        }
+
+    # Structure de base
+    feedback_data = {
         "user": user_id,
-        "general_feedback": user_study.get("general_feedback", {}),
-        "path_feedback": []
+        "general feedback": {},
+        "path feedback": []
     }
 
+    print("Type de user_study :", type(user_study))
+    print("Contenu de user_study :", user_study)
 
-    path_feedback_dict = user_study.get("path_feedback", {})
-    questions_specifiques = user_study.get("questions_specifiques", [])
-
-    print("\npath_feedback_dict : ",path_feedback_dict)
-    print("\nquestions_specifiques : ",questions_specifiques)
+    print("Contenu brut reçu du front :", json.dumps(user_study, indent=2, ensure_ascii=False))
 
 
-    for pattern, pdata in path_feedback_dict.items():
-        print("\nContenu de pdata :", json.dumps(pdata, indent=2))
-        entry = {
-            "pattern": pattern,
-            "path": pdata.pop("path", ""),
-            "length": pdata.pop("longueur", None),
-            "S_jac": pdata.pop("S_jac", None),
-            "S_rw": pdata.pop("S_rw", None),
-            "S_tot": pdata.pop("S_tot", None),
-            "answers": {k: v for k, v in pdata.items() if k.startswith("answer")},
-            #"answers": {
-            #    questions_specifiques[int(k.replace("answer", ""))]: v
-             #   for k, v in pdata.items()
-              #  if k.startswith("answer") and k.replace("answer", "").isdigit() and int(k.replace("answer", "")) < len(questions_specifiques)
-           # }
+    # Traitement du feedback général
+    general_feedback = user_study.get('general_feedback', {})
+    for question, answer in general_feedback.items():
+        feedback_data["general feedback"][question] = answer
+
+   # Traitement du feedback par chemin
+    path_feedback = user_study.get('path_feedback', {})
+    for path_key, path_info in path_feedback.items():
+        path_dict = {
+            "longueur": path_info.get("longueur"),
+            "path": path_info.get("path"),
+            "S_sim": path_info.get("S_sim"),
+            "S_pop": path_info.get("S_pop"),
+            "S_div": path_info.get("S_div"),
+            "Score": path_info.get("Score")
         }
-        formatted_feedback["path_feedback"].append(entry)
+        # Ajout des réponses avec remplacement answerX par la question
+        for ans_key, ans_value in path_info.items():
+            if ans_key.startswith("answer"):
+                question_text = liste_question_possible.get(ans_key, ans_key)
+                path_dict[question_text] = ans_value
+
+        feedback_data["path feedback"].append(path_dict)
 
 
-    # 💾 Sauvegarde en fichier JSON
-    with open(f"{user_id}_feedback.json", "w", encoding="utf-8") as f:
-        json.dump(formatted_feedback, f, indent=2, ensure_ascii=False)
 
-    print(f"Feedback saved to {user_id}_feedback.json")
+    # Sauvegarde JSON
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(feedback_data, f, ensure_ascii=False, indent=4)
 
-    return jsonify({"message": "User study bien reçue et enregistrée"})
+    return jsonify({"status": "success", "message": f"Data saved for {user_id}"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
