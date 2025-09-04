@@ -3,20 +3,20 @@
 **Instructions :**
 - **Sur Codespace :**
   - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :\
-    _premier terminal_:
+    - _premier terminal_:
       * cd my-vue-app
       * npm run dev\
-    _deuxieme terminal_:
+    - _deuxieme terminal_:
       * python server_rapide.py
   - Modifier la visibilité du port 5000 à _public_
   - Accéder ensuite à l'adresse affichée sur le premier terminal
 - **Par VisualStudioCode :**
   - Remplacer l'url des api dans le fichier src/components/ExplainGraph.vue dans la ligne par ("const API_URL = "http://localhost:5000/";)
   - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :\
-    _premier terminal_:
+   -  _premier terminal_:
       * cd my-vue-app
       * npm run dev (Executer npm install si npm n'est pas installé)
-    _deuxieme terminal_:
+    - _deuxieme terminal_:
       * python server_rapide.py
     
   - Accéder ensuite à l'adresse affichée sur le premier terminal
