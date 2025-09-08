@@ -4,7 +4,7 @@
 - Ouvrir deux terminaux séparés et exécuter les commandes suivantes :
   * python -m http.server 8000
   * python server.py
-- Accéder ensuite à l'adresse : http://localhost:8000/page3D3.html
+- Accéder ensuite à l'adresse : http://localhost:8000/index.html
 
 **Fonctionnement :**
 - Lors de l'arrivée sur la page, saisir l’identifiant du user dans le champ User, puis cliquer sur "Confirm".
