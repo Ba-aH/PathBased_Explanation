@@ -1,8 +1,0 @@
-/* style.css */
-html, body {
-  height: auto;       /* ou 100% si tu veux full page */
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: auto;     /* permet le scroll */
-}
