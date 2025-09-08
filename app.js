@@ -837,6 +837,15 @@ function afficherQuestionsPourChemin(path) {
     container.appendChild(form);
 }
 
+function showLoader() {
+    document.getElementById("loader").style.display = "flex";
+}
+
+function hideLoader() {
+    document.getElementById("loader").style.display = "none";
+}
+
+
 function loadPath() {
     path2_en_cours = false;
     parent = {};
@@ -866,10 +875,14 @@ function loadPath() {
 
     index_path_affiché = 0;
 
+    // ➡️ Affichage du loader AVANT la première requête
+    showLoader();
+
     fetch(`http://localhost:5000/api/random_course?start=${user}`)
         .then(res => res.json())
         .then(data4 => {
             if (data4.error) {
+                hideLoader();
                 alert(data4.error);
                 return;
             }
@@ -877,9 +890,12 @@ function loadPath() {
             const affichageDiv = document.getElementById("affichage-cours");
             affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
 
+            // ➡️ Deuxième fetch : récupération des chemins
             fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`)
                 .then(res => res.json())
                 .then(data2 => {
+                    hideLoader(); // ⬅️ On cache le loader une fois la réponse reçue
+
                     var texte = data2.texte;
                     document.getElementById('Explication').innerHTML = texte;
                     const precedent = document.getElementById("buttonPrecedent");
@@ -1013,8 +1029,13 @@ function loadPath() {
                             alert("Merci de répondre à toutes les questions.");
                         }
                     });
+                })
+                .catch(err => {
+                    hideLoader(); // ⬅️ En cas d'erreur, on enlève aussi le loader
+                    alert("Erreur lors de la récupération du cours aléatoire.");
                 });
 
+            // ➡️ Chargement du top 5 (pas de loader ici pour ne pas bloquer l’UI)
             fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1060,8 +1081,12 @@ function loadPath() {
                 });
 
         })
-        .catch(err => alert("Erreur lors de la récupération du cours aléatoire."));
+        .catch(err => {
+            hideLoader(); // ⬅️ Si l’appel random_course échoue
+            alert("Erreur lors de la récupération du cours aléatoire.");
+        });
 }
+
 
 // --- Autocomplete pour #userId ---
 document.addEventListener('DOMContentLoaded', function () {
