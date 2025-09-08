@@ -34,7 +34,7 @@
             <div id="login-box">
                 <h2>Welcome to ExplainGraph !</h2>
                 <label for="userId">Enter a user_id to generate a course recommendation and its explanation :</label>
-                <input id="userId" placeholder="user_X.0" type="text" />
+                <input id="userId" placeholder="user_X.0" type="text" autocomplete="off" />
                 <!-- Autocomplete dropdown -->
                 <ul class="extracted-style-5" id="userId-suggest">
                 </ul>
@@ -117,6 +117,10 @@
                 <canvas height="200" id="top5chart" width="260"></canvas>
             </div>
         </div>
+    </div>
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay" style="display: none;">
+        <div class="spinner"></div>
     </div>
     <!-- App script -->
     <script src="app.js"></script>
