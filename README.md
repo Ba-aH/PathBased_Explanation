@@ -41,7 +41,7 @@
 - Open two separate terminals and run the following commands:
   * `python -m http.server 8000`
   * `python server.py`
-- Then, go to: [http://localhost:8000/page3D3.html](http://localhost:8000/page3D3.html)
+- Then, go to: [http://localhost:8000/index.html](http://localhost:8000/index.html)
 
 **How it works :**
 - When the page loads, enter the user ID in the **User** field and click **"Confirm"**.
