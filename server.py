@@ -941,6 +941,51 @@ def receive_user_study():
 
     return jsonify({"status": "success", "message": f"Data saved for {user_id}"})
 
+# --- AUTOCOMPLÉTION UTILISATEURS ---
+@app.route("/api/users")
+def api_users_autocomplete():
+    q = (request.args.get("q") or "").strip().lower()
+    try:
+        limit = int(request.args.get("limit", 10))
+    except ValueError:
+        limit = 10
+
+    if not q:
+        return jsonify([])
+
+    sparql = f"""
+    PREFIX schema: <https://schema.org/>
+    SELECT DISTINCT ?u WHERE {{
+      ?u a schema:Person .
+      FILTER(CONTAINS(LCASE(STR(?u)), "{q.replace('"','\\"')}"))
+    }} LIMIT {max(limit,1)}
+    """
+
+    out = []
+
+    try:
+        res = g.query(sparql)
+        out = [
+            str(row.u).rsplit("/", 1)[-1]
+            for row in res
+            if str(row.u).rsplit("/", 1)[-1].startswith("user_")
+        ]
+    except Exception:
+        out = []
+
+    # Fallback si SPARQL vide : parcourir le graphe RDF
+    if not out:
+        seen = set()
+        for s, p, o in g:
+            # Cherche les sujets ressemblant à .../user_... et contenant la requête
+            uid = str(s).rsplit("/", 1)[-1]
+            if uid.startswith("user_") and q in uid.lower() and uid not in seen:
+                seen.add(uid)
+                out.append(uid)
+                if len(out) >= limit:
+                    break
+
+    return jsonify(out)
 
 if __name__ == "__main__":
     app.run(debug=True)
