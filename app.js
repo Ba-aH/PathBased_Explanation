@@ -1130,11 +1130,10 @@ function loadPath() {
                     });
                 })
                 .catch(err => {
-                    hideLoader(); // ⬅️ En cas d'erreur, on enlève aussi le loader
+                    hideLoader();
                     alert("Erreur lors de la récupération du cours aléatoire.");
                 });
 
-            // ➡️ Chargement du top 5 (pas de loader ici pour ne pas bloquer l’UI)
             fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
                 .then(response => response.json())
                 .then(data => {
