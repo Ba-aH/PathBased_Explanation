@@ -1181,7 +1181,7 @@ function loadPath() {
 
         })
         .catch(err => {
-            hideLoader(); // ⬅️ Si l’appel random_course échoue
+            hideLoader(); 
             alert("Erreur lors de la récupération du cours aléatoire.");
         });
 }
