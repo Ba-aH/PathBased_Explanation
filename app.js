@@ -480,8 +480,107 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+
+// ===================== SVG EXPORT (NEW TAB + AUTO-DOWNLOAD) =====================
+function ensureNamespacesAndViewBox(svg) {
+    if (!svg.getAttribute("xmlns")) svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    if (!svg.getAttribute("xmlns:xlink")) svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    if (!svg.getAttribute("viewBox")) {
+        const w = +svg.getAttribute("width") || svg.clientWidth || 800;
+        const h = +svg.getAttribute("height") || svg.clientHeight || 600;
+        svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    }
+}
+function svgToString(svgNode) {
+    ensureNamespacesAndViewBox(svgNode);
+    const ser = new XMLSerializer();
+    let s = ser.serializeToString(svgNode);
+    if (!s.startsWith("<?xml")) {
+        s = '<?xml version="1.0" standalone="no"?>\\n' + s;
+    }
+    return s;
+}
+function stringToBase64Utf8(s) {
+    const bytes = new TextEncoder().encode(s);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+}
+function openNewTabAndDownloadSVG(svgString, filename) {
+    const b64 = stringToBase64Utf8(svgString);
+    const html = `<!doctype html><html><meta charset="utf-8"><title>Export SVG</title><body>
+<script>
+(function(){
+  try{
+    const b64 = "${b64}";
+    const bin = atob(b64);
+    const len = bin.length;
+    const bytes = new Uint8Array(len);
+    for (let i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "${filename}";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); window.close(); }, 800);
+  }catch(e){
+    document.body.innerHTML = "<pre>"+String(e)+"</pre>";
+  }
+})();
+<\/script>
+</body></html>`;
+    const win = window.open("", "_blank");
+    if (!win) return false;
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    return true;
+}
+function exportCurrentSVG_NewTab() {
+    const svgSel = (window.graphPrincipal && window.graphPrincipal.svg) ? window.graphPrincipal.svg : d3.select("#graph svg");
+    const svgEl = svgSel && svgSel.node ? svgSel.node() : document.querySelector("#graph svg");
+    if (!svgEl) { alert("Le graphe n'est pas encore initialisé."); return; }
+    const clone = svgEl.cloneNode(true);
+    const svgString = svgToString(clone);
+    const u = (typeof user === "string" && user) ? user : "user";
+    const c = (typeof course === "string" && course) ? course : "course";
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `ExplainGraph_${u}_${c}_${ts}.svg`;
+    const opened = openNewTabAndDownloadSVG(svgString, filename);
+    if (!opened) {
+        const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        a.remove();
+    }
+}
+// =============================================================================
+
 // === Main onload ===
 window.onload = function () {
+
+    // Ensure Export button exists and is wired
+    (function () {
+        const controls = document.querySelector(".graph-controls");
+        if (controls && !document.getElementById("exportSvg")) {
+            const b = document.createElement("button");
+            b.className = "button";
+            b.id = "exportSvg";
+            b.title = "Export the current graph as SVG (new tab + download)";
+            b.textContent = "Export SVG";
+            controls.appendChild(b);
+        }
+        const btn = document.getElementById("exportSvg");
+        if (btn) btn.addEventListener("click", exportCurrentSVG_NewTab);
+    })();
+
     const container = document.getElementById("graph");
     const graphe_svg = d3.select("#graph");
     const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
@@ -875,7 +974,6 @@ function loadPath() {
 
     index_path_affiché = 0;
 
-    // ➡️ Affichage du loader AVANT la première requête
     showLoader();
 
     fetch(`http://localhost:5000/api/random_course?start=${user}`)
@@ -890,11 +988,11 @@ function loadPath() {
             const affichageDiv = document.getElementById("affichage-cours");
             affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
 
-            // ➡️ Deuxième fetch : récupération des chemins
+
             fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`)
                 .then(res => res.json())
                 .then(data2 => {
-                    hideLoader(); // ⬅️ On cache le loader une fois la réponse reçue
+                    hideLoader();
 
                     var texte = data2.texte;
                     document.getElementById('Explication').innerHTML = texte;
@@ -1031,11 +1129,10 @@ function loadPath() {
                     });
                 })
                 .catch(err => {
-                    hideLoader(); // ⬅️ En cas d'erreur, on enlève aussi le loader
+                    hideLoader(); 
                     alert("Erreur lors de la récupération du cours aléatoire.");
                 });
 
-            // ➡️ Chargement du top 5 (pas de loader ici pour ne pas bloquer l’UI)
             fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1082,7 +1179,7 @@ function loadPath() {
 
         })
         .catch(err => {
-            hideLoader(); // ⬅️ Si l’appel random_course échoue
+            hideLoader(); 
             alert("Erreur lors de la récupération du cours aléatoire.");
         });
 }
