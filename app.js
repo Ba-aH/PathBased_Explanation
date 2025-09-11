@@ -496,7 +496,7 @@ function svgToString(svgNode) {
     const ser = new XMLSerializer();
     let s = ser.serializeToString(svgNode);
     if (!s.startsWith("<?xml")) {
-        s = '<?xml version="1.0" standalone="no"?>\\n' + s;
+        s = '<?xml version="1.0" standalone="no"?>\n' + s;
     }
     return s;
 }
@@ -974,6 +974,7 @@ function loadPath() {
 
     index_path_affiché = 0;
 
+    // ➡️ Affichage du loader AVANT la première requête
     showLoader();
 
     fetch(`http://localhost:5000/api/random_course?start=${user}`)
@@ -988,11 +989,11 @@ function loadPath() {
             const affichageDiv = document.getElementById("affichage-cours");
             affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
 
-
+            // ➡️ Deuxième fetch : récupération des chemins
             fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`)
                 .then(res => res.json())
                 .then(data2 => {
-                    hideLoader();
+                    hideLoader(); // ⬅️ On cache le loader une fois la réponse reçue
 
                     var texte = data2.texte;
                     document.getElementById('Explication').innerHTML = texte;
@@ -1129,10 +1130,11 @@ function loadPath() {
                     });
                 })
                 .catch(err => {
-                    hideLoader(); 
+                    hideLoader(); // ⬅️ En cas d'erreur, on enlève aussi le loader
                     alert("Erreur lors de la récupération du cours aléatoire.");
                 });
 
+            // ➡️ Chargement du top 5 (pas de loader ici pour ne pas bloquer l’UI)
             fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1179,7 +1181,7 @@ function loadPath() {
 
         })
         .catch(err => {
-            hideLoader(); 
+            hideLoader(); // ⬅️ Si l’appel random_course échoue
             alert("Erreur lors de la récupération du cours aléatoire.");
         });
 }
