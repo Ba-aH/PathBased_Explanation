@@ -848,6 +848,8 @@ window.onload = function () {
 };
 
 // ------------------FONCTIONS COMPLEXES------------------- //
+
+// Validation de l’ID puis chargement d’un cours aléatoire
 function validateLogin() {
     const userID = document.getElementById("userId").value.trim();
     if (userID === "") {
@@ -871,6 +873,7 @@ function validateLogin() {
         });
 }
 
+// Affiche le chemin courant (métriques + recentrage + questions)
 function afficherCheminCourant() {
     liste_node_click = [];
     parent = {};
@@ -910,6 +913,7 @@ function afficherCheminCourant() {
     afficherQuestionsPourChemin(currentPath);
 }
 
+// Construit le formulaire d’évaluation pour le chemin affiché
 function afficherQuestionsPourChemin(path) {
     const container = document.getElementById("formulaire-questions");
     container.innerHTML = "";
@@ -962,6 +966,7 @@ function afficherQuestionsPourChemin(path) {
             }
         });
         if (allAnswered) {
+            // Ajout de métadonnées du chemin pour analyse ultérieure
             responses["longueur"] = path["longueur"];
             responses["S_sim"] = path["S_sim"];
             responses["S_pop"] = path["S_pop"];
@@ -982,15 +987,16 @@ function afficherQuestionsPourChemin(path) {
     container.appendChild(form);
 }
 
+// Affiche/Cacher le loader global
 function showLoader() {
     document.getElementById("loader").style.display = "flex";
 }
-
 function hideLoader() {
     document.getElementById("loader").style.display = "none";
 }
 
 
+// Charge un cours recommandé puis tous les chemins, les questions et le top5
 function loadPath() {
     path2_en_cours = false;
     parent = {};
@@ -1011,6 +1017,7 @@ function loadPath() {
         window.graphPrincipal.simulation,
         window.graphPrincipal.zoomGroup);
 
+    // Reset du zoom
     setTimeout(() => {
         window.graphPrincipal.svg.transition().duration(750).call(
             window.graphPrincipal.zoom.transform,
@@ -1020,9 +1027,10 @@ function loadPath() {
 
     index_path_affiché = 0;
 
-    // ➡️ Affichage du loader AVANT la première requête
+    // Loader visible pendant la première requête
     showLoader();
 
+    // 1) Choisir un cours aléatoire pour l’utilisateur
     fetch(`http://localhost:5000/api/random_course?start=${user}`)
         .then(res => res.json())
         .then(data4 => {
@@ -1035,11 +1043,11 @@ function loadPath() {
             const affichageDiv = document.getElementById("affichage-cours");
             affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
 
-            // ➡️ Deuxième fetch : récupération des chemins
+            // 2) Récupérer tous les chemins expliquant la reco
             fetch(`http://localhost:5000/api/all_path?start=${user}&end=${course}&w=true&choix=${choix}`)
                 .then(res => res.json())
                 .then(data2 => {
-                    hideLoader(); // ⬅️ On cache le loader une fois la réponse reçue
+                    hideLoader(); // stop loader dès réception
 
                     var texte = data2.texte;
                     document.getElementById('Explication').innerHTML = texte;
@@ -1065,6 +1073,7 @@ function loadPath() {
                         ⬇️General Feedback on the Explanation Interface⬇️
                         </h3>
                     `;
+                    // Générer les questions générales
                     const containerQuG = document.getElementById("questionsGenerales");
                     containerQuG.innerHTML = '';
                     Object.entries(questions_reponses_generales).forEach(([questionText, options], index) => {
@@ -1101,11 +1110,13 @@ function loadPath() {
                         }
                         containerQuG.appendChild(wrapper);
                     });
+                    // Bouton global de sauvegarde des réponses
                     const validerQuestions = document.createElement('button');
                     validerQuestions.className = 'button';
                     validerQuestions.id = 'validerQuestions';
                     validerQuestions.innerHTML = 'Save';
                     document.getElementById("center-panel").appendChild(validerQuestions);
+                    // Navigation entre chemins
                     const precedentHandler = () => {
                         if (index_path_affiché - 1 > -1) {
                             suivant.style.visibility = 'visible';
@@ -1128,6 +1139,8 @@ function loadPath() {
                     };
                     precedent.onclick = precedentHandler;
                     suivant.onclick = suivantHandler;
+
+                    // Validation finale: vérifie que tout est répondu (par chemin + général)
                     validerQuestions.addEventListener("click", () => {
                         let allPathAnswered = true;
                         allPaths.forEach((_, idx) => {
@@ -1180,6 +1193,7 @@ function loadPath() {
                     alert("Erreur lors de la récupération du cours aléatoire.");
                 });
 
+            // 3) Top 5 des attributs communs (chart)
             fetch(`http://localhost:5000/api/top5?user=${user}&course=${course}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1233,6 +1247,7 @@ function loadPath() {
 
 
 // --- Autocomplete pour #userId ---
+// Saisie assistée par requêtes backend /users?q=… (debounce léger)
 document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById("userId");
     const list = document.getElementById("userId-suggest");
