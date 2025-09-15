@@ -1,19 +1,21 @@
 // === Globals ===
-var index_path_affiché = 0; // numero du petit chemin affiché
-let liste_node_click = []; // liste nodes cliqués
-let top5ChartInstance = null; //Existance du graphe top 5
+// État global minimal pour piloter l'interface et les calculs
+var index_path_affiché = 0; // index du petit chemin affiché
+let liste_node_click = []; // ids des nodes dont on a déjà affiché le voisinage
+let top5ChartInstance = null; // instance Chart.js (top 5)
 let reponse_user_study = {
     general_feedback: {},
     path_feedback: {}
-}; // Dictionnaire des réponses aux question du user study
-var choix = "false"; // Choix = false --> utilisation graphe pondéré par défaut, choix = true --> utilisation graphe pondéré en fct des prédicats choisis par l'utilisateur
+}; // réponses du user study (général et par chemin)
+var choix = "false"; // "false" => pondération par défaut, "true" => pondération selon prédicats choisis
 var path = { nodes: [], edges: [] }; // chemin principal
-var path2 = { nodes: [], edges: [] }; // chemin principal avec ajout/remplacé par des petits chemins (mode ajout ou échanger)
-var data = { nodes: [], edges: [] }; // graphe
+var path2 = { nodes: [], edges: [] }; // variante du chemin (ajout/échange)
+var data = { nodes: [], edges: [] }; // graphe actuellement affiché
 var course = ""; // cours recommandé
-let user = null;
-const liste_answer_possible = ['strongly agree', 'agree', 'neutre', 'disagree', 'strongly disagree']; // Réponses possibles aux questions
-// Questions portant sur l'explication de manière générale
+let user = null; // identifiant utilisateur courant
+const liste_answer_possible = ['strongly agree', 'agree', 'neutre', 'disagree', 'strongly disagree']; // options standard des questions
+
+// Questions générales sur l’interface d’explication
 const questions_reponses_generales = {
     "Do you think explanations, either graph, diagram or text-based, are useful ?": liste_answer_possible,
     "Which explanation format do you prefer ?": ["graph-based", "text-based", "bar chart"],
@@ -24,7 +26,8 @@ const questions_reponses_generales = {
     "I will follow this course.": liste_answer_possible,
     "I can determine how well I will like this course.": liste_answer_possible
 };
-// Questions portant sur chacun des chemins proposés dans l'explication
+
+// Questions évaluant chaque chemin d’explication
 const liste_question_possible = [
     'Without adding paths or modifying the graph, the explanation path gives me enough information on why this course was recommended to me.',
     'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
@@ -32,15 +35,16 @@ const liste_question_possible = [
     'This explanation path seems aligned with my personal interests.'
 ];
 
-var path2_en_cours = false; // Vaut true si on modifie le chemin principal initial (en ajoutant ou échangeant avec un autre chemin) 
-var mode = "modeAjoutGraph"; // Mode d'intéraction avec les autres chemins. Les deux modes sont :"modeAjoutGraph" et "modeEchangeGraph"
+var path2_en_cours = false; // true quand on modifie le chemin initial (ajout/échange)
+var mode = "modeAjoutGraph"; // mode d'interaction avec les petits chemins: "modeAjoutGraph" ou "modeEchangeGraph"
 
-// Extra globals that were implicit in original page
+// Variables supplémentaires qui étaient implicites
 let allPaths = [];
-let parent = {};
-
+let parent = {}; // map enfant -> parent (utile pour nettoyer les voisins)
 
 // -----------------FONCTIONS SIMPLES---------------//
+
+// Palette simple par groupe
 function getNodeColor(group) {
     return group === 0 ? "orange" :
         group === 1 ? "rgb(245, 221, 6)" :
@@ -48,6 +52,7 @@ function getNodeColor(group) {
                 group === 3 ? "rgb(67, 143, 206)" : "#bce98f";
 }
 
+// Recherche d’un node par label dans le chemin affiché et focus dessus
 function chercherNode() {
     const node = document.getElementById("node").value;
     const currentPath = allPaths[index_path_affiché];
@@ -68,6 +73,7 @@ function chercherNode() {
     return;
 }
 
+// Ajuste le SVG + redémarre la simulation pour un resize propre
 function updateGraphSize(width, height, simulation, svg) {
     svg
         .attr("width", width)
@@ -78,6 +84,7 @@ function updateGraphSize(width, height, simulation, svg) {
     simulation.alpha(1).restart();
 }
 
+// Cadre la vue pour englober la zone occupée par le graphe
 function fitToGraph(svg, zoomfunction) {
     const bounds = svg.select("g.zoom-group").node().getBBox();
     const fullWidth = +svg.attr("width");
@@ -103,6 +110,7 @@ function fitToGraph(svg, zoomfunction) {
         );
 }
 
+// Focus doux sur un node donné (stroke + zoom centré)
 function focusOnNode(graph, nodeId, width, height) {
     const node = graph.simulation.nodes().find(n => n.id === nodeId);
     if (!node) return;
@@ -121,6 +129,7 @@ function focusOnNode(graph, nodeId, width, height) {
         .call(graph.zoom.transform, newZoom);
 }
 
+// Récupère les réponses aux questions générales (libellés + valeurs)
 function collectGeneralFeedback() {
     const feedback = {};
     const selects = document.querySelectorAll("#questionsGenerales select");
@@ -131,6 +140,7 @@ function collectGeneralFeedback() {
     return feedback;
 }
 
+// Construction du graphe (couches + zoom + simulation) puis rendu initial
 function drawGraph(container, nodesData, edgesData) {
     if (!container) {
         console.error("Élément #graph-container introuvable.");
@@ -140,6 +150,7 @@ function drawGraph(container, nodesData, edgesData) {
 
     var width = container.clientWidth;
     var height = container.clientHeight;
+    // Cas où le conteneur est caché (calculer une taille plausible)
     if (container.parentElement.style.display == "none") {
         const oldDisplay = container.parentElement.style.display;
         container.parentElement.style.display = "block";
@@ -154,12 +165,14 @@ function drawGraph(container, nodesData, edgesData) {
         .attr("width", width)
         .attr("height", height);
 
+    // Groupes pour liens/nodes/labels
     const zoomGroup = svg.append("g").attr("class", "zoom-group");
     const linkGroup = zoomGroup.append("g").attr("class", "links");
     const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
     const labelGroup = zoomGroup.append("g").attr("class", "labels");
     const edgeLabelGroup = zoomGroup.append("g").attr("class", "edge-labels");
 
+    // Flèches pour les arêtes dirigées
     svg.append("defs").append("marker")
         .attr("id", "arrow")
         .attr("viewBox", "0 -5 10 10")
@@ -173,10 +186,12 @@ function drawGraph(container, nodesData, edgesData) {
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "currentColor");
 
+    // Autoriser les interactions souris/touch sur tous les calques utiles
     d3.select("svg").style("pointer-events", "all");
     d3.select("g.zoom-group").style("pointer-events", "all");
     d3.selectAll(".nodes circle").style("pointer-events", "all");
 
+    // Zoom panoramique
     const zoom = d3.zoom()
         .scaleExtent([0.1, 5])
         .on("zoom", (event) => {
@@ -185,6 +200,7 @@ function drawGraph(container, nodesData, edgesData) {
 
     svg.call(zoom);
 
+    // Simulation forces (longueurs de liens + répulsion + centrage)
     let simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(d => d.id).distance(200))
         .force("charge", d3.forceManyBody().strength(-300))
@@ -195,13 +211,16 @@ function drawGraph(container, nodesData, edgesData) {
     return { svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup, zoom };
 }
 
+// Mise à jour incrémentale du graphe (data join + tick handler)
 function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup, edgeLabelGroup, simulation, zoomGroup) {
+    // Adapter les clés source/target pour d3.forceLink
     const edgesD3 = edgesData.map(e => ({
         ...e,
         source: e.from,
         target: e.to
     }));
 
+    // Position initiale aléatoire si absente (évite tout superposer à 0,0)
     nodesData.forEach(n => {
         if (n.x == null) n.x = Math.random() * +svg.attr("width");
         if (n.y == null) n.y = Math.random() * +svg.attr("height");
@@ -211,6 +230,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
     simulation.force("link").links(edgesD3);
     simulation.alpha(1).restart();
 
+    // --- Liens courbes (quadratiques) ---
     const linkSelection = linkGroup.selectAll("path")
         .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
 
@@ -237,6 +257,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
         .style("color", d => (typeof d.source === "object" ? getNodeColor(d.source.group) : "#aaa"))
         .attr("marker-end", "url(#arrow)");
 
+    // --- Nodes : cercle par défaut ou rectangle étiqueté si label===id ---
     const nodeSelection = nodeGroup.selectAll(".node")
         .data(nodesData, d => d.id);
 
@@ -244,7 +265,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
 
     const attrs = {
         onNodeHover: function (value) {
-            // console.log("Hovered:", value);
+            // hook pour éventuels callbacks
         }
     };
     const tooltip = d3.select("#tooltip");
@@ -252,6 +273,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
     const nodeEnter = nodeSelection.enter()
         .append(d => {
             if (d.label === d.id) {
+                // Représentation "boîte + texte" pour les nodes self-labellisés
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 rect.setAttribute("rx", 5);
@@ -305,6 +327,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
         })
         .call(drag(simulation))
         .on("mouseover", (event, d) => {
+            // survol: mise en évidence + tooltip si title est présent
             if (d.label === d.id) {
                 d3.select(event.currentTarget).select('rect')
                     .attr("stroke", "black")
@@ -338,6 +361,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
         });
     const nodeElements = nodeEnter.merge(nodeSelection);
 
+    // --- Labels des nodes (pour les cercles uniquement) ---
     const labelSelection = labelGroup.selectAll("text")
         .data(nodesData, d => d.id);
 
@@ -355,6 +379,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
 
     const labelElements = labelEnter.merge(labelSelection);
 
+    // --- Labels des arêtes ---
     const edgeLabelSelection = edgeLabelGroup.selectAll("text")
         .data(edgesD3, d => d.id || (d.source.id + "-" + d.target.id));
 
@@ -369,6 +394,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
 
     const edgeLabelElements = edgeLabelEnter.merge(edgeLabelSelection);
 
+    // Physique du graphe: mise à jour des positions à chaque tick
     simulation.on("tick", () => {
         linkElements.attr("d", d => {
             const x1 = d.source.x;
@@ -408,6 +434,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
     });
 }
 
+// Gestion du drag des nodes (fixation temporaire des positions)
 function drag(simulation) {
     function dragstarted(event, d) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -435,6 +462,7 @@ function drag(simulation) {
         .on("end", dragended);
 }
 
+// Petit message temporaire près d’un node (ex: absence de voisins)
 function showNodeMessage(svg, node, message) {
     svg.selectAll(".node-message").remove();
     const g = svg.append("g")
@@ -464,6 +492,7 @@ function showNodeMessage(svg, node, message) {
     }, 2000);
 }
 
+// Toast simple (succès/sauvegarde)
 function showToast(message) {
     const toast = document.createElement("div");
     toast.textContent = message;
@@ -482,6 +511,7 @@ function showToast(message) {
 
 
 // ===================== SVG EXPORT (NEW TAB + AUTO-DOWNLOAD) =====================
+// Pipe complet pour sérialiser le SVG et proposer un téléchargement automatique
 function ensureNamespacesAndViewBox(svg) {
     if (!svg.getAttribute("xmlns")) svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     if (!svg.getAttribute("xmlns:xlink")) svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
@@ -564,9 +594,10 @@ function exportCurrentSVG_NewTab() {
 // =============================================================================
 
 // === Main onload ===
+// Branchement des handlers UI, initialisation du graphe, et gestion du resize
 window.onload = function () {
 
-    // Ensure Export button exists and is wired
+    // Injection du bouton "Export SVG" si absent, puis binding du clic
     (function () {
         const controls = document.querySelector(".graph-controls");
         if (controls && !document.getElementById("exportSvg")) {
@@ -586,6 +617,7 @@ window.onload = function () {
     const graphCtx = drawGraph(container, data["nodes"], data["edges"]);
     window.graphPrincipal = graphCtx;
 
+    // Resize: recalcul des forces + dimensions du SVG
     const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
             const width = entry.contentRect.width;
@@ -595,10 +627,12 @@ window.onload = function () {
     });
     resizeObserver.observe(container);
 
+    // Bouton: recadrer la vue sur l’ensemble du graphe
     document.getElementById("resetView").addEventListener("click", () => {
         fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
     });
 
+    // Bouton: réinitialiser le chemin courant et sa vue
     document.getElementById("resetPath").addEventListener("click", () => {
         const currentPath = allPaths[index_path_affiché];
         data = {
@@ -622,6 +656,7 @@ window.onload = function () {
         path2_en_cours = false;
     });
 
+    // Clic sur le graphe: ouvrir la modale de prédicats ou replier le voisinage
     graphe_svg.on('click', function (properties) {
         window.graphPrincipal.simulation.stop();
         const transform = d3.zoomTransform(window.graphPrincipal.svg.node());
@@ -635,6 +670,8 @@ window.onload = function () {
             var nodeId = clickedNode.id;
         }
         if (!nodeId) return;
+
+        // 1) Node jamais exploré: ouvrir modale de sélection des prédicats sortants
         if (!liste_node_click.includes(nodeId)) {
             fetch(`http://localhost:5000/api/predicats_node?node=${encodeURIComponent(nodeId)}`)
                 .then(res => {
@@ -647,9 +684,10 @@ window.onload = function () {
                         return;
                     }
                     if (!predicats || predicats.length === 0) {
-                        showNodeMessage(window.graphPrincipal.svg, clickedNode, "⚠️ No outgoing neighbors");
+                        showNodeMessage(window.graphPrincipal.svg, clickedNode, "No outgoing neighbors");
                         return;
                     }
+                    // Construire la modale
                     d3.selectAll(".modal-overlay").remove();
                     const overlay = d3.select("body").append("div")
                         .attr("class", "modal-overlay");
@@ -676,7 +714,7 @@ window.onload = function () {
                     btns.append("button")
                         .attr("class", "button")
                         .text("Unselect all").on("click", () => {
-                            checklist.selectAll("input").property("checked", false);
+                        checklist.selectAll("input").property("checked", false);
                         });
                     btns.append("button")
                         .attr("class", "button")
@@ -685,6 +723,7 @@ window.onload = function () {
                             const checkboxes = document.querySelectorAll('.myCheckbox:checked');
                             const cb_predicates = Array.from(checkboxes).map(cb => cb.value);
                             const encodedNodeId = encodeURIComponent(nodeId);
+                            // Envoi au backend des prédicats choisis pour étendre le voisinage
                             fetch(`http://localhost:5000/api/pathETvoisins?start=${user}&end=${course}&voisin=${encodedNodeId}&choix=${choix}`, {
                                 method: "POST",
                                 headers: {
@@ -694,6 +733,7 @@ window.onload = function () {
                             })
                                 .then(res => res.json())
                                 .then(data2 => {
+                                    // Fusion sans doublons (nodes/edges)
                                     const existingNodeIds = new Set(data.nodes.map(n => n.id));
                                     const newNodes = data2.nodes.filter(n => !existingNodeIds.has(n.id));
                                     for (const n of newNodes) {
@@ -710,6 +750,7 @@ window.onload = function () {
                                         edges: [...data.edges, ...newEdges]
                                     };
                                     if (data2.nodes.length == 0) {
+                                        // rien de nouveau: on retire le node de la liste cliquée
                                         liste_node_click.splice(liste_node_click.indexOf(nodeId), 1);
                                     } else {
                                         updateGraph(data["nodes"], data["edges"],
@@ -731,6 +772,7 @@ window.onload = function () {
                         });
                 });
         } else {
+            // 2) Node déjà exploré: tentative de repli de son voisinage
             var grandparent = 0;
             for (const k of Object.keys(parent)) {
                 if (parent[k] == nodeId && Object.values(parent).includes(k)) {
@@ -743,6 +785,7 @@ window.onload = function () {
                 fetch(`http://localhost:5000/api/voisins?voisin=${encodedNodeId}&choix=${choix}`)
                     .then(res => res.json())
                     .then(data2 => {
+                        // Éléments à supprimer (hors chemin actif)
                         const idsToRemove = new Set(data2.nodes.map(n => n.id));
                         const edgesToRemove = new Set(data2.edges.map(e => `${e.from}->${e.to}`));
                         var pathNodeIds = new Set(path.nodes.map(n => n.id));
@@ -751,6 +794,7 @@ window.onload = function () {
                             pathNodeIds = new Set(path2.nodes.map(n => n.id));
                             pathEdge = new Set(path2.edges.map(e => `${e.from}->${e.to}`));
                         }
+                        // Filtrage nodes: ne pas retirer ceux du path ou ceux qui ont des enfants
                         data.nodes = data.nodes.filter(n => {
                             let p = 0;
                             for (const k of Object.keys(parent)) {
@@ -767,10 +811,12 @@ window.onload = function () {
                             }
                             return true;
                         });
+                        // Filtrage edges: garder cohérent avec nodes + ne pas retirer les arêtes du path
                         const validNodeIds = new Set(data.nodes.map(n => n.id));
                         data.edges = data.edges.filter(e =>
                             validNodeIds.has(e.from) && validNodeIds.has(e.to) && !(edgesToRemove.has(`${e.from}->${e.to}`) && !pathEdge.has(`${e.from}->${e.to}`))
                         );
+                        // Nettoyage liste_node_click si plus de parent-enfant actifs
                         let p = 0;
                         for (const n of liste_node_click) {
                             for (const k of Object.keys(parent)) {
