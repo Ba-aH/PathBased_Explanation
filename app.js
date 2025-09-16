@@ -13,6 +13,7 @@ var path2 = { nodes: [], edges: [] }; // variante du chemin (ajout/échange)
 var data = { nodes: [], edges: [] }; // graphe actuellement affiché
 var course = ""; // cours recommandé
 let user = null; // identifiant utilisateur courant
+let participant_info = {}; // infos saisies dans la 1ère interface
 const liste_answer_possible = ['strongly agree', 'agree', 'neutre', 'disagree', 'strongly disagree']; // options standard des questions
 
 // Questions générales sur l’interface d’explication
@@ -714,7 +715,7 @@ window.onload = function () {
                     btns.append("button")
                         .attr("class", "button")
                         .text("Unselect all").on("click", () => {
-                        checklist.selectAll("input").property("checked", false);
+                            checklist.selectAll("input").property("checked", false);
                         });
                     btns.append("button")
                         .attr("class", "button")
@@ -849,13 +850,51 @@ window.onload = function () {
 
 // ------------------FONCTIONS COMPLEXES------------------- //
 
-// Validation de l’ID puis chargement d’un cours aléatoire
+// Validation de l’ID + collecte des infos “General Information”
 function validateLogin() {
     const userID = document.getElementById("userId").value.trim();
+
+    const ageStr = document.getElementById("age")?.value.trim() || "";
+    const age = ageStr === "" ? "" : parseInt(ageStr, 10);
+
+    const gender = document.querySelector('input[name="gender"]:checked')?.value || "Prefer not to say";
+
+    const educationLevelSelect = document.getElementById("educationLevel");
+    const educationLevel = educationLevelSelect ? educationLevelSelect.value : "";
+    const educationOther = document.getElementById("educationOther")?.value.trim() || "";
+    const education = educationLevel === "Other" ? (educationOther || "Other") : educationLevel;
+
+    const fieldStudy = document.getElementById("fieldStudy")?.value.trim() || "";
+
+    const usedReco = document.querySelector('input[name="usedReco"]:checked')?.value || "";
+
+    const frequency = document.getElementById("frequency")?.value || "";
+
     if (userID === "") {
         alert("Merci de saisir un ID utilisateur.");
         return;
     }
+    if (ageStr !== "" && (isNaN(age) || age < 10 || age > 120)) {
+        alert("Merci d'entrer un âge valide (10–120) ou de laisser le champ vide.");
+        return;
+    }
+
+    // 1) Mémoriser les infos participant dans l’état global
+    participant_info = {
+        user_id: userID,
+        age: ageStr === "" ? "" : age,
+        gender: gender,
+        education_level: education,
+        field_of_study_or_work: fieldStudy,
+        used_course_recommendation_system: usedReco,
+        elearning_frequency: frequency
+    };
+    if (typeof reponse_user_study !== "object" || !reponse_user_study) {
+        reponse_user_study = {};
+    }
+    reponse_user_study.participant = participant_info;
+
+    // 2) Conserver votre logique de vérification d'ID et chargement
     fetch(`http://localhost:5000/api/random_course?start=${userID}`)
         .then(res => res.json())
         .then(data => {
@@ -872,6 +911,7 @@ function validateLogin() {
             alert("Impossible de vérifier l'ID (serveur indisponible ?)");
         });
 }
+
 
 // Affiche le chemin courant (métriques + recentrage + questions)
 function afficherCheminCourant() {
@@ -1240,7 +1280,7 @@ function loadPath() {
 
         })
         .catch(err => {
-            hideLoader(); 
+            hideLoader();
             alert("Erreur lors de la récupération du cours aléatoire.");
         });
 }
@@ -1313,4 +1353,23 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener("click", (e) => {
         if (!list.contains(e.target) && e.target !== input) hide();
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const edu = document.getElementById("educationLevel");
+        const eduOther = document.getElementById("educationOther");
+        if (edu && eduOther) {
+            const toggle = () => {
+                if (edu.value === "Other") {
+                    eduOther.classList.remove("hidden");
+                } else {
+                    eduOther.classList.add("hidden");
+                    eduOther.value = "";
+                }
+            };
+            edu.addEventListener("change", toggle);
+            toggle();
+        }
+    });
+
 });
+
