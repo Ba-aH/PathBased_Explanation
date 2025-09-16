@@ -38,6 +38,58 @@
                 <!-- Autocomplete dropdown -->
                 <ul class="extracted-style-5" id="userId-suggest">
                 </ul>
+
+                <!-- General Information (first interface) -->
+                <h3 style="margin-top:16px;">General Information</h3>
+
+                <p style="font-size:13px; text-align:left; margin:6px 0 10px;">
+                You are invited to participate in a study to evaluate a course recommendation system and the associated explanations. Participation is voluntary, and you may withdraw at any time. Your responses are anonymous and used only for research purposes.
+                </p>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Age</label>
+                  <input id="gi_age" type="number" min="10" max="120" placeholder="Age..." />
+                </div>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Gender</label>
+                  <div class="radioOption"><input type="radio" name="gi_gender" value="Female"> Female</div>
+                  <div class="radioOption"><input type="radio" name="gi_gender" value="Male"> Male</div>
+                  <div class="radioOption"><input type="radio" name="gi_gender" value="Other"> Other</div>
+                  <div class="radioOption"><input type="radio" name="gi_gender" value="Prefer not to say"> Prefer not to say</div>
+                </div>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Education level</label>
+                  <div class="radioOption"><input type="radio" name="gi_edu" value="High school"> High school</div>
+                  <div class="radioOption"><input type="radio" name="gi_edu" value="Bachelor"> Bachelor</div>
+                  <div class="radioOption"><input type="radio" name="gi_edu" value="Master"> Master</div>
+                  <div class="radioOption"><input type="radio" name="gi_edu" value="PhD"> PhD</div>
+                  <div class="radioOption">
+                    <input type="radio" name="gi_edu" value="Other"> Other:
+                    <input id="gi_edu_other" type="text" placeholder="Specify..." style="margin-left:6px;"/>
+                  </div>
+                </div>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Field of study / work</label>
+                  <input id="gi_field" type="text" placeholder="e.g., Computer Science" />
+                </div>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Have you ever used a course recommendation system?</label>
+                  <div class="radioOption"><input type="radio" name="gi_usedReco" value="Yes"> Yes</div>
+                  <div class="radioOption"><input type="radio" name="gi_usedReco" value="No"> No</div>
+                </div>
+
+                <div style="text-align:left; margin-top:12px;">
+                  <label>Frequency of e-learning platform use</label>
+                  <div class="radioOption"><input type="radio" name="gi_freq" value="Rarely"> Rarely</div>
+                  <div class="radioOption"><input type="radio" name="gi_freq" value="Sometimes"> Sometimes</div>
+                  <div class="radioOption"><input type="radio" name="gi_freq" value="Often"> Often</div>
+                  <div class="radioOption"><input type="radio" name="gi_freq" value="Very often"> Very often</div>
+                </div>
+
                 <button class="button" onclick="validateLogin()">Confirm</button>
             </div>
         </div>
@@ -60,9 +112,12 @@
                     <button class="button" id="exportSvg"
                         title="Export the current graph as SVG in a new tab and start a download automatically">Export
                         SVG</button>
+                    <button class="button" onclick="showTextExplain()"
+                        title="Click here to reveal the full text explaining this path">Show Full Text Explanation</button>
+                    <button class="button" onclick="downloadTextExplain()"
+                        title="Export the text explanation to a .txt file">Export Text</button>
                 </div>
-                <div>Click on a node to extend the graph by showing its neighbors. You can explore the neighborhood of
-                    nodes more precisely by selecting which predicates to display.</div>
+
                 <!-- Graphe et boutons navigation -->
                 <div id="graphs-container">
                     <button class="navigation extracted-style-8" id="buttonPrecedent">
@@ -93,28 +148,24 @@
                 <h3>Explanation</h3>
                 <p id="Explication"></p>
                 <!-- Legende des graphes -->
-                <h4>Legend</h4>
-                <ul class="extracted-style-11">
-                    <li><span class="extracted-style-12"></span>
-                        Topic</li>
-                    <li><span class="extracted-style-13"></span>
-                        User and recommended course</li>
-                    <li><span class="extracted-style-14"></span>
-                        Course</li>
-                    <li><span class="extracted-style-15"></span>
-                        Type</li>
-                    <li>
-                        <div class="extracted-style-16">
-                            <div id="legendLiteral">
-                                Literal
-                            </div>
-                            <span>Literal</span>
-                        </div>
-                    </li>
-                </ul>
-                <!-- Diagramme top 5 attributs sémantiques -->
-                <h4>Top 5 Semantic Attributes</h4>
-                <p>This bar chart shows what percentage of the user's high interest courses shares the same semantic
+                <h3 style="margin-top:15px;">Legend</h3>
+                <div class="legend">
+                    <div><span class="node course"></span> course</div>
+                    <div><span class="node user"></span> user</div>
+                    <div><span class="node competence"></span> competence</div>
+                    <div><span class="node interest"></span> interest</div>
+                    <div><span class="node language"></span> language</div>
+                    <div><span class="edge follows"></span> follows</div>
+                    <div><span class="edge interested"></span> interested</div>
+                    <div><span class="edge requires"></span> requires</div>
+                    <div><span class="edge teaches"></span> teaches</div>
+                    <div><span class="edge has"></span> has</div>
+                </div>
+
+                <!-- Charts -->
+                <h3 style="margin-top:15px;">Top 5 Attributes</h3>
+                <p style="font-size:13px;">
+                    Proportion (in %) of the nodes in this path that share the same
                     attributes as the recommended course. This chart only shows the top 5, non-zero percentages.</p>
                 <div id="messageTop5"></div>
                 <canvas height="200" id="top5chart" width="260"></canvas>
