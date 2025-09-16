@@ -61,7 +61,7 @@ def generer_graphe_pondere():
   # Charger le fichier .ttl
   global g
   g = rdflib.Graph()
-  g.parse("./combined_graph.ttl", format="ttl")
+  g.parse("./combined_graph.ttl", format="ttl") #Changer le nom du fichier si necessaire
 
   # Créer un graphe dirigé (ou non dirigé selon le besoin)
   G = nx.DiGraph()  # ou nx.Graph() si non orienté
@@ -875,46 +875,41 @@ def receive_user_study():
 @app.route('/api/user_study', methods=['POST'])
 def receive_user_study():
     """
-    Permet de recevoir les réponses des questions de l'étude utilisateur et de créer un fichier json stockant ces réponses.
+    Reçoit toutes les réponses de l'étude utilisateur (infos participant, feedback général, feedback par chemin)
+    et les sauvegarde dans un JSON {user}_study_answers.json.
     """
-    
     import json
     data = request.get_json()
-    
-    user_study = data.get('user_study', [])
+
+    user_study = data.get('user_study', {})
     user_id = data.get('user_id', "")
-    print("User study reçue :", user_study,", user id :", user_id)
 
     # Nom du fichier JSON de sortie
     filename = f"{user_id}_study_answers.json"
 
-    # Correspondance question
-    liste_question_possible = {'answer0':'This explanation path lets me judge when I should trust the recommendation system.',
-                               'answer1':'Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.',
-                               'answer2':'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
-                               'answer3':'This explanation path seems generic.',
-                               'answer4': 'This explanation path seems seems aligned with my personal interests.'
-                        }
+    # Correspondance optionnelle des clés answerX -> question (peut coexister avec vos libellés du front)
+    liste_question_possible = {
+        'answer0': 'This explanation path lets me judge when I should trust the recommendation system.',
+        'answer1': 'Without adding or modifying the graph, the recommendation path gives me enough insight into why this course was proposed to me.',
+        'answer2': 'This explanation path has irrelevant details, which make it overwhelming/difficult to understand.',
+        'answer3': 'This explanation path seems generic.',
+        'answer4': 'This explanation path seems seems aligned with my personal interests.'
+    }
 
-    # Structure de base
+    # Structure enrichie avec une section "participant information"
     feedback_data = {
         "user": user_id,
+        "participant information": user_study.get("participant", {}),
         "general feedback": {},
         "path feedback": []
     }
 
-    print("Type de user_study :", type(user_study))
-    print("Contenu de user_study :", user_study)
-
-    print("Contenu brut reçu du front :", json.dumps(user_study, indent=2, ensure_ascii=False))
-
-
-    # Traitement du feedback général
+    # Feedback général (vos selects "⬇️General Feedback on the Explanation Interface⬇️")
     general_feedback = user_study.get('general_feedback', {})
     for question, answer in general_feedback.items():
         feedback_data["general feedback"][question] = answer
 
-   # Traitement du feedback par chemin
+    # Feedback par chemin
     path_feedback = user_study.get('path_feedback', {})
     for path_key, path_info in path_feedback.items():
         path_dict = {
@@ -925,7 +920,7 @@ def receive_user_study():
             "S_div": path_info.get("S_div"),
             "Score": path_info.get("Score")
         }
-        # Ajout des réponses avec remplacement answerX par la question
+        # Remplacer answerX par l'intitulé si présent
         for ans_key, ans_value in path_info.items():
             if ans_key.startswith("answer"):
                 question_text = liste_question_possible.get(ans_key, ans_key)
@@ -933,13 +928,12 @@ def receive_user_study():
 
         feedback_data["path feedback"].append(path_dict)
 
-
-
-    # Sauvegarde JSON
+    # Sauvegarde
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(feedback_data, f, ensure_ascii=False, indent=4)
 
     return jsonify({"status": "success", "message": f"Data saved for {user_id}"})
+
 
 # --- AUTOCOMPLÉTION UTILISATEURS ---
 @app.route("/api/users")
