@@ -53,27 +53,6 @@ function getNodeColor(group) {
                 group === 3 ? "rgb(67, 143, 206)" : "#bce98f";
 }
 
-// Recherche d’un node par label dans le chemin affiché et focus dessus
-function chercherNode() {
-    const node = document.getElementById("node").value;
-    const currentPath = allPaths[index_path_affiché];
-    data = {
-        nodes: [...currentPath.nodes],
-        edges: [...currentPath.edges]
-    };
-    for (const n of data.nodes) {
-        if (n.label == node) {
-            const graph = window.graphPrincipal;
-            const width = +graph.svg.attr("width");
-            const height = +graph.svg.attr("height");
-            focusOnNode(graph, n.id, width, height);
-            return;
-        }
-    }
-    alert("Node non trouvé");
-    return;
-}
-
 // Ajuste le SVG + redémarre la simulation pour un resize propre
 function updateGraphSize(width, height, simulation, svg) {
     svg
@@ -352,16 +331,25 @@ function drawGraph(container, nodesData, edgesData) {
     }
     container.innerHTML = "";
 
-    var width = container.clientWidth;
-    var height = container.clientHeight;
+    var width = container.clientWidth || 1200;
+    var height = container.clientHeight || 650;
+    
+    // Forcer des dimensions minimales pour avoir un graphe bien visible
+    if (width < 1000) width = 1200;
+    if (height < 500) height = 650;
+    
     // Cas où le conteneur est caché (calculer une taille plausible)
     if (container.parentElement && container.parentElement.style.display == "none") {
         const oldDisplay = container.parentElement.style.display;
         container.parentElement.style.display = "block";
         void container.parentElement.offsetWidth;
-        width = container.clientWidth || 600;
-        height = container.clientHeight || 400;
+        width = container.clientWidth || 1200;
+        height = container.clientHeight || 650;
         container.parentElement.style.display = oldDisplay;
+        
+        // Forcer encore les dimensions minimales
+        if (width < 1000) width = 1200;
+        if (height < 500) height = 650;
     }
 
     const svg = d3.select(container)
@@ -531,7 +519,7 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
         })
         .call(drag(simulation))
         .on("mouseover", (event, d) => {
-            // survol: mise en évidence + tooltip si title est présent
+            // survol: mise en évidence + tooltip avec message d'aide
             if (d.label === d.id) {
                 d3.select(event.currentTarget).select('rect')
                     .attr("stroke", "black")
@@ -541,15 +529,16 @@ function updateGraph(nodesData, edgesData, svg, linkGroup, nodeGroup, labelGroup
                     .attr("stroke", "black")
                     .attr("stroke-width", 3);
             }
-            const value = d.title ?? '';
             attrs.onNodeHover?.(d.title ?? '');
-            if (value !== '') {
-                tooltip
-                    .style("display", "block")
-                    .html(value)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY + 10) + "px");
-            }
+            
+            // Afficher seulement le message d'aide
+            const helpMessage = "Click on a node to extend the graph by showing its neighbors";
+            
+            tooltip
+                .style("display", "block")
+                .html(helpMessage)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY + 10) + "px");
 
         })
         .on("mouseout", (event, d) => {
@@ -1113,6 +1102,137 @@ function validateLogin() {
         });
 }
 
+// Génère l'explication textuelle pour un chemin donné
+function genererTexte(path) {
+    // Dictionnaire permettant de convertir les arêtes en texte
+    const dico_txt = {
+        'SmallInterest': " has a small interest in ",
+        'MediumInterest': " has a medium interest in ",
+        'HighInterest': " has a high interest in ",
+        'hasKnowledgeTopic': ", that has the knowledge topic ",
+        'cso#relatedEquivalent': ', that has the related equivalent ',
+        'cso#preferentialEquivalent': ', that has the preferential equivalent ',
+        'cso#contributesTo': ', that contributes to the topic ',
+        'cso#superTopicOf': ', that is a super topic of ',
+        'isKnowledgeTopicOf': ', that is a knowledge topic of the course '
+    };
+
+    // Fonction helper pour trouver le titre d'un nœud à partir de son ID
+    function getNodeTitle(nodeId) {
+        const node = path.nodes.find(n => n.id === nodeId);
+        if (node && node.title) {
+            // Nettoyer le préfixe "Title :" s'il existe
+            return node.title.replace(/^Title\s*:\s*/, '');
+        }
+        return null;
+    }
+
+    // Fonction helper pour formatter un cours avec son titre
+    function formatCourse(courseId) {
+        const courseName = courseId.split('/').pop();
+        if (courseName.startsWith('course_')) {
+            const title = getNodeTitle(courseId);
+            return title ? `${courseName} (${title})` : courseName;
+        }
+        return courseName;
+    }
+
+    let texte = '';
+    let n_from = "user_";
+
+    // On génère le texte à partir des arêtes du chemin
+    for (let i = 0; i < path.edges.length; i++) {
+        for (const edge of path.edges) {
+            if (edge.from.includes(n_from)) {
+                if (edge.from.includes('user_')) {
+                    texte += edge.from.split('/').pop() + " ";
+                }
+                const label = edge.label.split('/').pop(); // Prendre seulement la partie après le dernier '/'
+                if (dico_txt[label]) {
+                    texte += dico_txt[label];
+                }
+                
+                // Formatter le nœud de destination (avec titre si c'est un cours)
+                const toFormatted = formatCourse(edge.to);
+                texte += toFormatted + " ";
+                
+                n_from = edge.to;
+                break;
+            }
+        }
+    }
+    return texte;
+}
+
+// Affiche automatiquement les titres des cours dans le graphe
+function afficherTitresCours(currentPath) {
+    // Identifier les nœuds cours qui ont des titres
+    const coursAvecTitres = currentPath.nodes.filter(node => {
+        const nodeId = node.id.split('/').pop();
+        return nodeId.startsWith('course_') && node.title && node.title.trim() !== '';
+    });
+    
+    // Pour chaque cours avec titre, simuler un clic pour afficher le titre
+    coursAvecTitres.forEach(courseNode => {
+        const nodeId = courseNode.id;
+        
+        // Vérifier si ce nœud n'a pas déjà été cliqué
+        if (!liste_node_click.includes(nodeId)) {
+            // Ajouter à la liste des nœuds cliqués
+            liste_node_click.push(nodeId);
+            
+            // Créer un nœud titre fictif et l'ajouter aux données
+            const titleNodeId = courseNode.title.replace(/^Title\s*:\s*/, '').trim();
+            const titleNode = {
+                id: titleNodeId,
+                label: titleNodeId,
+                title: courseNode.title,
+                group: 4, // Groupe pour les titres (vert #bce98f)
+                x: courseNode.x + Math.random() * 100 - 50,
+                y: courseNode.y + Math.random() * 100 - 50
+            };
+            
+            // Créer une arête "title" entre le cours et son titre
+            const titleEdge = {
+                from: nodeId,
+                to: titleNodeId,
+                label: 'title',
+                id: `${nodeId}-${titleNodeId}`
+            };
+            
+            // Vérifier que le nœud titre n'existe pas déjà
+            const existingTitleNode = data.nodes.find(n => n.id === titleNodeId);
+            if (!existingTitleNode) {
+                // Ajouter le nœud titre aux données
+                data.nodes.push(titleNode);
+                parent[titleNodeId] = nodeId; // Marquer la relation parent-enfant
+            }
+            
+            // Vérifier que l'arête n'existe pas déjà
+            const existingTitleEdge = data.edges.find(e => e.from === nodeId && e.to === titleNodeId);
+            if (!existingTitleEdge) {
+                // Ajouter l'arête titre aux données
+                data.edges.push(titleEdge);
+            }
+        }
+    });
+    
+    // Mettre à jour le graphe avec les nouveaux nœuds et arêtes
+    if (coursAvecTitres.length > 0) {
+        updateGraph(
+            data.nodes,
+            data.edges,
+            window.graphPrincipal.svg,
+            window.graphPrincipal.linkGroup,
+            window.graphPrincipal.nodeGroup,
+            window.graphPrincipal.labelGroup,
+            window.graphPrincipal.edgeLabelGroup,
+            window.graphPrincipal.simulation,
+            window.graphPrincipal.zoomGroup
+        );
+    }
+}
+
 
 // Affiche le chemin courant (métriques + recentrage + questions)
 function afficherCheminCourant() {
@@ -1136,18 +1256,28 @@ function afficherCheminCourant() {
         window.graphPrincipal.simulation,
         window.graphPrincipal.zoomGroup
     );
-    const container = document.getElementById("ligne-info-chemin");
-    container.innerHTML = "";
-    document.getElementById("num-chemin").innerHTML = "<strong>Path " + (index_path_affiché + 1) + ' / ' + allPaths.length + "</strong>";
-    const line = document.createElement("div");
-    line.innerHTML = "S_sim = " + currentPath['S_sim'] + ", S_pop = " + currentPath['S_pop'] + ", S_div = " + currentPath['S_div'] + " --> " + currentPath['Score'];
-    container.appendChild(line);
-    const line2 = document.createElement("div");
-    line2.innerHTML = "Length = " + currentPath['longueur'];
-    container.appendChild(line2);
-    const line3 = document.createElement("div");
-    line3.innerHTML = "Pattern : " + currentPath['pattern'];
-    container.appendChild(line3);
+    
+    // Mettre à jour l'explication textuelle pour le chemin courant
+    const explicationTexte = genererTexte(currentPath);
+    document.getElementById('Explication').innerHTML = explicationTexte;
+    
+    // Afficher automatiquement les titres des cours dans le graphe
+    setTimeout(() => {
+        afficherTitresCours(currentPath);
+    }, 100);
+    
+    // const container = document.getElementById("ligne-info-chemin");
+    // container.innerHTML = "";
+    // document.getElementById("num-chemin").innerHTML = "<strong>Path " + (index_path_affiché + 1) + ' / ' + allPaths.length + "</strong>";
+    // const line = document.createElement("div");
+    // line.innerHTML = "S_sim = " + currentPath['S_sim'] + ", S_pop = " + currentPath['S_pop'] + ", S_div = " + currentPath['S_div'] + " --> " + currentPath['Score'];
+    // container.appendChild(line);
+    // const line2 = document.createElement("div");
+    // line2.innerHTML = "Length = " + currentPath['longueur'];
+    // container.appendChild(line2);
+    // const line3 = document.createElement("div");
+    // line3.innerHTML = "Pattern : " + currentPath['pattern'];
+    // container.appendChild(line3);
     setTimeout(() => {
         fitToGraph(window.graphPrincipal.svg, window.graphPrincipal.zoom);
     }, 200);
@@ -1282,6 +1412,23 @@ function loadPath() {
             }
             course = data4.course;
             const affichageDiv = document.getElementById("affichage-cours");
+            
+            // Fonction pour récupérer le titre du cours depuis les données du chemin
+            function getCourseTitle(courseName, pathsData) {
+                if (!pathsData || !pathsData.length) return null;
+                
+                for (const path of pathsData) {
+                    const courseNode = path.nodes.find(node => 
+                        node.id.includes(courseName) && node.title && node.title.trim() !== ''
+                    );
+                    if (courseNode) {
+                        return courseNode.title.replace(/^Title\s*:\s*/, '');
+                    }
+                }
+                return null;
+            }
+            
+            // Affichage initial du cours (sera mis à jour avec le titre après récupération des chemins)
             affichageDiv.innerHTML = `Recommended course : <strong>${course}</strong>`;
 
             // 2) Récupérer tous les chemins expliquant la reco
@@ -1295,6 +1442,13 @@ function loadPath() {
                     const precedent = document.getElementById("buttonPrecedent");
                     precedent.innerHTML = '<';
                     allPaths = data2.all_paths;
+                    
+                    // Mettre à jour l'affichage du cours avec son titre maintenant qu'on a les données
+                    const courseTitle = getCourseTitle(course, allPaths);
+                    if (courseTitle) {
+                        affichageDiv.innerHTML = `Recommended course : <strong>${course} (${courseTitle})</strong>`;
+                    }
+                    
                     afficherCheminCourant();
                     const separatorPath = document.getElementById("separateurChemin");
                     separatorPath.innerHTML = `
@@ -1550,4 +1704,53 @@ document.addEventListener('DOMContentLoaded', function () {
         toggle();
     }
 
+    // Redimensionnement du panneau de droite
+    setupPanelResizer();
+
 });
+
+// Fonction pour gérer le redimensionnement du panneau
+function setupPanelResizer() {
+    const resizer = document.getElementById('panel-resizer');
+    const rightPanel = document.getElementById('right-panel');
+    
+    if (!resizer || !rightPanel) return;
+
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = parseInt(window.getComputedStyle(rightPanel).width, 10);
+        
+        // Empêcher la sélection de texte pendant le redimensionnement
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+        
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const deltaX = startX - e.clientX; // Inverser pour redimensionner vers la gauche
+        const newWidth = startWidth + deltaX;
+        
+        // Limiter la largeur entre 250px et 600px
+        const minWidth = 250;
+        const maxWidth = 600;
+        const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+        
+        rightPanel.style.flexBasis = constrainedWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+        }
+    });
+}
