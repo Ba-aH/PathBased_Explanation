@@ -131,40 +131,39 @@
             <!-- Colonne centrale : graphe et contrôles -->
             <div class="extracted-style-7" id="center-panel">
                 <div id="affichage-cours"></div>
-                <!-- Controle du graphe -->
-                <div class="graph-controls">
-                    <button class="button" id="resetView"
-                        title="Click here to recenter the graph and adjust the zoom">Recenter The Graph</button>
-                    <button class="button" id="resetPath"
-                        title="Click here to come back to the initial path explanation">Reset Path</button>
-                    <input id="node" placeholder="course_xx, user_xx,..." type="text" />
-                    <button class="button" onclick="chercherNode()"
-                        title="Enter a node's name and click here to show its position in the graph">Find A
-                        Node</button>
-
-                    <button class="button" id="exportSvg"
-                        title="Export the current graph as SVG in a new tab and start a download automatically">Export
-                        SVG</button>
-                </div>
-                <div>Click on a node to extend the graph by showing its neighbors. You can explore the neighborhood of
-                    nodes more precisely by selecting which predicates to display.</div>
-                <!-- Graphe et boutons navigation -->
-                <div id="graphs-container">
-                    <button class="navigation extracted-style-8" id="buttonPrecedent">
-                    </button>
-                    <div id="graph-wrapper">
-                        <div class="g" id="graph"></div>
+                
+                <!-- Container pour graphe et questions côte à côte -->
+                <div id="graph-questions-container">
+                    <!-- Section graphe -->
+                    <div id="graph-section">
+                        <!-- Graphe et boutons navigation -->
+                        <div id="graphs-container">
+                            <button class="navigation extracted-style-8" id="buttonPrecedent">
+                            </button>
+                            <div id="graph-wrapper">
+                                <div class="g" id="graph"></div>
+                            </div>
+                            <button class="navigation extracted-style-8" id="buttonSuivant"></button>
+                        </div>
+                        
+                        <!-- Contrôles du graphe centrés en dessous -->
+                        <div class="graph-controls">
+                            <button class="button" id="resetView"
+                                title="Click here to recenter the graph and adjust the zoom">Recenter The Graph</button>
+                            <button class="button" id="resetPath"
+                                title="Click here to come back to the initial path explanation">Reset Path</button>
+                            <button class="button" id="exportSvg"
+                                title="Export the current graph as SVG in a new tab and start a download automatically">Export
+                                SVG</button>
+                        </div>
                     </div>
-                    <button class="navigation extracted-style-8" id="buttonSuivant"></button>
+                    
+                    <!-- Section questions -->
+                    <div id="questions-section">
+                        <div id="separateurChemin"></div>
+                        <div id="formulaire-questions"></div>
+                    </div>
                 </div>
-                <!-- Informations sous le graphe -->
-                <h3><u>Information about this path : </u></h3>
-                <div id="num-chemin"></div>
-                <div id="ligne-info-chemin">
-                </div>
-                <!-- Questions pour chaque chemin -->
-                <div id="separateurChemin"></div>
-                <div id="formulaire-questions"></div>
                 <!-- Popup hover node-->
                 <div class="extracted-style-9" id="tooltip">
                 </div>
@@ -174,6 +173,7 @@
             </div>
             <!--  Colonne de droite : explication + légende -->
             <div class="extracted-style-10" id="right-panel">
+                <div class="panel-resizer" id="panel-resizer"></div>
                 <!-- Explication textuelle -->
                 <h3>Explanation</h3>
                 <p id="Explication"></p>
@@ -191,7 +191,6 @@
                     <li>
                         <div class="extracted-style-16">
                             <div id="legendLiteral">
-                                Literal
                             </div>
                             <span>Literal</span>
                         </div>
