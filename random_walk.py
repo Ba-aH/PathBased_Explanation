@@ -62,7 +62,7 @@ def random_walk(G, start_node):
 
 # On importe le graphe et le convertit en DiGraph
 g = Graph()
-input_file = "combined_graph.ttl"
+input_file = "graph_baha.ttl"
 g.parse(input_file, format="ttl")
 
 G = nx.DiGraph()

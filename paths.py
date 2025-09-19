@@ -23,7 +23,7 @@ def generer_graphe_pondere_max():
 
   # Charger le fichier .ttl
   g = rdflib.Graph()
-  g.parse("./combined_graph.ttl", format="ttl")
+  g.parse("./graph_baha.ttl", format="ttl")
 
   # Créer un graphe dirigé (ou non dirigé selon le besoin)
   G = nx.DiGraph()  # ou nx.Graph() si non orienté

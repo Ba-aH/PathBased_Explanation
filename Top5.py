@@ -6,7 +6,7 @@ from rdflib import Graph
 
 
 g = Graph()
-input_file = "combined_graph.ttl"
+input_file = "graph_baha.ttl"
 g.parse(input_file, format="ttl")
 
 G = nx.DiGraph()
