@@ -136,18 +136,16 @@
                 <div id="graph-questions-container">
                     <!-- Section graphe -->
                     <div id="graph-section">
-                        <!-- Graphe et boutons navigation -->
+                        <!-- Graphe sans boutons navigation -->
                         <div id="graphs-container">
-                            <button class="navigation extracted-style-8" id="buttonPrecedent">
-                            </button>
                             <div id="graph-wrapper">
                                 <div class="g" id="graph"></div>
                             </div>
-                            <button class="navigation extracted-style-8" id="buttonSuivant"></button>
                         </div>
                         
                         <!-- Contrôles du graphe centrés en dessous -->
                         <div class="graph-controls">
+                            <button class="navigation" id="buttonPrecedent">⬅️ Previous Path</button>
                             <button class="button" id="resetView"
                                 title="Click here to recenter the graph and adjust the zoom">Recenter The Graph</button>
                             <button class="button" id="resetPath"
@@ -155,6 +153,7 @@
                             <button class="button" id="exportSvg"
                                 title="Export the current graph as SVG in a new tab and start a download automatically">Export
                                 SVG</button>
+                            <button class="navigation" id="buttonSuivant">Next Path ➡️</button>
                         </div>
                     </div>
                     
