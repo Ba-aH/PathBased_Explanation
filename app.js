@@ -1441,6 +1441,10 @@ function loadPath() {
                     document.getElementById('Explication').innerHTML = texte;
                     const precedent = document.getElementById("buttonPrecedent");
                     precedent.innerHTML = '<';
+                    // Cacher le bouton précédent si on est sur le premier chemin
+                    if (index_path_affiché === 0) {
+                        precedent.style.visibility = 'hidden';
+                    }
                     allPaths = data2.all_paths;
                     
                     // Mettre à jour l'affichage du cours avec son titre maintenant qu'on a les données
