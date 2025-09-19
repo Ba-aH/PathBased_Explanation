@@ -392,7 +392,7 @@ function drawGraph(container, nodesData, edgesData) {
 
     svg.call(zoom);
 
-    // Simulation forces (longueurs de liens + répulsion + centrage)
+    // Simulation forces (lengths de liens + répulsion + centrage)
     let simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(d => d.id).distance(200))
         .force("charge", d3.forceManyBody().strength(-300))
@@ -1071,7 +1071,6 @@ function validateLogin() {
 
     // 1) Mémoriser les infos participant dans l’état global
     participant_info = {
-        user_id: userID,
         age: ageStr === "" ? "" : age,
         gender: gender,
         education_level: education,
@@ -1273,7 +1272,7 @@ function afficherCheminCourant() {
     // line.innerHTML = "S_sim = " + currentPath['S_sim'] + ", S_pop = " + currentPath['S_pop'] + ", S_div = " + currentPath['S_div'] + " --> " + currentPath['Score'];
     // container.appendChild(line);
     // const line2 = document.createElement("div");
-    // line2.innerHTML = "Length = " + currentPath['longueur'];
+    // line2.innerHTML = "Length = " + currentPath['length'];
     // container.appendChild(line2);
     // const line3 = document.createElement("div");
     // line3.innerHTML = "Pattern : " + currentPath['pattern'];
@@ -1338,7 +1337,7 @@ function afficherQuestionsPourChemin(path) {
         });
         if (allAnswered) {
             // Ajout de métadonnées du chemin pour analyse ultérieure
-            responses["longueur"] = path["longueur"];
+            responses["length"] = path["length"];
             responses["S_sim"] = path["S_sim"];
             responses["S_pop"] = path["S_pop"];
             responses["S_div"] = path["S_div"];
