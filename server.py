@@ -947,11 +947,13 @@ def api_users_autocomplete():
     if not q:
         return jsonify([])
 
+    # Escape quotes outside the f-string
+    escaped_q = q.replace('"', '\\"')
     sparql = f"""
     PREFIX schema: <https://schema.org/>
     SELECT DISTINCT ?u WHERE {{
       ?u a schema:Person .
-      FILTER(CONTAINS(LCASE(STR(?u)), "{q.replace('"','\\"')}"))
+      FILTER(CONTAINS(LCASE(STR(?u)), "{escaped_q}"))
     }} LIMIT {max(limit,1)}
     """
 
