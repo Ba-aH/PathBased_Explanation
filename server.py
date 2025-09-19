@@ -180,7 +180,7 @@ def compute_all_paths_data_index(G, user, course, a = 0.4, b=0.3, c=0.3, w=True)
                     n_from = edge['to']
                     break
         
-        liste_res.append({"nodes": nodes, "edges": edges,"longueur":len(nodes)-1,'pattern':pattern, 'path':texte})
+        liste_res.append({"nodes": nodes, "edges": edges,"length":len(nodes)-1,'pattern':pattern, 'path':texte})
         print("nodes :",nodes)
     
 
@@ -309,8 +309,8 @@ def compute_all_paths_data_index(G, user, course, a = 0.4, b=0.3, c=0.3, w=True)
     liste_res.sort(key=lambda path: path['Score'], reverse=True)
     liste_res = liste_res[:5]
 
-    # Trier liste_res en fct de la longueur
-    liste_res.sort(key=lambda path: path['longueur'])
+    # Trier liste_res en fct de la length
+    liste_res.sort(key=lambda path: path['length'])
 
     return {'path' : liste_res[0],'all_paths':liste_res} #Soit [0] pour garder le chemin principal en bas, soit .pop(0)
 
@@ -324,7 +324,7 @@ def compute_all_paths_data_len(G, user, course,max=6):
     - G : un DiGraph
     - user : str, l'utilisateur
     - course : str, le cours recommandé
-    - max : int, la longueure maximale des chemins à trouver
+    - max : int, la length maximale des chemins à trouver
     Sortie : 
     - paths : generator
     """
@@ -835,7 +835,7 @@ def receive_user_study():
     filename = "reponses_user_study.csv"
 
     # En-têtes
-    headers = ['user_id', 'pattern'] + [f'answer{i}' for i in range(6)] + ['longueur', 'S_jac', 'S_rw', 'S_tot', 'path']
+    headers = ['user_id', 'pattern'] + [f'answer{i}' for i in range(6)] + ['length', 'S_jac', 'S_rw', 'S_tot', 'path']
 
     # Charger les anciennes données si le fichier existe
     existing_rows = []
@@ -853,7 +853,7 @@ def receive_user_study():
             'user_id': user_id,
             'pattern': pattern,
             **{f'answer{i}': answers.get(f'answer{i}', '') for i in range(6)},
-            'longueur': answers.get('longueur', ''),
+            'length': answers.get('length', ''),
             'S_jac': answers.get('S_jac', ''),
             'S_rw': answers.get('S_rw', ''),
             'S_tot': answers.get('S_tot', ''),
@@ -913,7 +913,7 @@ def receive_user_study():
     path_feedback = user_study.get('path_feedback', {})
     for path_key, path_info in path_feedback.items():
         path_dict = {
-            "longueur": path_info.get("longueur"),
+            "length": path_info.get("length"),
             "path": path_info.get("path"),
             "S_sim": path_info.get("S_sim"),
             "S_pop": path_info.get("S_pop"),
